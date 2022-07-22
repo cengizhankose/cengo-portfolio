@@ -1,6 +1,6 @@
 {
-    "homepage": "http://ubaimutl.github.io/react-portfolio",
-    "name": "react-portfolio",
+    "name": "cengo-portfolio",
+    "homepage": "http://www.cengizhankose.com/",
     "version": "0.1.0",
     "private": true,
     "dependencies": {
@@ -10,7 +10,7 @@
         "@testing-library/user-event": "^12.1.10",
         "bootstrap": "^4.6.0",
         "emailjs-com": "^2.6.4",
-        "gh-pages": "^3.2.3",
+        "gh-pages": "^4.0.0",
         "react": "^17.0.1",
         "react-animated-cursor": "^2.1.8",
         "react-bootstrap": "^1.4.3",
@@ -28,8 +28,8 @@
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
-        "predeploy": "yarn build && cp build/index.html build/404.html",
-        "deploy": "gh-pages -d build"
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d build",
     },
     "eslintConfig": {
         "extends": [
