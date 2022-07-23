@@ -14,7 +14,7 @@ const introdata = {
   },
   description:
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed at nisl euismod urna bibendum",
-  your_img_url: "https://i.imgur.com/6b68mST.jpg",
+  your_img_url: "https://i.imgur.com/zZgdsLk.jpeg",
 };
 
 const dataabout = {
