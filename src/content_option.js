@@ -42,23 +42,23 @@ const worktimeline = [
 
 const skills = [
   {
-    name: "Python",
+    name: "JavaScript",
     value: 90,
   },
   {
-    name: "Djano",
+    name: "React Native",
     value: 85,
   },
   {
-    name: "Javascript",
+    name: "React",
     value: 80,
   },
   {
-    name: "React",
+    name: "Flutter",
     value: 60,
   },
   {
-    name: "Jquery",
+    name: "Figma",
     value: 85,
   },
 ];
@@ -159,12 +159,12 @@ const dataportfolio = [
 
 const contactConfig = {
   YOUR_EMAIL: "kose651@gmail.com",
-  YOUR_FONE: "(530)492-3030",
+  // YOUR_FONE: "(530)492-3030",
   description:
     "Feel free to contact me about web to mobile project. I can develop high quality products for your business needs. ",
-  YOUR_SERVICE_ID: "service_id",
-  YOUR_TEMPLATE_ID: "template_id",
-  YOUR_USER_ID: "user_id",
+  YOUR_SERVICE_ID: "service_5i3xexc",
+  YOUR_TEMPLATE_ID: "template_w4youof",
+  YOUR_USER_ID: "aPMkFJ3oavgGNOmn3",
 };
 
 const socialprofils = {
