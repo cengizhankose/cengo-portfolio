@@ -2,41 +2,56 @@ const logotext = "CENGO";
 const meta = {
   title: "Cengizhan KÖSE",
   description:
-    "I’m Cengizhan KÖSE Mobile Developer _ Full stack devloper,currently working in Turkey",
+    "I’m Cengizhan KÖSE Mobile Developer _ Full stack developer,currently working in Turkey",
 };
 
 const introdata = {
   title: "I’m Cengizhan KÖSE",
   animated: {
-    first: "I love coding",
-    second: "I code cool websites",
-    third: "I develop mobile apps",
+    first: "I love coding and designing",
+    second: "I have some startup projects",
+    third: "I develop high quality products",
   },
   description:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed at nisl euismod urna bibendum",
+    "I’m a Full stack developer / Part time Entrepreneur ,currently working in Turkey",
   your_img_url: "https://i.imgur.com/4b1v8Bg.jpeg",
 };
 
 const dataabout = {
   title: "abit about my self",
   aboutme:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent quis dolor id ligula semper elementum feugiat pretium nulla. Nunc non commodo dolor. Nunc mollis dignissim facilisis. Morbi ut magna ultricies.",
+    "I’m a Full stack developer / Part time Entrepreneur ,currently working in Turkey. I love coding and designing. I have two startup projects that i work with my partners and teams and CTO of another one.",
 };
 const worktimeline = [
   {
-    jobtitle: "Designer of week",
-    where: "YAdfi",
+    jobtitle: "Frontend Developer",
+    where: "Monster Notebook",
+    date: "2021-current",
+  },
+  {
+    jobtitle: "Co-Founder",
+    where: "Profo",
+    date: "2022-current",
+  },
+  {
+    jobtitle: "Co-Founder",
+    where: "Gamer Pair",
+    date: "2021-2022",
+  },
+  {
+    jobtitle: "React Native Developer",
+    where: "Fitmondo",
+    date: "2020-2021",
+  },
+  {
+    jobtitle: "Mobile Team Lead & Product Manager",
+    where: "MakasApp",
+    date: "2020-2021",
+  },
+  {
+    jobtitle: "React Native Bootcamp Student",
+    where: "Kodluyoruz",
     date: "2020",
-  },
-  {
-    jobtitle: "Designer of week",
-    where: "Jamalya",
-    date: "2019",
-  },
-  {
-    jobtitle: "Designer of week",
-    where: "ALquds",
-    date: "2019",
   },
 ];
 
@@ -65,19 +80,24 @@ const skills = [
 
 const services = [
   {
+    title: "Cross Platform Mobile App Development",
+    description:
+      "Beautiful and high quality mobile apps for both Android and iOS Built with React Native and Flutter",
+  },
+  {
+    title: "Management",
+    description:
+      "I can manage your projects and teams and help you to achieve your goals",
+  },
+  {
+    title: "Fullstack Web Development",
+    description:
+      "Modern and high quality websites and web apps built with React and Node.js",
+  },
+  {
     title: "UI & UX Design",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed at nisl euismod urna bibendum sollicitudin.",
-  },
-  {
-    title: "Mobile Apps",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed at nisl euismod urna bibendum sollicitudin.",
-  },
-  {
-    title: "Wordpress Design",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed at nisl euismod urna bibendum sollicitudin.",
+      "Cool and modern UI/UX designs for your mobile apps and websites",
   },
 ];
 
