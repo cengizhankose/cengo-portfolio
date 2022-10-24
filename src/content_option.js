@@ -20,7 +20,7 @@ const introdata = {
 const dataabout = {
   title: "abit about my self",
   aboutme:
-    "I’m a Full stack developer / Part time Entrepreneur ,currently working in Turkey. I love coding and designing. I have two startup projects that i work with my partners and teams and CTO of another one.",
+    "I’m a Full stack developer / Part time Entrepreneur ,currently working in Turkey. I love coding and designing. I won two hackathons and i have two startup projects that i work with my partners and teams and CTO of another one. I develop high quality products and i love to work with new technologies.",
 };
 const worktimeline = [
   {
