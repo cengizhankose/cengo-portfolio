@@ -17,9 +17,10 @@ export const Portfolio = () => {
           <Col lg="8">
             <h1 className="display-4 mb-4"> Portfolio </h1>{" "}
             <hr className="t_border my-4 ml-0 text-left" />
+            <h2 className="display-4 mt-4"> 🚧 Under Construction 🚧 </h2>{" "}
           </Col>
         </Row>
-        <div className="mb-5 po_items_ho">
+        {/* <div className="mb-5 po_items_ho">
           {dataportfolio.map((data, i) => {
             return (
               <div key={i} className="po_item">
@@ -31,7 +32,7 @@ export const Portfolio = () => {
               </div>
             );
           })}
-        </div>
+        </div> */}
       </Container>
     </HelmetProvider>
   );
