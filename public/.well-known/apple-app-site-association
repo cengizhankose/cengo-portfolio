@@ -1,0 +1,23 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "5J7X7KQLD6.com.drivee.Mobile.Client.App",
+        "paths": [
+          "/*"
+        ]
+      }
+    ]
+  },
+  "activitycontinuation": {
+    "apps": [
+      "5J7X7KQLD6.com.drivee.Mobile.Client.App"
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "5J7X7KQLD6.com.drivee.Mobile.Client.App"
+    ]
+  }
+}
