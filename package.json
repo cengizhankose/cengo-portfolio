@@ -12,6 +12,8 @@
     "bootstrap": "^4.6.0",
     "emailjs-com": "^2.6.4",
     "gh-pages": "^4.0.0",
+    "postcss": "^8.4.31",
+    "postcss-safe-parser": "^7.0.0",
     "react": "^17.0.1",
     "react-animated-cursor": "^2.1.8",
     "react-bootstrap": "^1.4.3",
