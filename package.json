@@ -31,7 +31,7 @@
     "preview": "vite preview",
     "test": "bun test",
     "predeploy": "bun run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d dist"
   },
   "eslintConfig": {
     "extends": [
@@ -54,6 +54,7 @@
   "devDependencies": {
     "@types/node": "^24.10.1",
     "@vitejs/plugin-react": "^5.1.1",
+    "terser": "^5.44.1",
     "vite": "^7.2.6"
   }
 }
