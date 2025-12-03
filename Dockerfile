@@ -31,22 +31,13 @@ COPY . .
 # Build the application
 RUN bun run build
 
-# Production stage - Run app directly with Node.js + Bun
+# Production stage - Use Node.js to serve static files
 FROM node:18-alpine AS production
-
-# Install Bun runtime
-RUN curl -fsSL https://bun.sh/install | bash && \
-    mv /root/.bun/bin/* /usr/local/bin/ && \
-    chmod +x /usr/local/bin/bun
 
 WORKDIR /app
 
-# Copy built assets and package files from builder stage
+# Copy built assets from builder stage
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package.json ./
-
-# Install only production dependencies (static serving)
-RUN bun install --production --frozen-lockfile
 
 # Install serve for static file serving
 RUN npm install -g serve
@@ -54,9 +45,9 @@ RUN npm install -g serve
 # Expose port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000 || exit 1
+# Health check (optional - remove if causing issues)
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#   CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
 # Add proper labels
 LABEL maintainer="Cengizhan Köse"
