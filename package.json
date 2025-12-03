@@ -14,24 +14,23 @@
     "gh-pages": "^4.0.0",
     "postcss": "^8.4.31",
     "postcss-safe-parser": "^7.0.0",
-    "react": "^17.0.1",
+    "react": "^18.3.1",
     "react-animated-cursor": "^2.1.8",
     "react-bootstrap": "^1.4.3",
-    "react-dom": "^17.0.1",
+    "react-dom": "^18.3.1",
     "react-helmet-async": "^1.0.7",
     "react-icons": "^4.1.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "4.0.1",
     "react-transition-group": "^4.4.2",
     "typewriter-effect": "^2.18.2",
     "web-vitals": "^0.2.4"
   },
   "scripts": {
-    "start": "export NODE_OPTIONS=--openssl-legacy-provider && react-scripts start",
-    "build": "export NODE_OPTIONS=--openssl-legacy-provider && react-scripts build",
-    "test": "export NODE_OPTIONS=--openssl-legacy-provider && react-scripts test",
-    "eject": "export NODE_OPTIONS=--openssl-legacy-provider && react-scripts eject",
-    "predeploy": "npm run build",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "bun test",
+    "predeploy": "bun run build",
     "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
@@ -51,5 +50,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@vitejs/plugin-react": "^5.1.1",
+    "vite": "^7.2.6"
   }
 }
