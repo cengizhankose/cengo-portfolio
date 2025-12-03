@@ -21,7 +21,7 @@ EXPOSE 3000
 # Start development server
 CMD ["bun", "run", "dev"]
 
-# Build stage
+# Production build stage
 FROM base AS builder
 ENV NODE_ENV=production
 
@@ -31,29 +31,37 @@ COPY . .
 # Build the application
 RUN bun run build
 
-# Production stage
-FROM nginx:alpine AS production
+# Production stage - Run app directly with Node.js + Bun
+FROM node:18-alpine AS production
 
-# Install curl for health check
-RUN apk add --no-cache curl
+# Install Bun runtime
+RUN curl -fsSL https://bun.sh/install | bash && \
+    mv /root/.bun/bin/* /usr/local/bin/ && \
+    chmod +x /usr/local/bin/bun
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
 
-# Copy built assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy built assets and package files from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./
+
+# Install only production dependencies (static serving)
+RUN bun install --production --frozen-lockfile
+
+# Install serve for static file serving
+RUN npm install -g serve
 
 # Expose port
-EXPOSE 80
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/ || exit 1
+  CMD curl -f http://localhost:3000 || exit 1
 
 # Add proper labels
 LABEL maintainer="Cengizhan Köse"
 LABEL version="1.0.0"
 LABEL description="Cengizhan Köse Portfolio - Vite + Bun React App"
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Serve the built application
+CMD ["serve", "-s", "dist", "-l", "3000"]
