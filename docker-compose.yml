@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Development service
+  app-dev:
+    build:
+      context: .
+      target: development
+    container_name: cengo-portfolio-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+  # Production service
+  app-prod:
+    build:
+      context: .
+      target: production
+    container_name: cengo-portfolio-prod
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+    profiles:
+      - production
+
+networks:
+  portfolio-network:
+    driver: bridge
+
+volumes:
+  node_modules:
+    driver: local
