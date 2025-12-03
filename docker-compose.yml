@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Development service
+  # Development service - with hot reload
   app-dev:
     build:
       context: .
@@ -11,21 +11,26 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3000
     volumes:
       - .:/app
       - /app/node_modules
     restart: unless-stopped
     networks:
       - portfolio-network
+    profiles:
+      - development
 
-  # Production service
+  # Production service - serves built app
   app-prod:
     build:
       context: .
       target: production
     container_name: cengo-portfolio-prod
     ports:
-      - "80:80"
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
     restart: unless-stopped
     networks:
       - portfolio-network
