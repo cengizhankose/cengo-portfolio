@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.drivee.Mobile.Client.App",
+      "sha256_cert_fingerprints": [
+        "90:5D:CC:86:54:E0:3E:A7:9C:32:1C:2A:EA:34:03:E9:BA:68:40:D5:9D:FA:4D:1C:03:EF:2D:4A:2B:E8:35:C0",
+        "B9:DF:5B:90:FF:1A:9C:44:38:49:7C:73:1A:93:9A:F6:4B:8A:1E:F4:45:73:DA:D9:B0:61:92:95:A5:D8:25:EE"
+      ]
+    }
+  }
+]

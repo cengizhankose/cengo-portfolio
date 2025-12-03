@@ -31,7 +31,7 @@
     "preview": "vite preview",
     "test": "bun test",
     "predeploy": "bun run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d dist"
   },
   "eslintConfig": {
     "extends": [
