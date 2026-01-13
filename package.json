@@ -9,27 +9,38 @@
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
     "bootstrap": "^5.3.8",
+    "drizzle-orm": "^0.45.1",
     "emailjs-com": "^3.2.0",
     "gh-pages": "^6.3.0",
+    "hono": "^4.11.4",
     "postcss": "^8.5.6",
     "postcss-safe-parser": "^7.0.1",
+    "postgres": "^3.4.8",
     "react": "^19.2.3",
     "react-animated-cursor": "^2.11.2",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.3",
     "react-helmet-async": "^2.0.5",
     "react-icons": "^5.5.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.12.0",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.1",
     "typewriter-effect": "^2.22.0",
     "web-vitals": "^5.1.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"bun run api\" \"vite\"",
+    "dev:vite": "vite",
+    "api": "bun run src/api/index.ts",
     "build": "vite build",
     "preview": "vite preview",
     "test": "bun test",
     "predeploy": "bun run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "eslintConfig": {
     "extends": [
@@ -52,6 +63,8 @@
   "devDependencies": {
     "@types/node": "^25.0.8",
     "@vitejs/plugin-react": "^5.1.2",
+    "concurrently": "^9.2.1",
+    "drizzle-kit": "^0.31.8",
     "terser": "^5.44.1",
     "vite": "^7.3.1"
   }
