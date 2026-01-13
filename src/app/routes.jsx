@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 import { Home } from "../pages/home";
 import { Portfolio } from "../pages/portfolio";
@@ -10,27 +9,34 @@ import { Socialicons } from "../components/socialicons";
 
 function AnimatedRoutes() {
   const location = useLocation();
+  const [displayLocation, setDisplayLocation] = useState(location);
+  const [transitionStage, setTransitionStage] = useState("fadeIn");
+
+  useEffect(() => {
+    if (location !== displayLocation) {
+      setTransitionStage("fadeOut");
+    }
+  }, [location, displayLocation]);
 
   return (
-    <TransitionGroup>
-      <CSSTransition
-        key={location.key}
-        timeout={{
-          enter: 400,
-          exit: 400,
-        }}
-        classNames="page"
-        unmountOnExit
-      >
-        <Routes location={location}>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/contact" element={<ContactUs />} />
-          <Route path="*" element={<Home />} />
-        </Routes>
-      </CSSTransition>
-    </TransitionGroup>
+    <div
+      className={`page-transition ${transitionStage}`}
+      onAnimationEnd={() => {
+        if (transitionStage === "fadeOut") {
+          setTransitionStage("fadeIn");
+          setDisplayLocation(location);
+          window.scrollTo(0, 0);
+        }
+      }}
+    >
+      <Routes location={displayLocation}>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </div>
   );
 }
 
