@@ -6,6 +6,8 @@ import { Portfolio } from "../pages/portfolio";
 import { ContactUs } from "../pages/contact";
 import { About } from "../pages/about";
 import { Socialicons } from "../components/socialicons";
+import BlogHome from "../pages/blog/BlogHome";
+import BlogPost from "../pages/blog/BlogPost";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -34,6 +36,8 @@ function AnimatedRoutes() {
         <Route path="/about" element={<About />} />
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/contact" element={<ContactUs />} />
+        <Route path="/blog" element={<BlogHome />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </div>
