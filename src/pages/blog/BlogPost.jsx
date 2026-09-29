@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
+import MermaidRenderer from './MermaidRenderer'
 import './style.css'
 
 const formatDate = (dateString) => {
@@ -66,7 +67,8 @@ const BlogPost = () => {
             <span> · Edited: {formatDate(post.updatedAt)}</span>
           )}
         </time>
-        <div className="blog-content markdown-body">
+        <div className="blog-content markdown-body" id="blog-markdown-root">
+          <MermaidRenderer content={post.content} />
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}

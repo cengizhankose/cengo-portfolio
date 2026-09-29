@@ -242,3 +242,19 @@
   border-top: 2px solid var(--text-color);
   margin: 40px 0;
 }
+
+/* Mermaid diagram styling */
+.mermaid-diagram {
+  margin: 2rem auto;
+  padding: 1.25rem;
+  background: rgba(22, 27, 34, 0.6);
+  border: 1px solid rgba(31, 111, 235, 0.25);
+  border-radius: 12px;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
