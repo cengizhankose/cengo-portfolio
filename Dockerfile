@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for Vite + Bun React app
+# Multi-stage Dockerfile for Vite + Bun React app + Hono API (single container)
 FROM oven/bun:1.3.3-alpine AS base
 WORKDIR /app
 
@@ -21,10 +21,13 @@ ENV NODE_ENV=production
 COPY . .
 RUN bun run build
 
-# Production stage - serve static files without fetching extra tools
-FROM node:18-alpine AS production
-WORKDIR /app
-RUN npm install -g serve
+# Production stage: one Bun process serves static dist/ + /api/posts
+FROM base AS production
+ENV NODE_ENV=production
 COPY --from=builder /app/dist ./dist
+COPY src/api ./src/api
+COPY src/db ./src/db
+COPY drizzle.config.ts ./drizzle.config.ts
+COPY server.ts ./server.ts
 EXPOSE 3000
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["bun", "run", "server.ts"]
