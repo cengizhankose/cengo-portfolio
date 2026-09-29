@@ -4,11 +4,16 @@ import { readFileSync } from 'fs'
 
 const sql = postgres(process.env.PG_CONNECTION_URL, { max: 1 })
 
-const content = readFileSync('/Users/logan/.hermes/cache/blog-steward-laya.md', 'utf8')
+const draft = readFileSync('/Users/logan/.hermes/cache/blog-steward-laya-v2.md', 'utf8')
+const [heading, ...body] = draft.split('\n')
+if (!heading.startsWith('# ') || body.length === 0) throw new Error('Blog draft is missing its title or body')
+// The site renders the post title separately; exclude it and the internal review report.
+const content = body.join('\n').split('<!-- FEEDBACK UYGULAMA RAPORU')[0].trim()
+if ((content.match(/```mermaid/g) || []).length !== 5) throw new Error('Expected five Mermaid diagrams in v2')
 
 const slug = 'atlas-steward-laya-konustan-yarim-is-cikaran-sistem'
-const title = 'Konuşmadan yarım iş çıkaran sistem: Atlas Steward ve Laya'
-const excerpt = 'Hermes konuşmalarından yarım işleri çıkaran Atlas Steward\'ı ve karar modeli Laya\'yı anlatan teknik bir yazı: boru hattı, fail-closed tasarım, gerçek bir hata vakası ve mermaid diyagramlar.'
+const title = heading.slice(2).trim()
+const excerpt = 'Atlas Steward konuşmalardaki yarım işleri nasıl yakalıyor? Yerel karar modeli Laya, gerçek arıza hikâyeleri ve System 1 / System 2 yaklaşımı.'
 
 // upsert by slug
 const existing = await sql`SELECT id FROM posts WHERE slug = ${slug}`
