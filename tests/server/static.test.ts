@@ -54,11 +54,12 @@ describe('HTML documents (PERF-18, BE-22)', () => {
     expect(await res.text()).toContain('id="root"')
   })
 
-  test('HEAD / -> 200, headers only', async () => {
+  test('HEAD / -> 200, headers only, Content-Length of the GET body', async () => {
     const res = await get('/', { method: 'HEAD' })
     expect(res.status).toBe(200)
     expect(res.headers.get('etag')).toBe(shellEtag)
     expect(res.headers.get('cache-control')).toBe('no-cache')
+    expect(res.headers.get('content-length')).toBe(String(Bun.file(join(DIST, 'index.html')).size))
     expect(await res.text()).toBe('')
   })
 
@@ -121,11 +122,18 @@ describe('static files (PERF-17, PERF-18, BE-22, BE-23)', () => {
     expect(await res.text()).toContain('fixture-app-js')
   })
 
-  test('HEAD on an asset -> 200 without body', async () => {
+  test('HEAD on an asset -> 200 without body, Content-Length of the file', async () => {
     const res = await get('/assets/app-3f9a1c.js', { method: 'HEAD' })
     expect(res.status).toBe(200)
     expect(res.headers.get('cache-control')).toContain('immutable')
+    expect(res.headers.get('content-length')).toBe(String(Bun.file(join(DIST, 'assets/app-3f9a1c.js')).size))
     expect(await res.text()).toBe('')
+  })
+
+  test('a directory without index.html is not a file', async () => {
+    const res = await get('/img')
+    expect(res.status).toBe(404)
+    expect(res.headers.get('cache-control')).toBe('no-store')
   })
 
   test.each([

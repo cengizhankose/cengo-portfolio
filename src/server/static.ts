@@ -1,5 +1,5 @@
-import type { BunFile } from 'bun'
 import type { Context, Hono } from 'hono'
+import { stat } from 'node:fs/promises'
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path'
 import { contentTypeFor } from './mime'
 import { safeResolve } from './safe-path'
@@ -70,7 +70,12 @@ export function mountSite(app: Hono<any, any, any>, { distDir }: MountSiteOption
     if (status === 200 && etagMatches(c.req.header('If-None-Match'), etag)) {
       return c.body(null, 304, { ETag: etag, 'Cache-Control': REVALIDATE })
     }
-    return c.body(body, status, { 'Content-Type': HTML_TYPE, 'Cache-Control': REVALIDATE, ETag: etag })
+    return c.body(body, status, {
+      'Content-Type': HTML_TYPE,
+      'Content-Length': String(body.byteLength), // kept on HEAD, where the body is dropped
+      'Cache-Control': REVALIDATE,
+      ETag: etag,
+    })
   }
 
   const renderShell = (c: Context, status: 200 | 404) => {
@@ -87,8 +92,8 @@ export function mountSite(app: Hono<any, any, any>, { distDir }: MountSiteOption
     const htmlFile = htmlByTarget.get(target)
     if (htmlFile) return sendHtml(c, htmlFile, 200)
 
-    const file = Bun.file(target)
-    if (await file.exists()) return sendFile(c, file, sitePath)
+    const info = await stat(target).catch(() => null)
+    if (info?.isFile()) return sendFile(c, target, sitePath, info.size)
 
     if (extname(sitePath) !== '' || isFileOnlyPath(sitePath)) return notFound(c)
 
@@ -115,12 +120,13 @@ function indexHtmlFiles(distRoot: string): Map<string, string> {
   return byTarget
 }
 
-function sendFile(c: Context, file: BunFile, sitePath: string) {
+function sendFile(c: Context, path: string, sitePath: string, size: number) {
   const cacheControl = IMMUTABLE_PREFIXES.some((p) => sitePath.startsWith(p)) ? IMMUTABLE : SHORT_LIVED
-  // A BunFile body lets Bun stream the file (sendfile) and set Content-Length;
-  // hono/bun's own serveStatic hands BunFile to c.body the same way.
-  return c.body(file as unknown as ReadableStream, 200, {
+  // A BunFile body lets Bun stream the file (sendfile); hono/bun's own
+  // serveStatic hands BunFile to c.body the same way. HEAD never reads it.
+  return c.body(Bun.file(path) as unknown as ReadableStream, 200, {
     'Content-Type': contentTypeFor(sitePath),
+    'Content-Length': String(size), // kept on HEAD, where the body is dropped
     'Cache-Control': cacheControl,
   })
 }
