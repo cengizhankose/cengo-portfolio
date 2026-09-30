@@ -1,6 +1,7 @@
 // BE-14: migrations run at deploy (src/db/migrate.ts), before the server.
-// The CLI is spawned exactly as the image starts it and talks postgres.js
-// over TCP to an in-process PGlite (pglite-wire.ts): no Docker, no network.
+// postgres.js talks over TCP to an in-process PGlite (pglite-wire.ts): no
+// Docker, no network. The key runs spawn the CLI exactly as the image starts
+// it (exit code + stdout); the other scenarios call its main() in-process.
 // Criteria that need the real managed Postgres (lock contention between two
 // sessions, the prod row count after the deploy) stay with the owner.
 import {
@@ -24,10 +25,11 @@ import {
   MIGRATION_APPLICATION_NAME,
   MIGRATION_LOCK_KEY,
   MigrationError,
+  main,
   migrationUrl,
   runMigrations,
 } from "../../../src/db/migrate";
-import { REPO_ROOT } from "../helpers";
+import { captureLogs, REPO_ROOT } from "../helpers";
 import { startPgliteWire, type PgliteWire } from "./pglite-wire";
 
 const MIGRATIONS = join(REPO_ROOT, "src/db/migrations");
@@ -67,6 +69,14 @@ async function runCli(env: Record<string, string>, args: string[] = []) {
       }
     });
   return { code, output: stdout + stderr, lines };
+}
+
+/** The CLI's main() in this process: same code path, no process start-up. */
+async function runMain(env: Record<string, string>, args: string[] = []) {
+  const { result: code, lines } = await captureLogs(() =>
+    main(["bun", "src/db/migrate.ts", ...args], env),
+  );
+  return { code, lines, output: JSON.stringify(lines) };
 }
 
 const line = (lines: LogLine[], msg: string) =>
@@ -133,7 +143,7 @@ describe("bun src/db/migrate.ts on an empty database", () => {
 
   test("a second run is a no-op: exit 0, applied 0, row count unchanged (criterion 2)", async () => {
     const before = await recordedMigrations();
-    const { code, lines } = await runCli(localEnv());
+    const { code, lines } = await runMain(localEnv());
     expect(code).toBe(0);
     expect(line(lines, "migrations applied")).toMatchObject({
       applied: 0,
@@ -143,7 +153,7 @@ describe("bun src/db/migrate.ts on an empty database", () => {
   });
 
   test("the image's mode (NODE_ENV=production, compose db without TLS) migrates too", async () => {
-    const { code, lines } = await runCli({
+    const { code, lines } = await runMain({
       ...localEnv(),
       NODE_ENV: "production",
     });
@@ -153,7 +163,7 @@ describe("bun src/db/migrate.ts on an empty database", () => {
 
   test("PG_MIGRATE_URL (DDL role, SEC-14) wins over PG_CONNECTION_URL", async () => {
     // Were PG_CONNECTION_URL used, the local guard would refuse this remote URL.
-    const { code, lines } = await runCli({
+    const { code, lines } = await runMain({
       PG_CONNECTION_URL: REMOTE_URL,
       PG_MIGRATE_URL: wire.url,
       PG_SSL_MODE: "disable",
@@ -191,7 +201,7 @@ describe("a database built with drizzle-kit push (no migrations table)", () => {
 
   test("after the owner's baseline the next start applies 0001 and backfills the live post (step 5, criterion 5)", async () => {
     await wire.db.exec(baselineSql());
-    const { code, lines } = await runCli(localEnv());
+    const { code, lines } = await runMain(localEnv());
     expect(code).toBe(0);
     expect(line(lines, "migrations applied")).toMatchObject({
       applied: JOURNAL_ENTRIES - 1,
@@ -220,7 +230,7 @@ describe("a wrong baseline cannot skip migrations silently", () => {
   });
 
   test("exit 1 with the recorded/journal counts", async () => {
-    const { code, lines } = await runCli(localEnv());
+    const { code, lines } = await runMain(localEnv());
     expect(code).toBe(1);
     const failed = line(lines, "migrations failed");
     expect(String(failed?.err)).toContain(
@@ -306,7 +316,7 @@ describe("runMigrations with a custom migrations folder", () => {
 
 describe("CLI refusals", () => {
   test("no URL -> exit 1", async () => {
-    const { code, lines } = await runCli({});
+    const { code, lines } = await runMain({});
     expect(code).toBe(1);
     expect(String(line(lines, "migrations failed")?.err)).toContain(
       "PG_MIGRATE_URL or PG_CONNECTION_URL must be set",
@@ -322,7 +332,7 @@ describe("CLI refusals", () => {
   });
 
   test("in production a weak sslmode is refused before connecting (SEC-22)", async () => {
-    const { code, output } = await runCli({
+    const { code, output } = await runMain({
       NODE_ENV: "production",
       PG_CONNECTION_URL: `${REMOTE_URL}?sslmode=require`,
     });
