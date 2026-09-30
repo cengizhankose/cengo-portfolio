@@ -25,8 +25,7 @@ const code = [
 const used = (name) =>
   new RegExp(`(^|[^\\w-])${name.replace(/[-]/g, "\\-")}([^\\w-]|$)`, "m").test(
     code,
-  ) ||
-  (BUILT[name] ? BUILT[name].test(code) : false);
+  ) || (BUILT[name] ? BUILT[name].test(code) : false);
 
 describe("dead CSS (FE-29)", () => {
   it("has none of the leftovers the audit listed", () => {
@@ -37,9 +36,9 @@ describe("dead CSS (FE-29)", () => {
   });
 
   it("deleted the theme toggler stylesheet nobody imported", () => {
-    expect(
-      existsSync(join(ROOT, "src/components/themetoggle/style.css")),
-    ).toBe(false);
+    expect(existsSync(join(ROOT, "src/components/themetoggle/style.css"))).toBe(
+      false,
+    );
     expect(read("src/components/themetoggle/index.jsx")).not.toMatch(
       /style\.css/,
     );

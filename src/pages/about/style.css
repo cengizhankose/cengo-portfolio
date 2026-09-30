@@ -21,8 +21,9 @@
 /* Lead line above the story (MKT-15): the claim the three paragraphs back up. */
 .about-lead {
   margin-bottom: 1.5rem;
-  font-family: Marcellus;
-  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+  font-family: var(--font-display);
+  font-synthesis: none;
+  font-size: var(--fs-md);
   line-height: 1.45;
 }
 
@@ -82,7 +83,7 @@
 .skill-group__name {
   margin: 0 0 0.5rem;
   color: var(--text-muted);
-  font-size: 0.9375rem;
+  font-size: var(--fs-sm);
 }
 
 .skill-group__items {
@@ -96,8 +97,7 @@
 .skill-chip {
   padding: 8px 10px;
   border: 1px solid var(--secondary-color);
-  font-family: "Raleway";
-  font-size: 16px;
+  font-size: var(--fs-base);
   font-weight: 700;
   line-height: 1.2;
 }

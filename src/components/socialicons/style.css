@@ -58,8 +58,7 @@
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   color: var(--text-color);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--fs-sm);
   line-height: 1.2;
   white-space: nowrap;
 }
@@ -94,7 +93,7 @@
   .stick_follow_icon p {
     writing-mode: horizontal-tb;
     transform: none;
-    font-size: 17px;
+    font-size: var(--fs-base);
   }
 
   .stick_follow_icon p::after {

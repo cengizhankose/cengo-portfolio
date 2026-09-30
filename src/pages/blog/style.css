@@ -7,8 +7,7 @@
 }
 
 .blog-title {
-  font-family: "Marcellus", serif;
-  font-size: 3rem;
+  font-size: var(--fs-2xl);
   color: var(--text-color);
   margin-bottom: 16px;
   text-align: center;
@@ -20,7 +19,7 @@
   margin: 0 auto 40px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
   line-height: 1.6;
 }
 
@@ -60,8 +59,7 @@
 }
 
 .blog-post-title {
-  font-family: "Marcellus", serif;
-  font-size: 1.8rem;
+  font-size: var(--fs-lg);
   margin-bottom: 10px;
 }
 
@@ -83,7 +81,7 @@
 
 .blog-date {
   color: var(--text-color-2);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   display: block;
 }
 
@@ -103,7 +101,7 @@
   color: var(--text-color);
   text-decoration: none;
   margin-bottom: 30px;
-  font-size: 1.1rem;
+  font-size: var(--fs-base);
   transition: transform 0.2s;
 }
 
@@ -123,8 +121,7 @@
 }
 
 .blog-post-title-full {
-  font-family: "Marcellus", serif;
-  font-size: 2.5rem;
+  font-size: var(--fs-2xl);
   color: var(--text-color);
   margin: 20px 0;
 }
@@ -134,7 +131,7 @@
 .blog-post-byline {
   margin: 0 0 8px;
   color: var(--text-color);
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
 }
 
 .blog-post-byline a {
@@ -145,7 +142,7 @@
 
 .blog-post-date {
   color: var(--text-color-2);
-  font-size: 1rem;
+  font-size: var(--fs-base);
   display: block;
   margin-bottom: 30px;
 }
@@ -153,7 +150,7 @@
 .blog-content {
   line-height: 1.8;
   color: var(--text-color);
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
 }
 
 /* Error and empty states use the shared StatusState (src/components/
@@ -197,14 +194,15 @@
 
 .author-box__name {
   margin: 0;
-  font-family: "Marcellus", serif;
-  font-size: 1.4rem;
+  font-family: var(--font-display);
+  font-synthesis: none;
+  font-size: var(--fs-lg);
 }
 
 .author-box__role {
   margin: 0 0 0.5rem;
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
 }
 
 .author-box__bio {
@@ -239,7 +237,7 @@
 .ai-disclosure {
   margin: 1rem 0 0;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   line-height: 1.5;
 }
 
@@ -249,8 +247,9 @@
 
 .post-footer__cta {
   margin: 1.5rem 0 0;
-  font-family: "Marcellus", serif;
-  font-size: 1.3rem;
+  font-family: var(--font-display);
+  font-synthesis: none;
+  font-size: var(--fs-md);
 }
 
 @media (max-width: 480px) {
@@ -341,7 +340,6 @@
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
-  font-family: "Marcellus", serif;
   margin-top: 40px;
   margin-bottom: 20px;
   color: var(--text-color);
@@ -349,17 +347,17 @@
 }
 
 .markdown-body h1 {
-  font-size: 2.2rem;
+  font-size: var(--fs-xl);
   border-left: 4px solid var(--text-color);
   padding-left: 15px;
 }
 
 .markdown-body h2 {
-  font-size: 1.8rem;
+  font-size: var(--fs-xl);
 }
 
 .markdown-body h3 {
-  font-size: 1.5rem;
+  font-size: var(--fs-lg);
 }
 
 .markdown-body p {
@@ -395,11 +393,9 @@
 }
 
 .markdown-body code {
-  font-family: "Source Code Pro", monospace;
   background: var(--primary-color);
   padding: 3px 8px;
   border-radius: 0;
-  font-size: 0.9em;
 }
 
 .markdown-body pre {
@@ -413,7 +409,6 @@
 .markdown-body pre code {
   padding: 0;
   background: transparent;
-  font-size: 0.9em;
 }
 
 .markdown-body img {
@@ -438,7 +433,9 @@
 
 .markdown-body th {
   background: var(--primary-color);
-  font-family: "Marcellus", serif;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-synthesis: none;
 }
 
 .markdown-body hr {
@@ -498,7 +495,7 @@
   min-height: 14rem;
   border: 1px dashed var(--border-color);
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
 }
 
 /* On a wide screen the frame grows past the 760px text column (centred on

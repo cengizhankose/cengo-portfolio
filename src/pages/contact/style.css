@@ -111,7 +111,7 @@ button.btn.ac_btn:hover {
 }
 
 /* Reduced motion (DSG-07, FE-06): a still, full-width bar instead of the
-   sliding one. "Sending..." on the button already says what is happening. */
+   sliding one. "Sending…" on the button already says what is happening. */
 @media (prefers-reduced-motion: reduce) {
   .loading-bar {
     animation: none;

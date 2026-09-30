@@ -32,6 +32,13 @@ $enable-dark-mode: false;
 // No .table-primary/-dark/... variants in the markup; .table stays as is, so
 // the DSG-01 --bs-table-* overrides in src/pages/about/style.css still apply.
 $table-variants: ();
+// Headings and .display-* are set in Marcellus, which has one weight (400):
+// Bootstrap's 500 and 300 would ask for weights the font does not have
+// (DSG-17, FE-19). .lead stays at the body weight too (Raleway 300 is not
+// shipped).
+$headings-font-weight: 400;
+$display-font-weight: 400;
+$lead-font-weight: 400;
 
 @import "bootstrap/scss/variables";
 @import "bootstrap/scss/variables-dark";

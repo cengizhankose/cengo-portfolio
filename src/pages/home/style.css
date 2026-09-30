@@ -49,10 +49,11 @@ section {
 
 /* Hero heading (K-06b; SEO-12, FE-23, DSG-09). One static h1: the name in
    Marcellus 400 (its only weight: no synthetic bold, DSG-17), the role on
-   its own line in Raleway. */
+   its own line in Raleway 400, told apart by case, spacing and colour, so
+   the home page needs no third font file (PERF-08). */
 .intro__name {
   margin-bottom: 1.25rem;
-  font-size: clamp(2.25rem, 1.5rem + 2vw, 3rem);
+  font-size: var(--fs-2xl);
   font-weight: 400;
   line-height: 1.1;
 }
@@ -62,8 +63,8 @@ section {
   margin-top: 0.75rem;
   color: var(--text-muted);
   font-family: Raleway, sans-serif;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: var(--fs-base);
+  font-weight: 400;
   letter-spacing: 0.08em;
   line-height: 1.4;
   text-transform: uppercase;
@@ -84,8 +85,7 @@ section {
    Reduced motion: no animation, the last phrase from the start. */
 .intro__tagline {
   margin-bottom: 0.75rem;
-  font-size: 1.25rem;
-  font-weight: 500;
+  font-size: var(--fs-md);
   line-height: 1.3;
 }
 
@@ -159,13 +159,13 @@ section {
 .intro__status {
   margin-bottom: 1.5rem;
   color: var(--text-muted);
-  font-size: 0.9375rem;
+  font-size: var(--fs-sm);
 }
 
 .intro__proof {
   margin-bottom: 2rem;
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
   letter-spacing: 0.04em;
 }
 
@@ -202,7 +202,7 @@ section {
 .intro__note {
   margin: 0.75rem 0 0;
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
 }
 
 /* Hero photo box (PERF-07, FE-18, DSG-11, DSG-29). The box has its own

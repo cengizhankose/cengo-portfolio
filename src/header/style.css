@@ -36,11 +36,12 @@
   border: unset;
   background: var(--primary-color);
   font-size: 1.25rem;
-  font-family: Marcellus;
+  font-family: var(--font-display);
+  font-synthesis: none;
   color: var(--text-color-2);
   line-height: 2;
   height: 50px;
-  font-weight: bold;
+  font-weight: 400;
   z-index: 1000;
 }
 
@@ -179,24 +180,20 @@ button.nav_ac {
 .the_menu .menu_item > a {
   color: var(--text-color-2);
   line-height: 1;
-  font-size: 2rem;
+  font-size: var(--fs-2xl);
   display: inline-block;
   position: relative;
   transition: color 250ms cubic-bezier(0, 0, 0.58, 1) 0s;
   padding: 4px 0px;
-  font-family: Marcellus;
-}
-
-@media (min-width: 768px) {
-  .the_menu .menu_item > a {
-    font-size: 4.8vw;
-  }
+  font-family: var(--font-display);
+  font-synthesis: none;
 }
 
 .menu_footer {
   bottom: 0;
-  font-family: Marcellus;
-  font-size: 14px;
+  font-family: var(--font-display);
+  font-synthesis: none;
+  font-size: var(--fs-sm);
   background: var(--primary-color);
 }
 

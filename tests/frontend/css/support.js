@@ -29,6 +29,23 @@ export const stylesheets = () =>
 
 export const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, "");
 
+/** Split a selector list on its top-level commas (not inside :is(...)). */
+export function splitSelectors(list) {
+  const parts = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < list.length; i += 1) {
+    if (list[i] === "(") depth += 1;
+    if (list[i] === ")") depth -= 1;
+    if (list[i] === "," && depth === 0) {
+      parts.push(list.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+  parts.push(list.slice(start).trim());
+  return parts;
+}
+
 function parseDecls(body) {
   const decls = [];
   for (const part of body.split(";")) {
@@ -68,7 +85,10 @@ export function rules(css) {
         j += 1;
       }
       const inner = text.slice(open + 1, j - 1);
-      if (head.startsWith("@keyframes") || head.startsWith("@-webkit-keyframes")) {
+      if (
+        head.startsWith("@keyframes") ||
+        head.startsWith("@-webkit-keyframes")
+      ) {
         // steps are not style rules
       } else if (head.startsWith("@")) {
         walk(inner, [...at, head]);
@@ -76,7 +96,7 @@ export function rules(css) {
         const decls = parseDecls(inner);
         out.push({
           selector: head,
-          selectors: head.split(",").map((s) => s.trim()),
+          selectors: splitSelectors(head),
           decls,
           props: Object.fromEntries(decls),
           at,
