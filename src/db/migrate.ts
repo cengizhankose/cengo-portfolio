@@ -15,10 +15,11 @@
 //   baseline with the wrong created_at would otherwise skip migrations silently.
 //
 // Connection: PG_MIGRATE_URL (a role allowed to run DDL, SEC-14), else
-// PG_CONNECTION_URL. TLS follows the server's policy (clientConfig: verify-full
-// in production, SEC-22). Outside production the local-DB guard applies
-// (BE-04): `bun run db:migrate` touches only localhost *_dev / *_test databases
-// unless --prod or ALLOW_REMOTE_DB=1 is given.
+// PG_CONNECTION_URL; a direct session, not a transaction pooler (the lock and
+// the SET are per session). TLS follows the server's policy (clientConfig:
+// verify-full in production, SEC-22). Outside production the local-DB guard
+// applies (BE-04): `bun run db:migrate` touches only localhost *_dev / *_test
+// databases unless --prod or ALLOW_REMOTE_DB=1 is given.
 // Log lines are JSON (BE-08) and never contain the URL, the host or credentials.
 import { readMigrationFiles, type MigrationMeta } from "drizzle-orm/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -27,7 +28,7 @@ import { join } from "node:path";
 import postgres from "postgres";
 import { log } from "../api/log";
 import { clientConfig } from "./config";
-import { assertNonProdDb } from "./guard";
+import { assertNonProdDb, prodOverrideRequested } from "./guard";
 
 type Env = Record<string, string | undefined>;
 
@@ -188,7 +189,7 @@ export async function runMigrations(
     await acquireLock(
       async () => {
         const [row] = await sql<{ locked: boolean }[]>`
-          select pg_try_advisory_lock(${MIGRATION_LOCK_KEY}) as locked`;
+          select pg_try_advisory_lock(${MIGRATION_LOCK_KEY}::bigint) as locked`;
         return row.locked;
       },
       {
@@ -239,11 +240,13 @@ export async function runMigrations(
       durMs: Math.round(performance.now() - started),
     };
   } finally {
-    try {
-      if (locked) await sql`select pg_advisory_unlock(${MIGRATION_LOCK_KEY})`;
-    } finally {
-      await sql.end({ timeout: 5 });
-    }
+    // Never let cleanup mask the real error; closing the session releases the
+    // lock anyway.
+    if (locked)
+      await sql`select pg_advisory_unlock(${MIGRATION_LOCK_KEY}::bigint)`.catch(
+        () => {},
+      );
+    await sql.end({ timeout: 5 }).catch(() => {});
   }
 }
 
@@ -265,7 +268,8 @@ export async function main(
     }
     // In the image NODE_ENV=production and the TLS policy protects the
     // connection; locally only the dev/test database is allowed (BE-04).
-    if (env.NODE_ENV !== "production") assertNonProdDb(url);
+    if (env.NODE_ENV !== "production")
+      assertNonProdDb(url, { allowProd: prodOverrideRequested(argv, env) });
     const result = await runMigrations(url, { env });
     log("info", "migrations applied", { ...result });
     return 0;
