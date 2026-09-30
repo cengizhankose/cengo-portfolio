@@ -2,8 +2,6 @@ import { Link } from "react-router-dom";
 import { StatusState } from "../../components/statusstate";
 import { BlogDataScope, useBlogIndex } from "../../hooks/usePosts.js";
 import {
-  DEFAULT_LOCALE,
-  LOCALES,
   localePath,
   useLocale,
   useLocalePath,
@@ -11,39 +9,22 @@ import {
   useT,
 } from "../../i18n";
 import { formatDate, toIsoDate } from "../../lib/format.js";
+import { groupPostsForLocale, postLanguage } from "../../lib/postGroups.js";
 import { errorStatus } from "../../lib/swr.js";
 import { getPageMeta } from "../../seo/pages.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
 import "./style.css";
 
-// The language a post is written in (T-12); a row without one counts as EN.
-const postLang = (post) =>
-  LOCALES.includes(post?.lang) ? post.lang : DEFAULT_LOCALE;
-
-// groupPosts(posts, locale) -> { own, other } (T-12, FE-14 step 11)
-//   own:   posts written in the page's language, in API order;
-//   other: posts in another language that have no translation among `own`
-//          (same translationKey), shown in a separate group with a badge.
-// The list API may already leave translated posts out (BE-07); filtering
-// here as well keeps a pair from being listed twice either way.
-export function groupPosts(posts, locale) {
-  const own = posts.filter((post) => postLang(post) === locale);
-  const translated = new Set(
-    own.map((post) => post.translationKey).filter(Boolean),
-  );
-  const other = posts.filter(
-    (post) =>
-      postLang(post) !== locale &&
-      !(post.translationKey && translated.has(post.translationKey)),
-  );
-  return { own, other };
-}
+// Kept as an export for callers and tests: the grouping rule itself lives in
+// src/lib/postGroups.js, shared with the server snapshot (SEO-01), so the raw
+// HTML and this page always list the same posts in the same groups.
+export const groupPosts = groupPostsForLocale;
 
 // One post card. The card carries the post's language (lang); the date is
 // written in the page's language (SEO-21 step 3), so it gets its own `lang`
 // when the two differ. The link goes to the post's own language path.
 function PostCard({ post, locale, heading: Heading, t }) {
-  const lang = postLang(post);
+  const lang = postLanguage(post);
   const foreign = lang !== locale;
   // BE-07: a list item's date is when it was published, the creation date
   // for rows from before the publishedAt column.
@@ -104,7 +85,7 @@ function BlogHomePage() {
   const reason = (failure) =>
     t(errorStatus(failure) === "network" ? "status.network" : "status.server");
 
-  const { own, other } = groupPosts(posts, locale);
+  const { own, other } = groupPostsForLocale(posts, locale);
   const empty = status === "success" && own.length === 0 && other.length === 0;
 
   return (
