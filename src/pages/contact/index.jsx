@@ -37,10 +37,15 @@ function forgetRateLimit() {
   }
 }
 
-// Honeypot field (SEC-24). Not `company`: Chrome classifies that name as
-// COMPANY_NAME and address autofill fills it together with Name, even off
-// screen, which would silently drop a real visitor's message.
+// Honeypot field (SEC-24). Browser autofill must not fill it: that would drop
+// a real visitor's message while showing "Message sent". Checked in Chrome
+// 154: the name `company` is classified COMPANY_NAME, and a field with no
+// label of its own takes its label from nearby text ("Email: …" in the left
+// column) and becomes EMAIL_ADDRESS, even off screen. `subject` with its own
+// aria-label stays UNKNOWN_TYPE, which autofill never fills. The wrapper is
+// aria-hidden, so screen readers do not announce the label.
 const HONEYPOT = "subject";
+const HONEYPOT_LABEL = "Leave this field empty";
 
 const EMPTY_FIELDS = { name: "", email: "", message: "", [HONEYPOT]: "" };
 
@@ -252,6 +257,7 @@ export const ContactUs = () => {
                   name={HONEYPOT}
                   tabIndex={-1}
                   autoComplete="off"
+                  aria-label={HONEYPOT_LABEL}
                   data-1p-ignore
                   data-lpignore="true"
                   data-bwignore="true"

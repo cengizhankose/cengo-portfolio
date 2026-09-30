@@ -387,15 +387,17 @@ describe("honeypot (SEC-24)", () => {
   });
 
   // A real visitor's autofill must not fill the trap: that would drop the
-  // message while showing "Message sent". Chrome 154 classifies a field named
-  // `company` as COMPANY_NAME (filled together with Name, even off screen);
-  // `subject` stays UNKNOWN_TYPE. Password managers are told to skip it.
-  it("uses a name autofill does not classify and opts out of password managers", () => {
+  // message while showing "Message sent". In Chrome 154 a field named
+  // `company` is COMPANY_NAME, and a trap without a label of its own takes
+  // "Email: …" from the left column and becomes EMAIL_ADDRESS. `subject`
+  // with its own aria-label is UNKNOWN_TYPE. Password managers skip it.
+  it("uses a name and label autofill does not classify, and opts out of password managers", () => {
     renderContact();
 
     const trap = document.getElementById(HONEYPOT);
     expect(trap).toHaveAttribute("name", "subject");
     expect(document.getElementById("company")).toBeNull();
+    expect(trap).toHaveAttribute("aria-label", "Leave this field empty");
     expect(trap).toHaveAttribute("data-1p-ignore");
     expect(trap).toHaveAttribute("data-lpignore", "true");
     expect(trap).toHaveAttribute("data-bwignore", "true");
