@@ -124,7 +124,7 @@ describe("GET /rss.xml and /tr/rss.xml", () => {
       );
       const guid = doc.querySelector("item > guid");
       expect(guid?.getAttribute("isPermaLink")).toBe("true");
-      expect(guid?.textContent).toBe(text(doc, "item > link"));
+      expect(guid?.textContent).toBe(text(doc, "item > link") ?? undefined);
       // The EN feed lists a TR post under the "other language" group: it says so.
       expect(doc.getElementsByTagName("dc:language")).toHaveLength(
         extra ? 1 : 0,
