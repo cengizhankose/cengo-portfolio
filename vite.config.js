@@ -1,60 +1,60 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: "/",
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          bootstrap: ['react-bootstrap', 'bootstrap'],
-          router: ['react-router-dom']
+          vendor: ["react", "react-dom"],
+          bootstrap: ["react-bootstrap", "bootstrap"],
+          router: ["react-router-dom"],
         },
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
-      }
+        entryFileNames: "assets/[name]-[hash].js",
+        chunkFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash].[ext]",
+      },
     },
-    assetsDir: 'assets',
-    minify: 'terser',
+    assetsDir: "assets",
+    minify: "terser",
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
-      }
-    }
+        drop_debugger: true,
+      },
+    },
   },
   server: {
     port: 3000,
     open: true,
     host: true,
     proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
+      "/api": {
+        target: "http://localhost:3001",
         changeOrigin: true,
-      }
-    }
+      },
+    },
   },
   resolve: {
     alias: {
-      '@': '/src'
-    }
+      "@": "/src",
+    },
   },
   preview: {
     port: 4173,
-    host: true
+    host: true,
   },
   // Component tests (T-02): Vitest + jsdom, only tests/frontend/**.
   // Server/API tests live in tests/server/** and run under `bun test`.
   test: {
-    environment: 'jsdom',
-    setupFiles: ['tests/frontend/setup.js'],
-    include: ['tests/frontend/**/*.test.{js,jsx}'],
+    environment: "jsdom",
+    setupFiles: ["tests/frontend/setup.js"],
+    include: ["tests/frontend/**/*.test.{js,jsx}"],
     restoreMocks: true,
-    unstubGlobals: true
-  }
-})
+    unstubGlobals: true,
+  },
+});

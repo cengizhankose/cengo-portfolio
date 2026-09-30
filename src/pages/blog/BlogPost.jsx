@@ -1,53 +1,55 @@
-import React, { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { Helmet } from 'react-helmet-async'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeRaw from 'rehype-raw'
-import MermaidRenderer from './MermaidRenderer'
-import './style.css'
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import MermaidRenderer from "./MermaidRenderer";
+import "./style.css";
 
 const formatDate = (dateString) => {
-  if (!dateString) return 'No date'
+  if (!dateString) return "No date";
   try {
-    const date = new Date(dateString)
-    if (isNaN(date.getTime())) return 'Invalid date'
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid date";
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   } catch {
-    return 'Invalid date'
+    return "Invalid date";
   }
-}
+};
 
 const BlogPost = () => {
-  const { slug } = useParams()
-  const [post, setPost] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { slug } = useParams();
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const apiUrl = import.meta.env.DEV ? (import.meta.env.VITE_API_URL || 'http://localhost:3001') : ''
+    const apiUrl = import.meta.env.DEV
+      ? import.meta.env.VITE_API_URL || "http://localhost:3001"
+      : "";
     fetch(`${apiUrl}/api/posts/${slug}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Not found')
-        return res.json()
+      .then((res) => {
+        if (!res.ok) throw new Error("Not found");
+        return res.json();
       })
-      .then(data => {
-        setPost(data)
-        setLoading(false)
+      .then((data) => {
+        setPost(data);
+        setLoading(false);
       })
-      .catch(err => {
-        console.error('Failed to fetch post:', err)
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [slug])
+      .catch((err) => {
+        console.error("Failed to fetch post:", err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [slug]);
 
-  if (loading) return <div className="blog-loading">Loading...</div>
-  if (error || !post) return <div className="blog-error">Post not found</div>
+  if (loading) return <div className="blog-loading">Loading...</div>;
+  if (error || !post) return <div className="blog-error">Post not found</div>;
 
   return (
     <>
@@ -56,9 +58,15 @@ const BlogPost = () => {
         <meta name="description" content={post.excerpt || post.title} />
       </Helmet>
       <article className="blog-post-container">
-        <Link to="/blog" className="blog-back">← Back to Blog</Link>
+        <Link to="/blog" className="blog-back">
+          ← Back to Blog
+        </Link>
         {post.coverImage && (
-          <img src={post.coverImage} alt={post.title} className="blog-post-cover" />
+          <img
+            src={post.coverImage}
+            alt={post.title}
+            className="blog-post-cover"
+          />
         )}
         <h1 className="blog-post-title-full">{post.title}</h1>
         <time className="blog-post-date">
@@ -78,7 +86,7 @@ const BlogPost = () => {
         </div>
       </article>
     </>
-  )
-}
+  );
+};
 
-export default BlogPost
+export default BlogPost;

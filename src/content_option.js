@@ -14,7 +14,8 @@ const introdata = {
   },
   description:
     "I’m a Full stack developer / Part time Entrepreneur ,currently working in Turkey",
-  your_img_url: "https://github.com/cengizhankose/cengo-portfolio/blob/main/src/assets/images/photo.JPG?raw=true",
+  your_img_url:
+    "https://github.com/cengizhankose/cengo-portfolio/blob/main/src/assets/images/photo.JPG?raw=true",
 };
 
 const dataabout = {

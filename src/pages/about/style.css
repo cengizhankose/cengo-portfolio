@@ -7,7 +7,11 @@
 .About-header .table {
   --bs-table-bg: transparent;
   --bs-table-color: var(--text-color);
-  --bs-table-border-color: color-mix(in srgb, var(--text-color) 20%, transparent);
+  --bs-table-border-color: color-mix(
+    in srgb,
+    var(--text-color) 20%,
+    transparent
+  );
 }
 
 .t_border {

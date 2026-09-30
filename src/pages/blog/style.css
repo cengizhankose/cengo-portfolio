@@ -7,7 +7,7 @@
 }
 
 .blog-title {
-  font-family: 'Marcellus', serif;
+  font-family: "Marcellus", serif;
   font-size: 3rem;
   color: var(--text-color);
   margin-bottom: 40px;
@@ -45,7 +45,7 @@
 }
 
 .blog-post-title {
-  font-family: 'Marcellus', serif;
+  font-family: "Marcellus", serif;
   font-size: 1.8rem;
   margin-bottom: 10px;
 }
@@ -100,7 +100,7 @@
 }
 
 .blog-post-title-full {
-  font-family: 'Marcellus', serif;
+  font-family: "Marcellus", serif;
   font-size: 2.5rem;
   color: var(--text-color);
   margin: 20px 0;
@@ -127,7 +127,7 @@
   min-height: 50vh;
   font-size: 1.5rem;
   color: var(--text-color);
-  font-family: 'Marcellus', serif;
+  font-family: "Marcellus", serif;
 }
 
 /* Markdown styling */
@@ -137,7 +137,7 @@
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
-  font-family: 'Marcellus', serif;
+  font-family: "Marcellus", serif;
   margin-top: 40px;
   margin-bottom: 20px;
   color: var(--text-color);
@@ -191,7 +191,7 @@
 }
 
 .markdown-body code {
-  font-family: 'Source Code Pro', monospace;
+  font-family: "Source Code Pro", monospace;
   background: var(--primary-color);
   padding: 3px 8px;
   border-radius: 0;
@@ -234,7 +234,7 @@
 
 .markdown-body th {
   background: var(--primary-color);
-  font-family: 'Marcellus', serif;
+  font-family: "Marcellus", serif;
 }
 
 .markdown-body hr {
