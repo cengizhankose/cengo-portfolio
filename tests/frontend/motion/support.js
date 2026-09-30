@@ -138,56 +138,81 @@ export function spyPointerListeners() {
   };
 }
 
-/**
- * The declarations of a rule, looked up by its exact selector list inside
- * `css` (optionally inside the given @media block). Comments are ignored.
- */
-export function rule(css, selector, media) {
-  let source = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  if (media) {
-    const start = source.indexOf(`@media ${media}`);
-    if (start < 0) return null;
-    let depth = 0;
-    let end = source.indexOf("{", start);
-    for (let i = end; i < source.length; i += 1) {
-      if (source[i] === "{") depth += 1;
-      if (source[i] === "}") depth -= 1;
-      if (depth === 0) {
-        end = i;
-        break;
+// A small CSS block parser: comments dropped, at-rules keep their children,
+// style rules keep their declaration text.
+function parseBlocks(css) {
+  const src = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  let i = 0;
+  const parseList = () => {
+    const items = [];
+    let prelude = "";
+    while (i < src.length) {
+      const char = src[i];
+      i += 1;
+      if (char === "}") return items;
+      if (char === ";" && prelude.trim().startsWith("@")) {
+        prelude = ""; // @import and other statement at-rules
+      } else if (char !== "{") {
+        prelude += char;
+      } else if (prelude.trim().startsWith("@")) {
+        items.push({
+          at: prelude.replace(/\s+/g, " ").trim(),
+          children: parseList(),
+        });
+        prelude = "";
+      } else {
+        const end = src.indexOf("}", i);
+        items.push({
+          selector: prelude.replace(/\s+/g, " ").trim(),
+          body: src.slice(i, end),
+        });
+        i = end + 1;
+        prelude = "";
       }
     }
-    source = source.slice(source.indexOf("{", start) + 1, end);
-  } else {
-    // Top-level rules only: drop @media/@supports/@keyframes blocks.
-    source = source.replace(
-      /@[a-z-]+[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g,
-      "",
+    return items;
+  };
+  return parseList();
+}
+
+/**
+ * The declarations of the first rule whose selector list is `selector` (or
+ * contains it), at the top level of `css` or inside the given at-rules:
+ * `rule(css, ".a", "(max-width: 10px)", "@supports (x: y)")`. A condition
+ * without "@" means "@media <condition>"; every matching block is searched.
+ */
+export function rule(css, selector, ...atRules) {
+  let scopes = [parseBlocks(css)];
+  for (const at of atRules) {
+    const name = at.startsWith("@") ? at : `@media ${at}`;
+    scopes = scopes.flatMap((items) =>
+      items.filter((item) => item.at === name).map((item) => item.children),
     );
   }
   const wanted = selector.replace(/\s+/g, " ").trim();
-  for (const match of source.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const selectors = match[1]
-      .split(",")
-      .map((part) => part.replace(/\s+/g, " ").trim());
-    if (selectors.join(", ") !== wanted && !selectors.includes(wanted))
-      continue;
-    return Object.fromEntries(
-      match[2]
-        .split(";")
-        .map((decl) => decl.trim())
-        .filter(Boolean)
-        .map((decl) => {
-          const colon = decl.indexOf(":");
-          return [
-            decl.slice(0, colon).trim(),
-            decl
-              .slice(colon + 1)
-              .replace(/\s+/g, " ")
-              .trim(),
-          ];
-        }),
-    );
+  for (const items of scopes) {
+    for (const item of items) {
+      if (!item.selector) continue;
+      const selectors = item.selector.split(",").map((part) => part.trim());
+      if (selectors.join(", ") !== wanted && !selectors.includes(wanted))
+        continue;
+      return Object.fromEntries(
+        item.body
+          .split(";")
+          .map((decl) => decl.trim())
+          .filter(Boolean)
+          .map((decl) => {
+            const colon = decl.indexOf(":");
+            return [
+              decl.slice(0, colon).trim(),
+              decl
+                .slice(colon + 1)
+                .replace(/\s+/g, " ")
+                .trim(),
+            ];
+          }),
+      );
+    }
   }
   return null;
 }

@@ -94,14 +94,18 @@ describe("rotating line (PERF-12 rotator, DSG-07 timing)", () => {
     ).toMatchObject({ animation: "none" });
   });
 
-  it("reserves two lines for the line (DSG-10, PERF-20)", () => {
+  it("keeps two lines for the line below 992px, where phrases wrap (DSG-10, PERF-20)", () => {
     expect(rule(HOME, ".intro__tagline")).toMatchObject({
       "line-height": "1.3",
+    });
+    expect(rule(HOME, ".intro__tagline")).not.toHaveProperty("min-height");
+    const MOBILE = "(max-width: 991.98px)";
+    expect(rule(HOME, ".intro__tagline", MOBILE)).toMatchObject({
       "min-height": "calc(2 * 1.3em)",
     });
-    expect(HOME).toMatch(
-      /@supports \(min-height: 1lh\) \{\s*\.intro__tagline \{\s*min-height: 2lh;/,
-    );
+    expect(
+      rule(HOME, ".intro__tagline", MOBILE, "@supports (min-height: 1lh)"),
+    ).toMatchObject({ "min-height": "2lh" });
   });
 
   it("uses Marcellus' only weight for the h1 (no synthetic bold) and the role on its own line", () => {

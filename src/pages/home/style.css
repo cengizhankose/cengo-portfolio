@@ -105,9 +105,12 @@ section {
 /* The line under the h1 (K-06b): one pass through the phrases, then the
    last one stays (PERF-12 CSS rotator, DSG-07 timing). All phrases share one
    grid cell, so the box is as wide and tall as the longest one from the
-   first frame; the two-line minimum covers a phrase that wraps, so nothing
-   below the line moves while it turns or once the fonts arrive (DSG-10,
-   PERF-20). Only opacity animates: no layout, no JS timer, no rAF.
+   first frame and nothing below it moves while it turns. Only opacity
+   animates: no layout, no JS timer, no rAF.
+   Height (DSG-10, PERF-20): in the 450px desktop column every phrase of
+   both languages fits on one line, with or without the web font. Below
+   992px the TR phrases take two lines at 375px (EN at 320px), so the line
+   keeps two lines from the start and a late font cannot change its height.
    Timing: each phrase gets one --rot-step (fully visible for 80% of it,
    >= 0.9s at 1.3s); phrase i starts at i * --rot-step, so with 3 phrases the
    last one fades in at 2.6s and is settled at 3s (< 5s, WCAG 2.2.2).
@@ -117,12 +120,17 @@ section {
   font-size: 1.25rem;
   font-weight: 500;
   line-height: 1.3;
-  min-height: calc(2 * 1.3em);
 }
 
-@supports (min-height: 1lh) {
+@media (max-width: 991.98px) {
   .intro__tagline {
-    min-height: 2lh;
+    min-height: calc(2 * 1.3em);
+  }
+
+  @supports (min-height: 1lh) {
+    .intro__tagline {
+      min-height: 2lh;
+    }
   }
 }
 
