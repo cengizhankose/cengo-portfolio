@@ -15,7 +15,7 @@
 // prefetchRoute() below (loadBlogHome / loadBlogPost from
 // src/pages/blog/loaders.js), next to the data keys.
 import { matchRoute } from "../seo/routes.js";
-import { preloadKey } from "../hooks/usePosts.js";
+import { prefetchKey } from "../hooks/usePosts.js";
 import { blogIndexKeys, postKey } from "./swr.js";
 
 export const PREFETCH_SELECTOR = "a[href*='/blog']";
@@ -32,7 +32,7 @@ export function keysForRoute(route) {
 // Starts everything the page at `route` needs. `swr` is { cache, mutate,
 // fallback } from the app's <SWRConfig> (useSWRConfig()).
 export function prefetchRoute(route, swr) {
-  for (const key of keysForRoute(route)) preloadKey(key, swr);
+  for (const key of keysForRoute(route)) prefetchKey(key, swr);
 }
 
 function saveData() {

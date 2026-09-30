@@ -144,7 +144,7 @@ export function usePost(slug) {
   };
 }
 
-// preloadKey(key, { cache, mutate, fallback }): starts the request for
+// prefetchKey(key, { cache, mutate, fallback }): starts the request for
 // `key` now, so a page that mounts before it resolves reuses it (swr
 // preload), and one that mounts after it finds the data in the cache and
 // never shows "Loading..." (the answer is written to `cache` through
@@ -153,7 +153,7 @@ export function usePost(slug) {
 // stays silent here; the page reports and retries it when it opens.
 const inFlight = new Set();
 
-export function preloadKey(key, { cache, mutate, fallback } = {}) {
+export function prefetchKey(key, { cache, mutate, fallback } = {}) {
   if (!key || inFlight.has(key)) return undefined;
   if (cache?.get(key)?.data !== undefined) return undefined;
   if (fallback && Object.hasOwn(fallback, key)) return undefined;
@@ -174,10 +174,10 @@ export function preloadKey(key, { cache, mutate, fallback } = {}) {
 }
 
 export const preloadPost = (slug, options) =>
-  preloadKey(postKey(slug), options);
+  prefetchKey(postKey(slug), options);
 
 export function preloadPosts(locale, options) {
-  for (const key of blogIndexKeys(locale)) preloadKey(key, options);
+  for (const key of blogIndexKeys(locale)) prefetchKey(key, options);
 }
 
 // swr's default cache is module-global: every render in the process would

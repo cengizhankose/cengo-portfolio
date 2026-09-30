@@ -11,7 +11,7 @@ export default {
   // all, or an answer the page cannot use (5xx, bad payload).
   network:
     "Your browser couldn't reach the server. Check your connection and try again.",
-  server: "The server couldn't send it right now. Try again in a moment.",
+  server: "The server couldn't answer right now. Try again in a moment.",
   postError: "This post could not be loaded",
   // ErrorBoundary fallback (FE-03): a page failed to render; the header and
   // menu still work.
