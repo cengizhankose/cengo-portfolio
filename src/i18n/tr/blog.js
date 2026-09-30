@@ -10,5 +10,6 @@ export default {
   contact: "İletişim",
   loadError: "Yazılar yüklenemedi",
   otherLanguage: "İngilizce yazılar",
+  otherLoadError: "İngilizce yazılar yüklenemedi",
   inOtherLanguage: "İngilizce",
 };

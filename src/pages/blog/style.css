@@ -124,6 +124,13 @@
   font-family: "Marcellus", serif;
 }
 
+/* Only the other-language group failed (T-12): its inline state takes the
+   group's place under the page language's posts, with the group's spacing
+   (.blog-other in src/index.css). */
+.blog-container .blog-other-error {
+  margin-top: 4rem;
+}
+
 /* A post that is still loading holds at least one screen, so the article
    does not push the footer and the page height around when it arrives
    (PERF-16). */

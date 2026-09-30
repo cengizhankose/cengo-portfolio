@@ -103,11 +103,15 @@ function mergePosts(lists) {
   return out;
 }
 
-// useBlogIndex('en') -> { posts, status, error, retry }
+// useBlogIndex('en') -> { posts, status, error, retry, otherError }
 // Both lists must arrive before the page leaves 'loading', so "No posts yet"
-// never flashes while the other language's posts are still on their way. If
-// either list fails and has nothing to show, the page is in 'error'; retry()
-// refetches only what failed.
+// never flashes while the other language's posts are still on their way.
+//   - the page language's list fails: the page is in 'error';
+//   - only the other-language group fails: the page's own posts still show
+//     ('success') and `otherError` is that group's error, for an inline
+//     state where the group would be; with no own posts to show, it is the
+//     page's 'error' (an empty list next to a failure is not "No posts yet").
+// retry() refetches only what failed.
 export function useBlogIndex(locale) {
   const [ownKey, otherKey = null] = blogIndexKeys(locale);
   const own = useBlogSWR(ownKey);
@@ -121,10 +125,20 @@ export function useBlogIndex(locale) {
   // full outage weigh twice a partial one.
   useErrorReport([ownKey, otherKey].filter(Boolean).join("|"), error, "list");
 
+  const ownFailed = !ownReady && Boolean(own.error);
+  const otherFailed = !otherReady && Boolean(other.error);
+
   let status = "loading";
-  if (ownReady && otherReady) status = "success";
-  else if ((!ownReady && own.error) || (!otherReady && other.error)) {
-    status = "error";
+  let otherError = null;
+  if (ownFailed) status = "error";
+  else if (ownReady && otherReady) status = "success";
+  else if (ownReady && otherFailed) {
+    if (own.data.length > 0) {
+      status = "success";
+      otherError = other.error;
+    } else {
+      status = "error";
+    }
   }
 
   const retry = () => {
@@ -133,10 +147,14 @@ export function useBlogIndex(locale) {
   };
 
   return {
-    posts: status === "success" ? mergePosts([own.data, other.data]) : [],
+    posts:
+      status === "success"
+        ? mergePosts([own.data, otherReady ? other.data : []])
+        : [],
     status,
-    error,
+    error: ownFailed ? own.error : error,
     retry,
+    otherError,
   };
 }
 

@@ -119,6 +119,68 @@ describe("blocked API (DSG-20 criterion 3)", () => {
   });
 });
 
+describe("one language group fails (T-12 second group)", () => {
+  it("the page language's posts stay; the other group gets its own error and 'Try again'", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn(async (url) =>
+      url === "/api/posts?lang=en"
+        ? json([POST_EN])
+        : json({ error: "Unavailable" }, 503),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderBlog("/blog");
+
+    expect(
+      await screen.findByRole("link", { name: "Hello world" }),
+    ).toBeVisible();
+    const state = document.querySelector(".status-state");
+    expect(state).toHaveClass("blog-other-error");
+    expect(state).toHaveAttribute("role", "alert");
+    expect(
+      within(state).getByRole("heading", {
+        level: 2,
+        name: "Posts in Turkish couldn't be loaded",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(state).getByText(/server couldn't answer/i),
+    ).toBeInTheDocument();
+    // Not the page's error, and never "No posts yet".
+    expect(screen.queryByText("Posts couldn't be loaded")).toBeNull();
+    expect(screen.queryByText(/No posts yet/)).toBeNull();
+    expect(await violations()).toEqual([]);
+
+    fetchMock.mockImplementation(async (url) =>
+      url === "/api/posts?lang=en" ? json([POST_EN]) : json([POST_TR]),
+    );
+    await user.click(within(state).getByRole("button", { name: "Try again" }));
+    await screen.findByRole("link", { name: "Merhaba dünya" });
+    expect(document.querySelector(".status-state")).toBeNull();
+    // "Try again" asked again only for the group that failed.
+    expect(
+      fetchMock.mock.calls.filter(([url]) => url === "/api/posts?lang=en"),
+    ).toHaveLength(1);
+  });
+
+  it("no posts of its own and the other group fails: the page's error, not 'No posts yet'", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url) =>
+        url === "/api/posts?lang=en"
+          ? json([])
+          : json({ error: "Unavailable" }, 503),
+      ),
+    );
+    renderBlog("/blog");
+    await screen.findByRole("heading", {
+      level: 2,
+      name: "Posts couldn't be loaded",
+    });
+    expect(screen.queryByText(/No posts yet/)).toBeNull();
+    expect(document.querySelector(".status-state")).toHaveClass("blog-error");
+  });
+});
+
 describe("the blog-states scenarios (DSG-20 criterion 4, EN)", () => {
   it("[] -> 'No posts yet' with links to Home and Contact", async () => {
     vi.stubGlobal(

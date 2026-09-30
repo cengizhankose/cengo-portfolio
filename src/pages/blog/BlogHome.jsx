@@ -90,7 +90,9 @@ function PostCard({ post, locale, heading: Heading, t }) {
 //   error    what failed, "Try again" (refetches only what failed) and a
 //            way home; never shown as "No posts yet";
 //   success  the two language groups (T-12), or the empty state when both
-//            lists are empty (links to Home and Contact).
+//            lists are empty (links to Home and Contact). If only the other
+//            language's group failed, the page's own posts stay and that
+//            group gets its own inline error and "Try again".
 // Meta is written before any branch, so every state has the blog title.
 function BlogHomePage() {
   const route = useRoute();
@@ -98,7 +100,9 @@ function BlogHomePage() {
   const t = useT();
   const lp = useLocalePath();
   usePageMeta(getPageMeta(route, route.locale));
-  const { posts, status, error, retry } = useBlogIndex(locale);
+  const { posts, status, error, retry, otherError } = useBlogIndex(locale);
+  const reason = (failure) =>
+    t(errorStatus(failure) === "network" ? "status.network" : "status.server");
 
   const { own, other } = groupPosts(posts, locale);
   const empty = status === "success" && own.length === 0 && other.length === 0;
@@ -117,11 +121,7 @@ function BlogHomePage() {
           role="alert"
           className="blog-error"
           title={t("blog.loadError")}
-          message={t(
-            errorStatus(error) === "network"
-              ? "status.network"
-              : "status.server",
-          )}
+          message={reason(error)}
           onRetry={retry}
           actions={[{ to: lp("/"), label: t("blog.home") }]}
         />
@@ -150,6 +150,16 @@ function BlogHomePage() {
             />
           ))}
         </div>
+      )}
+      {otherError && (
+        <StatusState
+          headingLevel={2}
+          role="alert"
+          className="blog-other-error"
+          title={t("blog.otherLoadError")}
+          message={reason(otherError)}
+          onRetry={retry}
+        />
       )}
       {other.length > 0 && (
         <section className="blog-other" aria-labelledby="other-lang">

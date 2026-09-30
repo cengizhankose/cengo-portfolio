@@ -115,6 +115,31 @@ describe("TR states (DSG-20 criteria 1, 4, 6)", () => {
     ).toBeInTheDocument();
   });
 
+  it("/tr/blog when only the EN group fails: TR posts stay, 'İngilizce yazılar yüklenemedi'", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url) =>
+        url === "/api/posts?lang=tr"
+          ? json([POST_TR])
+          : json({ error: "x" }, 500),
+      ),
+    );
+    renderBlog("/tr/blog");
+    await screen.findByRole("link", { name: "Merhaba dünya" });
+    const state = document.querySelector(".status-state");
+    expect(
+      within(state).getByRole("heading", {
+        level: 2,
+        name: "İngilizce yazılar yüklenemedi",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(state).getByRole("button", { name: "Tekrar dene" }),
+    ).toBeVisible();
+    expect(screen.queryByText("Yazılar yüklenemedi")).toBeNull();
+    expect(await violations()).toEqual([]);
+  });
+
   it("a TR post that fails: 'Bu yazı yüklenemedi', back to /tr/blog", async () => {
     vi.stubGlobal(
       "fetch",
