@@ -211,9 +211,18 @@ const Headermain = () => {
               location={LOCATIONS.MENU_FOOTER}
               className="menu_footer__social m-0 p-0"
             />
-            <p className="copyright m-0">
-              {t("footer.copyright", { year: new Date().getFullYear() })}
-            </p>
+            <div className="d-flex flex-wrap align-items-center">
+              <Link
+                to={lp("/privacy")}
+                className="menu_footer__privacy d-inline-block me-3 py-1"
+                onClick={() => closeMenu(lp("/privacy"))}
+              >
+                {t("nav.privacy")}
+              </Link>
+              <p className="copyright m-0">
+                {t("footer.copyright", { year: new Date().getFullYear() })}
+              </p>
+            </div>
           </div>
         </div>
       </header>

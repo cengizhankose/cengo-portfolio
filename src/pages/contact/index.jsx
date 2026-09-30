@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./style.css";
+import "../privacy/style.css";
 import { Container, Row, Col, Alert } from "react-bootstrap";
 import { Link, useSearchParams } from "react-router-dom";
 import { email, emailjs } from "../../content/shared.js";
@@ -60,6 +61,9 @@ function forgetRateLimit() {
 // aria-hidden, so screen readers do not announce the label (contact.honeypot,
 // a neutral text in every language).
 const HONEYPOT = "subject";
+
+// The privacy note under the form, also the submit button's description.
+const NOTE_ID = "contact-privacy-note";
 
 // project_type is the qualifying field (MKT-10): empty until the visitor
 // picks one, or until `?type=<id>` preselects it (services CTAs, MKT-13).
@@ -435,9 +439,16 @@ export const ContactUs = () => {
                 type="submit"
                 disabled={formData.loading}
                 aria-busy={formData.loading}
+                aria-describedby={NOTE_ID}
               >
                 {formData.loading ? t("contact.sending") : t("contact.submit")}
               </button>
+              {/* Privacy notice (SEC-25, ANL-04): what happens to the data,
+                  in the page's language, with the link to the privacy page. */}
+              <p className="privacy-note" id={NOTE_ID}>
+                {t("privacy.formNote")}{" "}
+                <Link to={lp("/privacy")}>{t("privacy.formLink")}</Link>
+              </p>
             </form>
           </Col>
         </Row>
