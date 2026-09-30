@@ -10,6 +10,8 @@
 
 # production
 /build
+# `bun run build` output (the image builds it; BE-26, FE-32)
+/dist
 
 # misc
 .DS_Store
