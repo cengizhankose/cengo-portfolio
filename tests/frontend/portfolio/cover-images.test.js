@@ -112,87 +112,109 @@ describe("presets (scripts/images/build-responsive.ts)", () => {
   });
 });
 
+// AVIF at effort 9 is slow; a busy machine needs far more than the default 5 s.
+const SLOW = 120_000;
+
 describe("building a cover", () => {
-  it("writes six files at 480/800/1280, cropped to 16:10 and under 150 KB", async () => {
-    await writeSource("scripts/images/sources/salesgym.png", 1800, 1100);
+  it(
+    "writes six files at 480/800/1280, cropped to 16:10 and under 150 KB",
+    async () => {
+      await writeSource("scripts/images/sources/salesgym.png", 1800, 1100);
 
-    const built = await buildResponsive(PRESETS["portfolio-salesgym"], root);
+      const built = await buildResponsive(PRESETS["portfolio-salesgym"], root);
 
-    expect(built).toHaveLength(6);
-    for (const variant of built) {
-      const file = join(root, variant.file);
-      expect(existsSync(file), variant.file).toBe(true);
-      expect(statSync(file).size, variant.file).toBeLessThanOrEqual(
-        PROJECT_IMAGE.maxBytes,
+      expect(built).toHaveLength(6);
+      for (const variant of built) {
+        const file = join(root, variant.file);
+        expect(existsSync(file), variant.file).toBe(true);
+        expect(statSync(file).size, variant.file).toBeLessThanOrEqual(
+          PROJECT_IMAGE.maxBytes,
+        );
+        expect(variant.height).toBe(Math.round((variant.width * 10) / 16));
+        const info = imageInfo(readFileSync(file));
+        expect(info.format).toBe(variant.format === "avif" ? "avif" : "webp");
+        expect(info.width).toBe(variant.width);
+        expect(info.height).toBe(variant.height);
+        expect(info.exif).toBeFalsy();
+      }
+    },
+    SLOW,
+  );
+
+  it(
+    "steps the quality down until a busy image fits, and never below the floor",
+    async () => {
+      const { default: sharp } = await import("sharp");
+      const file = join(root, "scripts/images/sources/busy.png");
+      mkdirSync(dirname(file), { recursive: true });
+      await sharp({
+        create: {
+          width: 600,
+          height: 400,
+          channels: 3,
+          background: "#808080",
+          noise: { type: "gaussian", mean: 128, sigma: 60 },
+        },
+      })
+        .png()
+        .toFile(file);
+
+      const spec = {
+        ...PRESETS["portfolio-farmin"],
+        source: "scripts/images/sources/busy.png",
+        widths: [480],
+        formats: [{ format: "webp", quality: () => 90 }],
+        maxBytes: 60 * 1024,
+      };
+      const [variant] = await buildResponsive(spec, root);
+      expect(variant.bytes).toBeLessThanOrEqual(60 * 1024);
+      expect(variant.quality).toBeLessThan(90);
+      expect(variant.quality).toBeGreaterThanOrEqual(MIN_QUALITY);
+
+      await expect(
+        buildResponsive({ ...spec, maxBytes: 300 }, root),
+      ).rejects.toThrow(/over the 300 B budget/);
+    },
+    SLOW,
+  );
+
+  it(
+    "refuses to upscale a narrow source, and a source too short for 16:10",
+    async () => {
+      await writeSource("scripts/images/sources/narrow.png", 1000, 700);
+      await writeSource("scripts/images/sources/short.png", 1400, 700);
+      const base = PRESETS["portfolio-effort-lab"];
+
+      await expect(
+        buildResponsive(
+          { ...base, source: "scripts/images/sources/narrow.png" },
+          root,
+        ),
+      ).rejects.toThrow(/1000px wide; 1280w would be upscaled/);
+      await expect(
+        buildResponsive(
+          { ...base, source: "scripts/images/sources/short.png" },
+          root,
+        ),
+      ).rejects.toThrow(/700px high; 1280x800 would be upscaled/);
+    },
+    SLOW,
+  );
+
+  it(
+    "an exact 1280x800 capture is accepted (the effort screenshot)",
+    async () => {
+      await writeSource("scripts/images/sources/effort-lab.png", 1280, 800);
+      const built = await buildResponsive(
+        PRESETS["portfolio-effort-lab"],
+        root,
       );
-      expect(variant.height).toBe(Math.round((variant.width * 10) / 16));
-      const info = imageInfo(readFileSync(file));
-      expect(info.format).toBe(variant.format === "avif" ? "avif" : "webp");
-      expect(info.width).toBe(variant.width);
-      expect(info.height).toBe(variant.height);
-      expect(info.exif).toBeFalsy();
-    }
-  });
-
-  it("steps the quality down until a busy image fits, and never below the floor", async () => {
-    const { default: sharp } = await import("sharp");
-    const file = join(root, "scripts/images/sources/busy.png");
-    mkdirSync(dirname(file), { recursive: true });
-    await sharp({
-      create: {
-        width: 600,
-        height: 400,
-        channels: 3,
-        background: "#808080",
-        noise: { type: "gaussian", mean: 128, sigma: 60 },
-      },
-    })
-      .png()
-      .toFile(file);
-
-    const spec = {
-      ...PRESETS["portfolio-farmin"],
-      source: "scripts/images/sources/busy.png",
-      widths: [480],
-      formats: [{ format: "webp", quality: () => 90 }],
-      maxBytes: 60 * 1024,
-    };
-    const [variant] = await buildResponsive(spec, root);
-    expect(variant.bytes).toBeLessThanOrEqual(60 * 1024);
-    expect(variant.quality).toBeLessThan(90);
-    expect(variant.quality).toBeGreaterThanOrEqual(MIN_QUALITY);
-
-    await expect(
-      buildResponsive({ ...spec, maxBytes: 300 }, root),
-    ).rejects.toThrow(/over the 300 B budget/);
-  });
-
-  it("refuses to upscale a narrow source, and a source too short for 16:10", async () => {
-    await writeSource("scripts/images/sources/narrow.png", 1000, 700);
-    await writeSource("scripts/images/sources/short.png", 1400, 700);
-    const base = PRESETS["portfolio-effort-lab"];
-
-    await expect(
-      buildResponsive(
-        { ...base, source: "scripts/images/sources/narrow.png" },
-        root,
-      ),
-    ).rejects.toThrow(/1000px wide; 1280w would be upscaled/);
-    await expect(
-      buildResponsive(
-        { ...base, source: "scripts/images/sources/short.png" },
-        root,
-      ),
-    ).rejects.toThrow(/700px high; 1280x800 would be upscaled/);
-  });
-
-  it("an exact 1280x800 capture is accepted (the effort screenshot)", async () => {
-    await writeSource("scripts/images/sources/effort-lab.png", 1280, 800);
-    const built = await buildResponsive(PRESETS["portfolio-effort-lab"], root);
-    expect(built.map((variant) => variant.width).sort((a, b) => a - b)).toEqual(
-      [480, 480, 800, 800, 1280, 1280],
-    );
-  });
+      expect(
+        built.map((variant) => variant.width).sort((a, b) => a - b),
+      ).toEqual([480, 480, 800, 800, 1280, 1280]);
+    },
+    SLOW,
+  );
 });
 
 describe("the hero preset is untouched by the crop and budget options", () => {
