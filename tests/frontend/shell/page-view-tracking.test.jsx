@@ -14,8 +14,10 @@ const analytics = vi.hoisted(() => ({
   initAnalytics: vi.fn(),
   // What was on screen each time trackPageview() ran.
   headingsAtCall: [],
-  // The last page context at the moment a page's own effect ran.
+  // The last page context, and how many page views had been sent, at the
+  // moment a page's own effect ran.
   contextAtPageEffect: [],
+  viewsAtPageEffect: [],
 }));
 
 vi.mock("../../../src/lib/analytics/index.js", () => ({
@@ -27,12 +29,17 @@ vi.mock("../../../src/lib/analytics/index.js", () => ({
 
 function stubPage(name) {
   const Page = () => {
-    // Children's effects run before the hook's passive effect: the page
-    // context must already be this page's.
+    // Children's passive effects run before the hook's passive effects would:
+    // the page context and the page view must already be this page's (the
+    // hook sends both from layout effects).
     useEffect(() => {
       analytics.contextAtPageEffect.push([
         name,
         analytics.setPageContext.mock.calls.at(-1)?.[0],
+      ]);
+      analytics.viewsAtPageEffect.push([
+        name,
+        analytics.trackPageview.mock.calls.map(([view]) => view.pageType),
       ]);
     }, []);
     return <h1>{name}</h1>;
@@ -86,6 +93,7 @@ beforeEach(() => {
   analytics.track.mockReset();
   analytics.headingsAtCall.length = 0;
   analytics.contextAtPageEffect.length = 0;
+  analytics.viewsAtPageEffect.length = 0;
   analytics.trackPageview.mockImplementation(() => {
     analytics.headingsAtCall.push(
       document.querySelector("h1")?.textContent ?? null,
@@ -210,6 +218,16 @@ describe("the page context", () => {
     expect(about).toEqual([
       "About page",
       { page_type: "about", ui_locale: "en", content_language: "en" },
+    ]);
+  });
+
+  it("the page view is sent before the page's own effects run (ANL-05 order)", () => {
+    renderAt("/");
+    click("about");
+
+    expect(analytics.viewsAtPageEffect).toEqual([
+      ["Home page", ["home"]],
+      ["About page", ["home", "about"]],
     ]);
   });
 });

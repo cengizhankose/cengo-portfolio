@@ -34,6 +34,9 @@ vi.mock("../../../src/pages/contact", () => ({
 }));
 
 const { default: AppRoutes } = await import("../../../src/app/routes.jsx");
+const { postStatus } =
+  await import("../../../src/lib/analytics/usePageViewTracking.js");
+const { blogStatus } = await import("../../../src/hooks/usePosts.js");
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -247,6 +250,53 @@ describe("a post that loads", () => {
     await act(async () => gate.resolve(json(POST)));
 
     expect(views().map((view) => view.pageType)).toEqual(["about"]);
+  });
+});
+
+describe("leaving a page for a post that has not arrived", () => {
+  it("coming back to the page left before the post arrives is a new view of that page", async () => {
+    const gate = deferred();
+    stubFetch({ "/api/posts/hello-world": () => gate.promise });
+    renderAt("/about");
+    await screen.findByText("About page");
+
+    await act(async () => navigate("/blog/hello-world"));
+    await screen.findByRole("status");
+    await act(async () => navigate("/about"));
+    await screen.findByText("About page");
+    await act(async () => gate.resolve(json(POST)));
+
+    // The post was never on screen: no view for it, and the return to /about
+    // is a view of its own (the first one is not its duplicate).
+    expect(views().map((view) => view.path)).toEqual(["/about", "/about"]);
+  });
+
+  it("clicking the link of the page you are on stays one view", async () => {
+    stubFetch({});
+    renderAt("/about");
+    await screen.findByText("About page");
+
+    fireEvent.click(screen.getByRole("link", { name: "about" }));
+    fireEvent.click(screen.getByRole("link", { name: "about" }));
+
+    expect(views().map((view) => view.path)).toEqual(["/about"]);
+  });
+});
+
+// The hook keeps its own copy of the status rule (usePosts.js stays out of the
+// entry chunk). Until both read one helper, this pins the copy to the original.
+describe("the post status rule", () => {
+  const error = (status) => Object.assign(new Error("x"), { status });
+  it.each([
+    ["nothing yet", {}],
+    ["data", { data: POST }],
+    ["404", { error: error(404) }],
+    ["500", { error: error(500) }],
+    ["network failure", { error: new TypeError("network down") }],
+    ["data then a 404 revalidation", { data: POST, error: error(404) }],
+    ["data then a 500 revalidation", { data: POST, error: error(500) }],
+  ])("%s: same status as usePosts.js blogStatus", (_label, state) => {
+    expect(postStatus(state)).toBe(blogStatus(state, { notFound: true }));
   });
 });
 

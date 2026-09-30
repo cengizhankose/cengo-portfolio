@@ -4,7 +4,8 @@
 //
 // Called once, from the route shell (src/app/routes.jsx). The shell renders
 // the new route in the same commit as the navigation (PERF-13, FE-17), so
-// `useLocation()` is the page on screen and this hook runs after that commit.
+// `useLocation()` is the page on screen and this hook runs after that commit,
+// in a layout effect (see the last paragraph).
 //
 //   - Every page but a blog post is complete at the first render: the view is
 //     sent at once.
@@ -23,11 +24,17 @@
 //     location.key. Clicking the link of the page you are on is not one
 //     either. Back to an earlier page is.
 //
-// The page context (page_type, ui_locale, content_language) is set in a
-// layout effect, before any child's effect can send an event, so an event
-// fired while a page mounts (not_found_viewed) carries this page's context,
-// not the previous page's.
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+// Order inside a commit: React runs a child's passive effect before its
+// parent's, so a page that sends an event when it mounts (NotFound's
+// not_found_viewed) would go out before a passive page-view effect, carrying
+// the page being left (its url, title and referrer, which analytics/index.js
+// still holds as the current page). Both the page context (page_type,
+// ui_locale, content_language) and the page view are therefore sent from
+// layout effects, declared in that order: they run right after the DOM
+// commit and before any child's passive effect. An event fired while a page
+// mounts always follows its page_view and carries this page's url, title and
+// context.
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import useSWR from "swr";
 import { displayLocale, getPageMeta } from "../../seo/pages.js";
@@ -39,7 +46,7 @@ import { getContentLanguage, getPageType, getUiLocale } from "./pageType.js";
 // 'loading' | 'success' | 'notfound' | 'error', as usePosts.js blogStatus()
 // derives it for a post page (kept here so usePosts.js stays out of the
 // entry chunk).
-function postStatus({ data, error }) {
+export function postStatus({ data, error }) {
   if (error?.status === 404) return "notfound";
   if (data !== undefined) return "success";
   if (error) return "error";
@@ -170,8 +177,16 @@ export function usePageViewTracking() {
     setPageContext(context);
   }, [context]);
 
+  // `sentFor`: the pathname whose view went out last. Leaving a pathname
+  // forgets it, even when the page being opened sends no view yet (a post
+  // that is still loading): going back to the page left is a new view.
   const sentFor = useRef(null);
-  useEffect(() => {
+  const lastPathname = useRef(pathname);
+  useLayoutEffect(() => {
+    if (lastPathname.current !== pathname) {
+      lastPathname.current = pathname;
+      sentFor.current = null;
+    }
     if (!view || sentFor.current === pathname) return;
     sentFor.current = pathname;
     trackPageview({ path: pathname, search, ...view });

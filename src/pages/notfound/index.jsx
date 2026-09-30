@@ -11,8 +11,10 @@
 //
 // Analytics (ANL-05): on mount, once, `not_found_viewed` with the coarse path
 // group and the referrer host (./report.js). The page view itself comes from
-// the route shell's hook, as page_type `not_found` (ANL-07); this page sends
-// no page_view of its own.
+// the route shell's hook, as page_type `not_found` (ANL-07), from a layout
+// effect: it goes out before this page's effect, so `not_found_viewed` follows
+// the page_view and carries this page's url, title and referrer. This page
+// sends no page_view of its own.
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { StatusState } from "../../components/statusstate";
