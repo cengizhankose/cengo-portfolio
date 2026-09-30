@@ -4,7 +4,13 @@
    --bg-color must match THEME_COLORS in src/lib/theme.js and the head script
    (browser UI theme-color, DSG-16).
    --text-muted: secondary text and placeholders, WCAG AA on --bg-color
-   (#a3a3a3 on #0c0c0c 7.75:1, #595959 on #fff 7.00:1; DSG-04, DSG-21). */
+   (#a3a3a3 on #0c0c0c 7.75:1, #595959 on #fff 7.00:1; DSG-04, DSG-21).
+   Cursor ring (T-14, DSG-21): --cursor-ring-color / --cursor-ring-hover-color
+   point at theme tokens and are resolved on <html>, so they follow
+   data-theme without a second declaration (dark #a3a3a3 / #fff, light
+   #595959 / #000, both >= 3:1 on --bg-color). --z-cursor keeps the ring
+   above the fixed header (Bootstrap .fixed-top, 1030) and under the page
+   frame and the skip link. */
 :root {
   color-scheme: dark;
   --bg-color: #0c0c0c;
@@ -14,6 +20,9 @@
   --text-color-2: #fff;
   --text-muted: #a3a3a3;
   --overlay-color: rgb(12 12 12 / 63%);
+  --cursor-ring-color: var(--text-muted);
+  --cursor-ring-hover-color: var(--text-color);
+  --z-cursor: 1070;
 }
 
 [data-theme="light"] {
@@ -162,20 +171,6 @@ p {
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
-}
-
-.cursor__dot div {
-  z-index: 999999 !important;
-}
-
-.cursor__dot div:last-child {
-  filter: invert(1);
-  background-color: var(--primary-color) !important;
-}
-
-.cursor__dot div:first-child {
-  filter: invert(1);
-  background-color: var(--overlay-color) !important;
 }
 
 .color_pr {
