@@ -1,5 +1,6 @@
-// Smoke: header navigation menu (FE-22). Current behaviour only;
-// W2-FE-nav-a11y (FE-02/FE-10/FE-11) owns and updates this file.
+// Smoke: header navigation menu (FE-22), updated by W2-FE-nav-a11y for the
+// named, boolean-state menu button (FE-02/FE-11). The detailed keyboard,
+// focus and landmark checks live in tests/frontend/nav/.
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -15,24 +16,27 @@ const SECTIONS = [
 ];
 
 function renderHeader() {
-  const utils = render(
+  render(
     <MemoryRouter>
       <Headermain />
     </MemoryRouter>,
   );
+  const menuButton = screen.getByRole("button", { name: "Menu" });
   return {
-    ...utils,
-    menu: utils.container.querySelector(".site__navigation"),
-    menuButton: utils.container.querySelector("button.menu__button"),
+    menuButton,
+    menu: document.getElementById(menuButton.getAttribute("aria-controls")),
   };
 }
 
 describe("Headermain menu (smoke)", () => {
-  it("links every site section to its route", () => {
+  it("links every site section to its route inside the main menu", () => {
     renderHeader();
+    const nav = screen.getByRole("navigation", { name: "Main menu" });
 
     for (const [name, href] of SECTIONS) {
-      expect(screen.getByRole("link", { name })).toHaveAttribute("href", href);
+      const link = screen.getByRole("link", { name });
+      expect(link).toHaveAttribute("href", href);
+      expect(nav).toContainElement(link);
     }
   });
 
@@ -40,13 +44,16 @@ describe("Headermain menu (smoke)", () => {
     const user = userEvent.setup();
     const { menu, menuButton } = renderHeader();
     expect(menu).not.toHaveClass("menu__opend");
+    expect(menuButton).toHaveAttribute("aria-expanded", "false");
 
     await user.click(menuButton);
     expect(menu).toHaveClass("menu__opend");
+    expect(menuButton).toHaveAttribute("aria-expanded", "true");
     expect(document.body).toHaveClass("ovhidden");
 
     await user.click(menuButton);
     expect(menu).not.toHaveClass("menu__opend");
+    expect(menuButton).toHaveAttribute("aria-expanded", "false");
     expect(document.body).not.toHaveClass("ovhidden");
   });
 
@@ -58,6 +65,7 @@ describe("Headermain menu (smoke)", () => {
     await user.click(screen.getByRole("link", { name: "About" }));
 
     expect(menu).not.toHaveClass("menu__opend");
+    expect(menuButton).toHaveAttribute("aria-expanded", "false");
     expect(document.body).not.toHaveClass("ovhidden");
   });
 });
