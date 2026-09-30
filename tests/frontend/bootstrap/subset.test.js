@@ -78,7 +78,7 @@ describe("size budget (PERF-09, FE-21)", () => {
     expect(gzip(css)).toBeLessThanOrEqual(8_700);
   });
 
-  it("keeps the subset plus every src/ stylesheet within 70,000 B raw and 15,000 B gzip -9", async () => {
+  it("keeps the subset plus every src/ stylesheet within 76,000 B raw and 16,000 B gzip -9", async () => {
     // What `vite build` ships in assets/index-*.css: the subset plus the
     // page and component CSS, minified by esbuild (build.minify is terser, so
     // Vite minifies CSS with esbuild). Before PERF-09: 248,074 B / 34,717 B.
@@ -90,8 +90,11 @@ describe("size budget (PERF-09, FE-21)", () => {
       "index.css",
       { minify: true },
     );
-    expect(code.length).toBeLessThanOrEqual(70_000);
-    expect(gzip(code)).toBeLessThanOrEqual(15_000);
+    // W8 added the portfolio cards, author box, post footer and @font-face
+    // rules (+2.6 kB raw). Budget raised at the W8 merge; W10-FE-css-architecture
+    // (tokens + CSS Modules, dead-CSS removal) must bring it back to 70,000 / 15,000.
+    expect(code.length).toBeLessThanOrEqual(76_000);
+    expect(gzip(code)).toBeLessThanOrEqual(16_000);
   });
 });
 
