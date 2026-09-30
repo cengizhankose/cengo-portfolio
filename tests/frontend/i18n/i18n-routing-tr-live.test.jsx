@@ -85,9 +85,13 @@ describe("with the TR pages live", () => {
       screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
     ).toEqual([
       TR["about.intro"],
+      TR["about.proof"],
       TR["about.timeline"],
       TR["about.skills"],
       TR["about.services"],
+      TR["about.awards"],
+      TR["about.talks"],
+      TR["about.cta.title"],
     ]);
   });
 

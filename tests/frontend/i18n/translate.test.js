@@ -137,13 +137,14 @@ describe("getContent(locale) (FE-14 step 6)", () => {
     // K-06b hero (W5-DSG-motion-cursor-hero): name + role, 3 phrases.
     expect(en.hero.name).toBe("Cengizhan Köse");
     expect(en.hero.phrases).toHaveLength(3);
-    expect(en.timeline).toHaveLength(6);
-    expect(en.skills.map((skill) => skill.name)).toEqual([
-      "JavaScript",
-      "React Native",
-      "React",
-      "Flutter",
-      "Figma",
+    // W6-MKT-about-positioning: eight dated rows and the CV's five skill groups.
+    expect(en.timeline).toHaveLength(8);
+    expect(en.skills.map((group) => group.name)).toEqual([
+      "Frontend",
+      "Mobile",
+      "Backend and data",
+      "Real-time and AI",
+      "Delivery and quality",
     ]);
     expect(en.services).toHaveLength(4);
     expect(en.contact.description).toMatch(/^Feel free to contact me/);

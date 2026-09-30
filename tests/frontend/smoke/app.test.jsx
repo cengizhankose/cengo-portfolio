@@ -100,7 +100,12 @@ describe("App (smoke)", () => {
       ).toBeInTheDocument(),
     );
     const link = document.head.querySelector('link[rel="preload"][as="image"]');
-    expect(link.getAttribute("href")).toMatch(/photo/i);
+    // W6-DSG-hero-image-lcp (PERF-02): the AVIF srcset of the <picture>, so
+    // the browser preloads the same variant the page then uses.
+    expect(link.getAttribute("imagesrcset")).toContain(
+      "/img/hero/cengizhan-kose-v1-768.avif 768w",
+    );
+    expect(link.getAttribute("type")).toBe("image/avif");
     expect(link.getAttribute("fetchpriority")).toBe("high");
   });
 

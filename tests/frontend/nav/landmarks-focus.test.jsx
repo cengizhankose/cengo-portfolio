@@ -34,20 +34,24 @@ const ROUTES = [
 ];
 
 describe("landmarks", () => {
-  it.each(ROUTES)("%s has exactly one focusable <main id=main>", (path, h1) => {
-    renderSite(path);
+  it.each(ROUTES)(
+    "%s has exactly one focusable <main id=main>",
+    async (path, h1) => {
+      renderSite(path);
 
-    const mains = document.querySelectorAll("main");
-    expect(mains).toHaveLength(1);
-    expect(mains[0]).toHaveAttribute("id", "main");
-    expect(mains[0]).toHaveAttribute("tabindex", "-1");
-    expect(
-      screen.getByRole("heading", { level: 1, name: h1 }),
-    ).toBeInTheDocument();
-    expect(mains[0]).toContainElement(
-      screen.getByRole("heading", { level: 1 }),
-    );
-  });
+      // The blog pages are lazy chunks (PERF-04): wait for the page.
+      expect(
+        await screen.findByRole("heading", { level: 1, name: h1 }),
+      ).toBeInTheDocument();
+      const mains = document.querySelectorAll("main");
+      expect(mains).toHaveLength(1);
+      expect(mains[0]).toHaveAttribute("id", "main");
+      expect(mains[0]).toHaveAttribute("tabindex", "-1");
+      expect(mains[0]).toContainElement(
+        screen.getByRole("heading", { level: 1 }),
+      );
+    },
+  );
 
   it("names every <nav> uniquely and wraps the site menu in one", () => {
     renderSite();
