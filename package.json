@@ -4,18 +4,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@babel/core": "^7.28.6",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.1",
-    "@testing-library/user-event": "^14.6.1",
     "bootstrap": "^5.3.8",
     "drizzle-orm": "^0.45.1",
     "emailjs-com": "^3.2.0",
-    "gh-pages": "^6.3.0",
     "hono": "^4.11.4",
     "mermaid": "^12.0.0",
-    "postcss": "^8.5.6",
-    "postcss-safe-parser": "^7.0.1",
     "postgres": "^3.4.8",
     "react": "^19.2.3",
     "react-animated-cursor": "^2.11.2",
@@ -37,29 +30,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "bun test",
-    "predeploy": "bun run build",
-    "deploy": "gh-pages -d dist",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   },
   "devDependencies": {
     "@types/node": "^25.0.8",
