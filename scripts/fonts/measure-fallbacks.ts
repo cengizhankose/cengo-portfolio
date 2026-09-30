@@ -65,6 +65,21 @@ function load(path: string): Font {
   ) as unknown as Font;
 }
 
+/**
+ * The display face is matched on the widest word that cannot shrink: the
+ * name in the hero h1 ("Cengizhan"). At 320 px it fills the column, and a
+ * fallback 1-2 % wider than Marcellus breaks it mid-word (measured: the h1
+ * grew from 2 to 3 lines, 40 px, when the fonts were blocked). A prose
+ * average put Georgia 1.8 % too wide for it.
+ */
+const HEADING_SAMPLE = ["Cengizhan"];
+
+function textWidth(font: Font, text: string): number {
+  let total = 0;
+  for (const ch of text) total += font.charToGlyph(ch).advanceWidth ?? 0;
+  return total / font.unitsPerEm;
+}
+
 /** Weighted average advance width, in em. */
 function avgWidth(font: Font): number {
   let total = 0;
@@ -80,6 +95,8 @@ function avgWidth(font: Font): number {
 interface Target {
   name: string;
   weight: number;
+  /** "prose": English letter frequencies; "headings": HEADING_SAMPLE. */
+  sample: "prose" | "headings";
   web: string;
   system: string;
   local: string[];
@@ -89,6 +106,7 @@ const TARGETS: Target[] = [
   {
     name: "Raleway Fallback",
     weight: 400,
+    sample: "prose",
     web: join(FONTSOURCE, "raleway", "files", "raleway-latin-400-normal.woff"),
     system: join(SYSTEM, "Arial.ttf"),
     local: ["Arial", "Liberation Sans", "Arimo"],
@@ -96,6 +114,7 @@ const TARGETS: Target[] = [
   {
     name: "Raleway Fallback",
     weight: 700,
+    sample: "prose",
     web: join(FONTSOURCE, "raleway", "files", "raleway-latin-700-normal.woff"),
     system: join(SYSTEM, "Arial Bold.ttf"),
     local: ["Arial Bold", "Arial-BoldMT", "Liberation Sans Bold", "Arimo Bold"],
@@ -103,6 +122,7 @@ const TARGETS: Target[] = [
   {
     name: "Marcellus Fallback",
     weight: 400,
+    sample: "headings",
     web: join(
       FONTSOURCE,
       "marcellus",
@@ -119,7 +139,11 @@ const pct = (n: number) => Math.round(n * 10000) / 100;
 function measure(t: Target) {
   const web = load(t.web);
   const sys = load(t.system);
-  const sizeAdjust = avgWidth(web) / avgWidth(sys);
+  const width = (font: Font) =>
+    t.sample === "headings"
+      ? HEADING_SAMPLE.reduce((sum, text) => sum + textWidth(font, text), 0)
+      : avgWidth(font);
+  const sizeAdjust = width(web) / width(sys);
   const upm = web.unitsPerEm;
   const { hhea } = web.tables;
   return {

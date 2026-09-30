@@ -104,7 +104,7 @@ export const FALLBACK_FACES: readonly FallbackFace[] = [
   {
     name: "Raleway Fallback",
     weight: 400,
-    local: ["Arial", "Liberation Sans", "Arimo"],
+    local: ["Arial","Liberation Sans","Arimo"],
     sizeAdjust: 104.94,
     ascent: 89.58,
     descent: 22.3,
@@ -113,7 +113,7 @@ export const FALLBACK_FACES: readonly FallbackFace[] = [
   {
     name: "Raleway Fallback",
     weight: 700,
-    local: ["Arial Bold", "Arial-BoldMT", "Liberation Sans Bold", "Arimo Bold"],
+    local: ["Arial Bold","Arial-BoldMT","Liberation Sans Bold","Arimo Bold"],
     sizeAdjust: 100.7,
     ascent: 93.35,
     descent: 23.24,
@@ -122,10 +122,10 @@ export const FALLBACK_FACES: readonly FallbackFace[] = [
   {
     name: "Marcellus Fallback",
     weight: 400,
-    local: ["Georgia", "Gelasio"],
-    sizeAdjust: 103.76,
-    ascent: 93.88,
-    descent: 26.96,
+    local: ["Georgia","Gelasio"],
+    sizeAdjust: 101.97,
+    ascent: 95.53,
+    descent: 27.44,
     lineGap: 0,
   },
   // MEASURED:END
