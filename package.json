@@ -36,7 +36,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "check": "bun run typecheck && bun run test",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "bun run src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "db:up": "docker compose up -d --wait db",
     "db:seed": "bun run scripts/seed-dev.ts",
