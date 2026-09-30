@@ -41,6 +41,7 @@
     "db:studio": "drizzle-kit studio",
     "db:up": "docker compose up -d --wait db",
     "db:seed": "bun run scripts/seed-dev.ts",
+    "content:publish": "bun --no-env-file scripts/content/publish-post.ts",
     "hooks:install": "git config core.hooksPath .githooks",
     "brand:build": "bun scripts/brand/build-brand-assets.ts"
   },
