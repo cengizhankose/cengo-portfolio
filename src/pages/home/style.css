@@ -7,29 +7,6 @@ section {
   transition: all 0.5s ease-in;
 }
 
-.who_am_I {
-  font-family: Cinzel;
-}
-
-.has-first-color {
-  color: var(--primary-color);
-}
-
-.btn-portfolio {
-  background: var(--primary-color);
-  border-radius: 0;
-}
-
-.btn-portfolio a {
-  color: #000;
-  text-decoration: none;
-}
-
-.btn-about a {
-  color: var(--text-color);
-  text-decoration: none;
-}
-
 /* Hero layout (FE-18, DSG-11). Below 992px the section is one column in
    DOM order: name, line, lead and CTAs first, the photo under them, all in
    normal flow under the fixed header. From 992px the text and the photo
@@ -68,17 +45,6 @@ section {
     padding-left: 20px;
     padding-right: 20px;
   }
-}
-
-.intro_sec .intro .feature .wrap-icon {
-  background: 0 0 !important;
-  width: auto;
-  height: auto;
-  margin-bottom: 0;
-}
-
-.intro_sec .intro .feature .wrap-icon svg {
-  color: #5cccc9;
 }
 
 /* Hero heading (K-06b; SEO-12, FE-23, DSG-09). One static h1: the name in
@@ -239,11 +205,6 @@ section {
   font-size: 0.875rem;
 }
 
-.intro_sec .text h3 {
-  font-size: 16px;
-  font-weight: 700;
-}
-
 /* Hero photo box (PERF-07, FE-18, DSG-11, DSG-29). The box has its own
    size, and the photo fills it (absolutely positioned, object-fit: cover),
    so neither depends on the other and nothing moves when the bytes arrive.
@@ -324,10 +285,6 @@ section {
   transform: translate3d(0px, 0px, 0px);
 }
 
-.ac_btn:hover .four {
-  transform: translate3d(0px, 0px, 0px);
-}
-
 .ac_btn .ring {
   display: block;
   width: 100%;
@@ -342,7 +299,6 @@ section {
 .ac_btn .one {
   background-color: #000;
   transition: all 0.3s cubic-bezier(0.55, 0, 0.1, 1);
-  z-index: -3;
   z-index: -4;
 }
 
@@ -354,61 +310,10 @@ section {
 
 .ac_btn .three {
   background-color: var(--secondary-color);
-  z-index: -2;
   transition: all 0.7s cubic-bezier(0.55, 0, 0.1, 1);
   z-index: -3;
 }
 
 #button_h:hover {
   color: var(--primary-color);
-}
-
-.intro_sec .h_bg-image .block {
-  bottom: 50vh;
-  max-width: 220px;
-  padding: 30px;
-  left: -110px;
-  position: absolute;
-  width: 250px;
-  height: 220px;
-  border-radius: 100%;
-  /* mix-blend-mode: multiply; */
-  background-color: #2f514e;
-  z-index: 9999999999;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: center;
-}
-
-@media (max-width: 991.98px) {
-  .intro_sec .h_bg-image .block {
-    top: unset;
-    bottom: 0;
-    width: 100%;
-    margin: 0;
-    left: 50%;
-    transform: translate(-50%, 50%);
-  }
-}
-
-.intro_sec .h_bg-image .block .wrap-icon {
-  font-size: 40px;
-  color: var(--text-color);
-  margin-bottom: 10px;
-  display: block;
-}
-
-.intro_sec .h_bg-image .block h3 {
-  font-size: 14px;
-  color: var(--text-color);
-  letter-spacing: 0.1rem;
-  font-weight: 700;
-  margin-bottom: 15px;
-}
-
-.intro_sec .h_bg-image .block p {
-  font-size: 14px;
-  line-height: 1.3;
-  color: var(--text-color);
 }

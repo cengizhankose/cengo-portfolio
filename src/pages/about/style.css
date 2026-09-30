@@ -157,45 +157,9 @@
   outline-offset: 4px;
 }
 
-.section-title {
-  font-size: 45px;
-}
-
 .service__title {
   padding: 8px 0;
   border-bottom: solid 2px var(--secondary-color);
-}
-
-.service-section .service-category-title {
-  padding-bottom: 4px;
-}
-
-/*! CSS Used keyframes */
-
-@-webkit-keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    -webkit-transform: translate3d(0, 100%, 0);
-    transform: translate3d(0, 100%, 0);
-  }
-  to {
-    opacity: 1;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
-}
-
-@keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    -webkit-transform: translate3d(0, 100%, 0);
-    transform: translate3d(0, 100%, 0);
-  }
-  to {
-    opacity: 1;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
 }
 
 /* Intro reel (MKT-18): fills the column, keeps the 16:9 box before the

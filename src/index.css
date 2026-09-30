@@ -178,18 +178,9 @@ p {
   outline: none;
 }
 
-.text_2,
-.text_2:hover {
-  color: var(--text-color-2);
-}
-
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
-}
-
-.color_pr {
-  color: var(--primary-color) !important;
 }
 
 .color_sec {
@@ -199,11 +190,11 @@ code {
 /* Reduced motion (FE-06, DSG-07). With the OS "reduce motion" setting on,
    nothing on the page moves by itself: every animation and transition
    finishes at once. Durations become 0.01ms instead of `animation: none` on
-   purpose: the page transition (src/app/routes.jsx) swaps routes on
-   animationend, which still fires for a 0.01ms animation. Delays go to 0 so
-   nothing appears late either (the menu links wait 0.6s otherwise). The
-   hero rotator and the contact loading bar also switch their animation off
-   in their own stylesheets; the custom cursor ring is not mounted at all
+   purpose: animationend and transitionend still fire for a 0.01ms
+   animation, so nothing that waits for one hangs. Delays go to 0 so nothing
+   appears late either. The page-enter fade (src/app/App.css), the hero
+   rotator and the contact loading bar also switch their animation off in
+   their own stylesheets; the custom cursor ring is not mounted at all
    (src/app/App.jsx). FE-20's !important count leaves this block out. */
 @media (prefers-reduced-motion: reduce) {
   *,
