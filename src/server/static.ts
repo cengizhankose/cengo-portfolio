@@ -164,6 +164,17 @@ export function mountSite(
     (seoInject ??
       (queries !== undefined && seoEnabled(process.env.SEO_INJECT))) &&
     htmlByTarget.has(shellFile);
+  if (
+    seoInject === undefined &&
+    queries !== undefined &&
+    !seoEnabled(process.env.SEO_INJECT)
+  ) {
+    // Somebody set the kill switch: say so in the log, so it is not forgotten.
+    log(
+      "warn",
+      "seo injection is off (SEO_INJECT=off): pages are the plain shell",
+    );
+  }
   const shellText = seo ? readShell(shellFile) : "";
   const blogStyles = seo
     ? [

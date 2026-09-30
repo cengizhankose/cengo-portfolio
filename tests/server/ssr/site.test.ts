@@ -517,6 +517,23 @@ describe("the kill switch and the modes without queries", () => {
     }
   });
 
+  test("the kill switch is logged once at startup, as a warning", async () => {
+    process.env.SEO_INJECT = "off";
+    const { lines } = await captureLogs(() => siteWith(fakeQueries()));
+    const warnings = lines.filter((line) =>
+      line.msg?.toString().startsWith("seo injection is off"),
+    );
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0].level).toBe("warn");
+    delete process.env.SEO_INJECT;
+    const quiet = await captureLogs(() => siteWith(fakeQueries()));
+    expect(
+      quiet.lines.filter((line) =>
+        line.msg?.toString().includes("seo injection"),
+      ),
+    ).toEqual([]);
+  });
+
   test("any other value leaves the layer on", async () => {
     for (const value of ["", "on", "0", "false"]) {
       process.env.SEO_INJECT = value;
