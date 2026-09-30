@@ -63,6 +63,7 @@
     ]
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@types/node": "^25.0.8",
     "@vitejs/plugin-react": "^5.1.2",
     "concurrently": "^9.2.1",
