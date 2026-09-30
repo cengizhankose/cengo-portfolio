@@ -10,6 +10,7 @@ import {
   buildTitle,
   getPageMeta,
   pages as registry,
+  POST_TOPIC_MAX_LENGTH,
   postDescription,
   postTitle,
   TITLE_MAX_LENGTH,
@@ -129,13 +130,15 @@ describe("robots and lang", () => {
     );
   });
 
-  test("getPageMeta returns exactly title, description, robots and lang", () => {
-    expect(Object.keys(staticMeta("/", "en")).sort()).toEqual([
-      "description",
-      "lang",
-      "robots",
-      "title",
-    ]);
+  test("getPageMeta returns exactly title, description, robots, lang and alternates", () => {
+    const keys = ["alternates", "description", "lang", "robots", "title"];
+    expect(Object.keys(staticMeta("/", "en")).sort()).toEqual(keys);
+    expect(Object.keys(getPageMeta("/nope", "en")).sort()).toEqual(keys);
+    expect(
+      Object.keys(
+        getPageMeta("/blog/x", "en", { post: { title: "T" } }),
+      ).sort(),
+    ).toEqual(keys);
   });
 });
 
@@ -151,7 +154,21 @@ describe("blog post meta (MKT-21 step 4, SEO-10, SEO-09)", () => {
       description: "What it covers.",
       robots: null,
       lang: "en",
+      alternates: [],
     });
+  });
+
+  test("a loaded post speaks its own language, whatever the URL (T-12)", () => {
+    const tr = { title: "Başlık", excerpt: "Özet", lang: "tr" };
+    expect(getPageMeta(route, "en", { post: tr }).lang).toBe("tr");
+    expect(getPageMeta(matchRoute("/tr/blog/x"), "tr", { post: tr }).lang).toBe(
+      "tr",
+    );
+    // No (or an unknown) post language: the route's language.
+    expect(getPageMeta(route, "en", { post: { title: "T" } }).lang).toBe("en");
+    expect(
+      getPageMeta(route, "en", { post: { title: "T", lang: "de" } }).lang,
+    ).toBe("en");
   });
 
   test("seoTitle wins over title", () => {
@@ -199,6 +216,69 @@ describe("blog post meta (MKT-21 step 4, SEO-10, SEO-09)", () => {
   });
 });
 
+describe("post titles within 60 characters (SEO-10)", () => {
+  const SUFFIX = " | Cengizhan Köse";
+
+  test("POST_TOPIC_MAX_LENGTH leaves room for the brand suffix", () => {
+    expect(SUFFIX.length).toBe(17);
+    expect(POST_TOPIC_MAX_LENGTH).toBe(TITLE_MAX_LENGTH - SUFFIX.length);
+    expect(POST_TOPIC_MAX_LENGTH).toBe(43);
+  });
+
+  test("a seoTitle of POST_TOPIC_MAX_LENGTH characters gives exactly 60", () => {
+    const seoTitle = "s".repeat(POST_TOPIC_MAX_LENGTH);
+    expect(postTitle({ title: "t".repeat(98), seoTitle }).length).toBe(
+      TITLE_MAX_LENGTH,
+    );
+  });
+
+  test("the draft seoTitle for the live post fits (58 characters)", () => {
+    // SEO-10 step 4 draft; the owner approves it and the publish CLI (W5)
+    // writes it to posts.seo_title. The live post's own title is 98
+    // characters (SEO-10 problem statement).
+    const seoTitle = "Atlas Steward: Yarım İşi Yakalayan Sistem";
+    expect(seoTitle.length).toBe(41);
+    const title = postTitle({ title: "t".repeat(98), seoTitle });
+    expect(title).toBe(`${seoTitle}${SUFFIX}`);
+    expect(title.length).toBe(58);
+    expect(title.length).toBeLessThanOrEqual(TITLE_MAX_LENGTH);
+  });
+
+  test("seoTitle is trimmed and whitespace-collapsed; a blank one falls back to title", () => {
+    expect(
+      postTitle({ title: "Long title", seoTitle: "  Short \n one  " }),
+    ).toBe("Short one | Cengizhan Köse");
+    expect(postTitle({ title: "Long title", seoTitle: "   " })).toBe(
+      "Long title | Cengizhan Köse",
+    );
+    expect(postTitle({ title: "Long title", seoTitle: null })).toBe(
+      "Long title | Cengizhan Köse",
+    );
+  });
+
+  test("the post title is the page title in getPageMeta (server and client share it)", () => {
+    const post = { title: "x".repeat(90), seoTitle: "Short", lang: "tr" };
+    expect(getPageMeta(matchRoute("/tr/blog/a"), "tr", { post }).title).toBe(
+      "Short | Cengizhan Köse",
+    );
+  });
+
+  test("the 404 titles of both languages are within the limit (SEO-10 table)", () => {
+    for (const locale of LOCALES) {
+      for (const entry of [pages.notFound, pages.postNotFound]) {
+        expect(entry[locale].title.length).toBeLessThanOrEqual(
+          TITLE_MAX_LENGTH,
+        );
+        expect(entry[locale].title).toMatch(BRANDED);
+      }
+    }
+    expect(pages.notFound.tr.title).toBe("Sayfa bulunamadı | Cengizhan Köse");
+    expect(pages.postNotFound.tr.title).toBe(
+      "Yazı bulunamadı | Cengizhan Köse",
+    );
+  });
+});
+
 describe("title builders (T-07)", () => {
   test("buildTitle trims and appends the brand", () => {
     expect(buildTitle("  About  ")).toBe("About | Cengizhan Köse");
@@ -208,7 +288,10 @@ describe("title builders (T-07)", () => {
 
   test("buildHomeTitle puts the name first", () => {
     expect(buildHomeTitle()).toBe(HOME_TITLE);
-    expect(buildHomeTitle(" Role ")).toBe("Cengizhan Köse | Role");
+    // The JS default parameter types `role` as the literal default; any
+    // string is accepted at runtime.
+    const withRole = buildHomeTitle as (role?: string) => string;
+    expect(withRole(" Role ")).toBe("Cengizhan Köse | Role");
   });
 });
 
