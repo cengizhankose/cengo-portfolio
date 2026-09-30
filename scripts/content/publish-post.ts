@@ -562,9 +562,7 @@ async function publish(args: CliArgs, d: Deps): Promise<number> {
       if (!conflict) throw error;
       for (const issue of conflict.body.issues ?? [])
         d.stderr(`${issue.path}: ${issue.message}`);
-      throw new CliError(
-        `conflict: another ${post.lang} post already uses translationKey "${post.translationKey}"`,
-      );
+      throw new CliError(`conflict: ${conflict.body.error}`);
     }
     if (before?.published && !result.published) {
       d.stderr(`note: ${post.slug} was public and is a draft now (--draft)`);
@@ -603,7 +601,7 @@ async function publish(args: CliArgs, d: Deps): Promise<number> {
     lang: result.lang,
     published: result.published,
     commit: git.commit,
-    dirty: git.commit === null ? true : !git.tracked || git.dirty,
+    dirty: !git.tracked || git.dirty,
     db: target.database,
     prod: target.prod,
     contentSha256: sha256Hex(post.content).slice(0, 12),
