@@ -6,8 +6,12 @@
 // the W7 server snapshot use) must leave none of them dangerous, while the
 // content the blog really uses (GFM table, code, mermaid fence, details,
 // task lists, footnotes) renders as before.
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
 import { describe, expect, it } from "vitest";
 import {
   rehypePlugins,
@@ -272,5 +276,37 @@ describe("what a post uses still renders (SEC-03 criteria)", () => {
     expect(output).toContain('id="user-content-fnref-1"');
     expect(output).toContain('href="#user-content-fnref-1"');
     expect(output).not.toContain("user-content-user-content");
+  });
+});
+
+// "Mevcut yazı aynı görünür" (SEC-03 target): the live post, exported into
+// content/posts by the publish-CLI package, renders to exactly the same HTML
+// with the allowlist as it did before (remark-gfm + rehype-raw only).
+const LIVE_POST = join(
+  import.meta.dirname,
+  "..",
+  "..",
+  "..",
+  "content",
+  "posts",
+  "atlas-steward-laya-konustan-yarim-is-cikaran-sistem.tr.md",
+);
+
+describe.skipIf(!existsSync(LIVE_POST))("the live post", () => {
+  const source = readFileSync(LIVE_POST, "utf8");
+  const body = source.slice(source.indexOf("\n---\n", 4) + 5);
+
+  it("renders the same with the allowlist as without it", () => {
+    const before = renderToStaticMarkup(
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+        {body}
+      </ReactMarkdown>,
+    );
+    expect(html(body)).toBe(before);
+    expect(before).toContain("language-mermaid");
+  });
+
+  it("still has its five mermaid blocks", () => {
+    expect(html(body).match(/class="language-mermaid"/g)).toHaveLength(5);
   });
 });
