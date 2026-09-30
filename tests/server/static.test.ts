@@ -239,6 +239,22 @@ describe('traversal through the HTTP layer (BE-22, SEC-21)', () => {
   })
 })
 
+describe('literal dot segments (PERF-18 /../../etc/passwd probe)', () => {
+  test('/../../etc/passwd is normalised to /etc/passwd by the URL parser and never leaves dist/', async () => {
+    const res = await get('/../../etc/passwd')
+    // Extensionless unknown path -> SPA shell in this wave (route-aware 404 comes with T-11 part 2).
+    expect(res.status).toBe(200)
+    const body = await res.text()
+    expect(body).toContain('<div id="root"></div>')
+    expect(body).not.toContain('root:')
+  })
+
+  test('dot-segment probes with an extension -> 404', async () => {
+    expect((await get('/../../etc/passwd.txt')).status).toBe(404)
+    expect((await get('/../../../package.json')).status).toBe(404)
+  })
+})
+
 describe('missing dist/', () => {
   test('SPA routes answer 500 no-store instead of throwing, files 404', async () => {
     const bare = new Hono()
