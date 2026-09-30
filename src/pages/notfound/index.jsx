@@ -1,13 +1,14 @@
-// NotFound page (FE-16, SEO-02, SEO-08). Rendered for paths the route table
-// does not know (the server answers them with 404 + noindex) and, as
-// variant="post", by BlogPost when the slug is missing or a draft.
+// NotFound page (FE-16, SEO-02, SEO-08, DSG-20). Rendered for paths the
+// route table does not know (the server answers them with 404 + noindex) and,
+// as variant="post", by BlogPost when the slug is missing or a draft.
 //
 // Language: a missing post speaks the language of its URL (/tr/blog/... TR);
 // any other unknown path the language whose pages are live for its prefix
 // (EN under /tr until the TR pages open, SEO-11 Adım B). Links go to that
 // language's home page and blog. Text: the notFound.* dictionary keys
-// (src/i18n/{en,tr}/notFound.js).
-import { Link } from "react-router-dom";
+// (src/i18n/{en,tr}/notFound.js). Layout: the shared StatusState (DSG-20);
+// the .not-found class stays as this page's hook.
+import { StatusState } from "../../components/statusstate";
 import {
   displayLocale,
   localePath,
@@ -17,9 +18,9 @@ import {
 } from "../../i18n";
 import { getPageMeta } from "../../seo/pages.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
-import "./style.css";
 
-export function NotFound({ variant = "page" }) {
+// variant: "page" | "post" (`kind`, the DSG-20 plan's name, is accepted too).
+export function NotFound({ variant = "page", kind }) {
   const route = useRoute();
   const locale = displayLocale(route);
   const t = useT(locale);
@@ -27,44 +28,23 @@ export function NotFound({ variant = "page" }) {
   // the same values the server wrote into the 404 shell.
   usePageMeta(getPageMeta(route, locale, { notFound: true }));
 
-  const isPost = variant === "post";
-  const kind = isPost ? "post" : "page";
+  const isPost = (kind ?? variant) === "post";
+  const key = isPost ? "post" : "page";
   const linkLocale = staticLocale(locale);
-  const home = localePath(linkLocale, "/");
-  const blog = localePath(linkLocale, "/blog");
+  const home = { to: localePath(linkLocale, "/"), label: t("notFound.home") };
+  const blog = {
+    to: localePath(linkLocale, "/blog"),
+    label: t(isPost ? "notFound.backToBlog" : "notFound.blog"),
+  };
 
   return (
-    <section
+    <StatusState
       className="not-found"
-      aria-labelledby="not-found-title"
       lang={locale}
-    >
-      <h1 id="not-found-title" className="not-found__title">
-        {t(`notFound.${kind}.title`)}
-      </h1>
-      <p className="not-found__text">{t(`notFound.${kind}.text`)}</p>
-      <ul className="not-found__links">
-        {isPost ? (
-          <>
-            <li>
-              <Link to={blog}>{t("notFound.backToBlog")}</Link>
-            </li>
-            <li>
-              <Link to={home}>{t("notFound.home")}</Link>
-            </li>
-          </>
-        ) : (
-          <>
-            <li>
-              <Link to={home}>{t("notFound.home")}</Link>
-            </li>
-            <li>
-              <Link to={blog}>{t("notFound.blog")}</Link>
-            </li>
-          </>
-        )}
-      </ul>
-    </section>
+      title={t(`notFound.${key}.title`)}
+      message={t(`notFound.${key}.text`)}
+      actions={isPost ? [blog, home] : [home, blog]}
+    />
   );
 }
 

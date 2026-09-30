@@ -14,13 +14,6 @@
   text-align: center;
 }
 
-.blog-empty {
-  text-align: center;
-  color: var(--text-color);
-  font-size: 1.2rem;
-  padding: 40px;
-}
-
 .blog-grid {
   display: grid;
   gap: 30px;
@@ -119,8 +112,9 @@
   font-size: 1.1rem;
 }
 
-.blog-loading,
-.blog-error {
+/* Loading placeholder. Error and empty states use the shared StatusState
+   (src/components/statusstate, DSG-20). */
+.blog-loading {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -128,6 +122,20 @@
   font-size: 1.5rem;
   color: var(--text-color);
   font-family: "Marcellus", serif;
+}
+
+/* Only the other-language group failed (T-12): its inline state takes the
+   group's place under the page language's posts, with the group's spacing
+   (.blog-other in src/index.css). */
+.blog-container .blog-other-error {
+  margin-top: 4rem;
+}
+
+/* A post that is still loading holds at least one screen, so the article
+   does not push the footer and the page height around when it arrives
+   (PERF-16). */
+.blog-loading--page {
+  min-height: 100vh;
 }
 
 /* Markdown styling */
