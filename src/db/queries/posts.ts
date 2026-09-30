@@ -4,8 +4,27 @@
 //
 // This module never imports `src/db/index.ts`: the database is passed in, so
 // tests run against an in-process database and callers share one instance.
-import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
-import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  isNull,
+  ne,
+  notExists,
+  or,
+  sql,
+} from "drizzle-orm";
+import {
+  alias,
+  type PgDatabase,
+  type PgQueryResultHKT,
+} from "drizzle-orm/pg-core";
+import {
+  encodeCursor,
+  LIST_DEFAULT_LIMIT,
+  type ListCursor,
+} from "../post-input";
 import { posts, type PostLang } from "../schema";
 
 // Any drizzle Postgres database (postgres-js in the app, PGlite in tests).
@@ -42,14 +61,89 @@ export const buildGetPublishedPostBySlug = (db: PostsDb, slug: string) =>
     .where(and(eq(posts.slug, slug), eq(posts.published, true)))
     .limit(1);
 
-// Public list: published posts, newest first. Field diet, pagination and the
-// `?lang` / `missingIn` filters are BE-07; this keeps the current response shape.
-export const buildListPublishedPosts = (db: PostsDb) =>
-  db
-    .select()
+// Card fields (BE-07 / PERF-15, T-12): everything a list item, the /blog
+// snapshot and the sitemap (updatedAt) need; never content.
+export const CARD_COLUMNS = {
+  id: posts.id,
+  slug: posts.slug,
+  title: posts.title,
+  excerpt: posts.excerpt,
+  coverImage: posts.coverImage,
+  createdAt: posts.createdAt,
+  updatedAt: posts.updatedAt,
+  publishedAt: posts.publishedAt,
+  lang: posts.lang,
+  translationKey: posts.translationKey,
+};
+
+export type PostCard = Pick<Post, keyof typeof CARD_COLUMNS>;
+
+/** The JSON keys of a GET /api/posts item, in response order. */
+export const CARD_FIELDS = Object.freeze(
+  Object.keys(CARD_COLUMNS) as (keyof PostCard)[],
+);
+
+/**
+ * A list row: the card plus `cursor`, the opaque keyset position after it
+ * (what X-Next-Cursor carries when this row ends a page). The HTTP layer
+ * sends only the card fields.
+ */
+export type ListedPost = PostCard & { cursor?: string };
+
+export interface ListOptions {
+  /** Rows to return (default 20). The HTTP layer caps it at 50; server callers may ask for more. */
+  limit?: number;
+  /** Continue after this row (keyset: created_at DESC, id DESC). */
+  cursor?: ListCursor;
+  /** Only posts in this language (T-12). */
+  lang?: Locale;
+  /** Only posts without a published translation in this language (T-12 "other language" group). */
+  missingIn?: Locale;
+}
+
+// Exact created_at as UTC ISO text with microseconds, for the cursor.
+const CURSOR_AT = sql<string>`to_char(${posts.createdAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`;
+
+// Public list: published posts, newest first, card fields only (BE-07).
+// Keyset pagination on (created_at, id); T-12 indexes cover both the
+// per-language and the language-less query.
+export const buildListPublishedPosts = (
+  db: PostsDb,
+  { limit = LIST_DEFAULT_LIMIT, cursor, lang, missingIn }: ListOptions = {},
+) => {
+  const p2 = alias(posts, "p2");
+  return db
+    .select({ ...CARD_COLUMNS, cursorAt: CURSOR_AT })
     .from(posts)
-    .where(eq(posts.published, true))
-    .orderBy(desc(posts.createdAt));
+    .where(
+      and(
+        eq(posts.published, true),
+        lang ? eq(posts.lang, lang) : undefined,
+        missingIn
+          ? or(
+              isNull(posts.translationKey),
+              notExists(
+                db
+                  .select({ x: sql`1` })
+                  .from(p2)
+                  .where(
+                    and(
+                      eq(p2.translationKey, posts.translationKey),
+                      eq(p2.lang, missingIn),
+                      eq(p2.published, true),
+                    ),
+                  ),
+              ),
+            )
+          : undefined,
+        cursor
+          ? sql`(${posts.createdAt}, ${posts.id}) < (${cursor.t}::timestamptz, ${cursor.id})`
+          : undefined,
+      ),
+    )
+    .orderBy(desc(posts.createdAt), desc(posts.id))
+    .limit(limit);
+};
 
 // Published translations of a post: same translation_key, another row (T-12).
 export const buildListTranslations = (
@@ -111,8 +205,16 @@ export function createPostQueries(db: PostsDb) {
   };
 
   return {
-    listPublishedPosts: async (): Promise<Post[]> =>
-      buildListPublishedPosts(db),
+    /** Published cards, newest first; each row carries its keyset `cursor`. */
+    listPublishedPosts: async (
+      options: ListOptions = {},
+    ): Promise<ListedPost[]> => {
+      const rows = await buildListPublishedPosts(db, options);
+      return rows.map(({ cursorAt, ...card }) => ({
+        ...card,
+        cursor: encodeCursor({ t: cursorAt, id: card.id }),
+      }));
+    },
     getPublishedPostBySlug,
     getPostForLocale: async (
       slug: string,
