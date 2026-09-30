@@ -10,9 +10,11 @@
 // Tokens (all hex, the contract Mermaid's colour maths needs):
 //   bg      --bg-color     page background
 //   text    --text-color   body text
-//   muted   --text-muted   secondary text; AA on bg in both themes (DSG-04)
-//   border  --border-color hairlines (DSG-06)
+//   muted   --text-muted   secondary text; AA on bg in both themes (DSG-04),
+//           so also the stroke colour of nodes, edges and clusters (>= 3:1)
 // --primary-color is not read: it equals the page background in both themes.
+// --border-color is not read either: it is the quiet hairline of the frame
+// around the diagram (CSS), too faint for the strokes inside it.
 // Node fills and cluster backgrounds are a few percent of `text` mixed into
 // `bg`, so they stay monochrome like the rest of the site and the label
 // (`text`) keeps a contrast far above 4.5:1 on them.
@@ -22,25 +24,14 @@
 // src/index.css.
 
 export const THEME_TOKENS = Object.freeze({
-  dark: Object.freeze({
-    bg: "#0c0c0c",
-    text: "#ffffff",
-    muted: "#a3a3a3",
-    border: "#6e6e6e",
-  }),
-  light: Object.freeze({
-    bg: "#ffffff",
-    text: "#000000",
-    muted: "#595959",
-    border: "#6e6e6e",
-  }),
+  dark: Object.freeze({ bg: "#0c0c0c", text: "#ffffff", muted: "#a3a3a3" }),
+  light: Object.freeze({ bg: "#ffffff", text: "#000000", muted: "#595959" }),
 });
 
 const TOKEN_VARIABLES = Object.freeze({
   bg: "--bg-color",
   text: "--text-color",
   muted: "--text-muted",
-  border: "--border-color",
 });
 
 export const FONT_FAMILY = "Raleway, sans-serif";
@@ -145,7 +136,7 @@ export function readTokens(root = globalThis.document?.documentElement) {
 
 /** Mermaid `themeVariables` (theme "base") for a token set. */
 export function themeVariables(tokens) {
-  const { bg, text, muted, border } = tokens;
+  const { bg, text, muted } = tokens;
   const surface = mix(bg, text, 0.08);
   const surfaceHigh = mix(bg, text, 0.14);
   const surfaceLow = mix(bg, text, 0.04);
@@ -167,18 +158,18 @@ export function themeVariables(tokens) {
     secondaryBorderColor: muted,
     tertiaryColor: surfaceLow,
     tertiaryTextColor: text,
-    tertiaryBorderColor: border,
+    tertiaryBorderColor: muted,
     mainBkg: surface,
     nodeBorder: muted,
     nodeTextColor: text,
     clusterBkg: surfaceLow,
-    clusterBorder: border,
+    clusterBorder: muted,
     titleColor: text,
     edgeLabelBackground: bg,
     // Notes, sequence diagrams.
     noteBkgColor: surfaceHigh,
     noteTextColor: text,
-    noteBorderColor: border,
+    noteBorderColor: muted,
     actorBkg: surface,
     actorBorder: muted,
     actorTextColor: text,
@@ -186,7 +177,7 @@ export function themeVariables(tokens) {
     signalColor: muted,
     signalTextColor: text,
     labelBoxBkgColor: surface,
-    labelBoxBorderColor: border,
+    labelBoxBorderColor: muted,
     labelTextColor: text,
     loopTextColor: text,
   };

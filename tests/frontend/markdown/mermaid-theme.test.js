@@ -82,18 +82,21 @@ describe("THEME_TOKENS equals src/index.css", () => {
     expect(toHex(css["--bg-color"])).toBe(tokens.bg);
     expect(toHex(css["--text-color"])).toBe(tokens.text);
     expect(toHex(css["--text-muted"])).toBe(tokens.muted);
-    expect(toHex(css["--border-color"])).toBe(tokens.border);
+  });
+});
+
+describe("--border-color (DSG-06, shared token contract of the design plan)", () => {
+  it("is declared in both theme blocks: dark #3a3a3a, light #d4d4d4", () => {
+    expect(tokenBlock(BLOCKS.dark)["--border-color"]).toBe("#3a3a3a");
+    expect(tokenBlock(BLOCKS.light)["--border-color"]).toBe("#d4d4d4");
   });
 
-  it("declares --border-color in both theme blocks (DSG-06)", () => {
-    for (const selector of Object.values(BLOCKS)) {
-      expect(tokenBlock(selector)["--border-color"]).toBeTruthy();
-    }
-  });
-
-  it("keeps the frame visible: --border-color is at least 3:1 on the page", () => {
-    for (const tokens of Object.values(THEME_TOKENS)) {
-      expect(contrast(tokens.border, tokens.bg)).toBeGreaterThanOrEqual(3);
+  it("is a quiet edge that is still distinguishable from the page", () => {
+    for (const [theme, selector] of Object.entries(BLOCKS)) {
+      const border = tokenBlock(selector)["--border-color"];
+      expect(contrast(border, THEME_TOKENS[theme].bg), theme).toBeGreaterThan(
+        1.3,
+      );
     }
   });
 });
@@ -149,6 +152,28 @@ describe("themeVariables", () => {
       const v = themeVariables(tokens);
       expect(contrast(v.lineColor, tokens.bg)).toBeGreaterThanOrEqual(3);
       expect(contrast(v.nodeBorder, tokens.bg)).toBeGreaterThanOrEqual(3);
+    },
+  );
+
+  it.each(Object.entries(THEME_TOKENS))(
+    "%s: every stroke inside the diagram is visible on the page (>= 3:1)",
+    (_theme, tokens) => {
+      const v = themeVariables(tokens);
+      for (const name of [
+        "primaryBorderColor",
+        "secondaryBorderColor",
+        "tertiaryBorderColor",
+        "nodeBorder",
+        "clusterBorder",
+        "noteBorderColor",
+        "actorBorder",
+        "actorLineColor",
+        "signalColor",
+        "labelBoxBorderColor",
+        "lineColor",
+      ]) {
+        expect(contrast(v[name], tokens.bg), name).toBeGreaterThanOrEqual(3);
+      }
     },
   );
 
@@ -211,14 +236,13 @@ describe("tokensForTheme / readTokens", () => {
   it("reads the CSS variables of <html>", () => {
     const style = document.createElement("style");
     style.textContent =
-      ":root{--bg-color:#102030;--text-color:#eeeeee;--text-muted:rgb(10, 20, 30);--border-color:#abc}";
+      ":root{--bg-color:#102030;--text-color:#eee;--text-muted:rgb(10, 20, 30)}";
     document.head.append(style);
     try {
       expect(readTokens()).toEqual({
         bg: "#102030",
         text: "#eeeeee",
         muted: "#0a141e",
-        border: "#aabbcc",
       });
     } finally {
       style.remove();
