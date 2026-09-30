@@ -121,7 +121,7 @@ export function createApp({
   app.all("/api/*", (c) => c.notFound());
 
   // 9. The built site: static files, HTML shell, file 404s (T-11, src/server/static.ts).
-  if (serveSpa) mountSite(app, { distDir: distDir! });
+  if (serveSpa) mountSite(app, { distDir: distDir!, queries });
 
   // 10. T-01 envelope for API misses and errors (BE-10).
   app.notFound(notFoundHandler);

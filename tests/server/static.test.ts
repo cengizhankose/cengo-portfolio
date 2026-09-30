@@ -93,16 +93,14 @@ describe("HTML documents (PERF-18, BE-22)", () => {
   });
 });
 
-describe("SPA routes fall back to the shell (T-11 part 1)", () => {
+describe("known SPA routes get the shell (T-11)", () => {
   test.each([
     "/about",
     "/portfolio",
     "/contact",
     "/blog",
     "/blog/some-post",
-    "/tr",
-    "/tr/about",
-    "/tr/blog",
+    "/tr/blog/some-post",
   ])("%s -> 200 shell", async (path) => {
     const res = await get(path);
     expect(res.status).toBe(200);
@@ -114,10 +112,20 @@ describe("SPA routes fall back to the shell (T-11 part 1)", () => {
 
   test("shell revalidation works on any SPA route", async () => {
     expect(
-      (await get("/tr/about", { headers: { "If-None-Match": shellEtag } }))
-        .status,
+      (await get("/about", { headers: { "If-None-Match": shellEtag } })).status,
     ).toBe(304);
   });
+
+  // T-11 part 2 (W3, SEO-02): TR static pages stay 404 until LIVE.static
+  // opens 'tr' (SEO-11 Adım B); tests/server/seo/not-found.test.ts has the rest.
+  test.each(["/tr", "/tr/about", "/tr/blog"])(
+    "%s -> 404 noindex until the TR pages open",
+    async (path) => {
+      const res = await get(path);
+      expect(res.status).toBe(404);
+      expect(res.headers.get("x-robots-tag")).toBe("noindex");
+    },
+  );
 
   test("routes registered before mountSite keep priority", async () => {
     const res = await get("/health");
@@ -282,7 +290,7 @@ describe("literal dot segments (PERF-18 /../../etc/passwd probe)", () => {
   test("/../../etc/passwd is normalised to /etc/passwd by the URL parser and never leaves dist/", async () => {
     const res = await get("/../../etc/passwd");
     // Extensionless unknown path -> SPA shell in this wave (route-aware 404 comes with T-11 part 2).
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(404); // extensionless unknown path -> 404 not-found shell (T-11 part 2, SEO-02)
     const body = await res.text();
     expect(body).toContain('<div id="root"></div>');
     expect(body).not.toContain("root:");

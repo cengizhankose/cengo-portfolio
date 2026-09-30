@@ -22,12 +22,14 @@ describe("GET /api/posts/:slug (published filter)", () => {
     await ctx.db.insert(posts).values([
       {
         slug: "sec08-published",
+        lang: "tr",
         title: "Published",
         content: "visible",
         published: true,
       },
       {
         slug: "sec08-draft",
+        lang: "tr",
         title: "Draft",
         content: "secret draft body",
         published: false,

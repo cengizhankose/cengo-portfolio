@@ -344,7 +344,7 @@ describe("the same header set everywhere (SEC-04/09/17/18/19, SEC-30)", () => {
     const app = siteApp();
     const cases: Array<[string, number]> = [
       ["/", 200],
-      ["/tr/", 200],
+      ["/tr/", 404], // TR pages 404 until LIVE.static opens tr (SEO-02, W11)
       ["/api/posts", 200],
       ["/assets/yok.js", 404],
       ["/assets/index-abc123.js", 200],

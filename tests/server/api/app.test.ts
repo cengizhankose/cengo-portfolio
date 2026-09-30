@@ -88,6 +88,23 @@ describe("createApp", () => {
   });
 });
 
+describe("createApp wires post routes to the queries (W3 merge, SEO-08/SEO-11)", () => {
+  const app = () =>
+    createApp({ queries: fakeQueries(), serveSpa: true, distDir: DIST });
+
+  test("an existing post URL answers with the SPA shell", async () => {
+    const res = await app().request(`/blog/${SAMPLE_POST.slug}`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toStartWith("text/html");
+  });
+
+  test("a missing post URL is a real 404 with noindex (needs queries in mountSite)", async () => {
+    const res = await app().request("/blog/bu-yazi-yok-w3");
+    expect(res.status).toBe(404);
+    expect(res.headers.get("x-robots-tag")).toBe("noindex");
+  });
+});
+
 describe("portFromEnv", () => {
   test.each([
     [undefined, 3000],
