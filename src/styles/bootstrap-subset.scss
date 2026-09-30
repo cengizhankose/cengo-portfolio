@@ -1,0 +1,143 @@
+// Bootstrap 5.3 compiled from the modules this site uses (PERF-09, FE-21).
+// Replaces the import of the full precompiled Bootstrap CSS (232 kB) in
+// src/app/App.jsx.
+//
+// What the markup needs (inventory: tests/frontend/bootstrap/**):
+//   react-bootstrap  Container, Row, Col (lg=*), Alert (dismissible, no
+//                    transition) + its CloseButton
+//   components       .table .caption-top, .form-label .form-control, .btn,
+//                    .alert-*, .btn-close, .display-4 .h3 .h5 .list-unstyled,
+//                    .fixed-top
+//   utilities        display, flex-direction, flex-wrap, justify-content,
+//                    align-items, align-self, order, position, margin,
+//                    padding, width, height, rounded, text-align
+// .navbar-brand is a local rule in src/header/style.css (no navbar partial).
+//
+// Using a Bootstrap class that is not compiled here fails the tests in
+// tests/frontend/bootstrap/: add the module, utility or breakpoint below.
+// Bootstrap 5.3 only supports @import; the Dart Sass deprecation warnings this
+// causes (here and in Bootstrap's own sources) are silenced in vite.config.js.
+
+@use "sass:list";
+@use "sass:map";
+
+// 1. Configuration --------------------------------------------------------
+
+@import "bootstrap/scss/functions";
+
+// The site themes itself with <html data-theme> tokens (src/index.css) and
+// never sets data-bs-theme, so Bootstrap's [data-bs-theme=dark] blocks would
+// be dead CSS. Turning data-bs-theme on later means re-enabling this.
+$enable-dark-mode: false;
+// No .table-primary/-dark/... variants in the markup; .table stays as is, so
+// the DSG-01 --bs-table-* overrides in src/pages/about/style.css still apply.
+$table-variants: ();
+
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/variables-dark";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
+
+// Only the utility groups the markup uses.
+$utilities: map-get-multiple(
+  $utilities,
+  (
+    "display",
+    "flex-direction",
+    "flex-wrap",
+    "justify-content",
+    "align-items",
+    "align-self",
+    "order",
+    "position",
+    "margin",
+    "margin-x",
+    "margin-y",
+    "margin-top",
+    "margin-end",
+    "margin-bottom",
+    "margin-start",
+    "padding",
+    "padding-x",
+    "padding-y",
+    "padding-top",
+    "padding-end",
+    "padding-bottom",
+    "padding-start",
+    "width",
+    "height",
+    "rounded",
+    "text-align"
+  )
+);
+
+// Breakpoint variants (.d-lg-flex, .flex-md-row, .align-items-md-center,
+// .order-lg-1) are used for these four groups only; every other group keeps
+// its base classes (.mb-5, .p-3, .text-start, ...) and drops the -sm/-md/...
+// copies.
+$responsive-utilities: ("display", "flex-direction", "align-items", "order");
+
+@each $key, $utility in $utilities {
+  @if not list.index($responsive-utilities, $key) {
+    $base-only: map.merge(
+      $utility,
+      (
+        "responsive": false,
+      )
+    );
+    $utilities: map.merge(
+      $utilities,
+      (
+        $key: $base-only,
+      )
+    );
+  }
+}
+
+// Breakpoints the markup uses: columns only at lg (react-bootstrap <Col lg>),
+// utilities at md and lg (.flex-md-row, .align-items-md-center, .d-lg-flex,
+// .order-lg-*). The grid and the utilities are generated for these only (see
+// $grid-breakpoints below); containers, tables and helpers keep all six
+// breakpoints, so .container widths do not change. (_grid's :root
+// --bs-breakpoint-* list then has xs and lg; nothing in the site or in
+// react-bootstrap reads those variables.)
+$_all-grid-breakpoints: $grid-breakpoints;
+$column-breakpoints: map-get-multiple($grid-breakpoints, ("xs", "lg"));
+$utility-breakpoints: map-get-multiple($grid-breakpoints, ("xs", "md", "lg"));
+
+// 2. Layout and components ------------------------------------------------
+
+@import "bootstrap/scss/root";
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+@import "bootstrap/scss/containers";
+
+$grid-breakpoints: $column-breakpoints;
+@import "bootstrap/scss/grid";
+$grid-breakpoints: $_all-grid-breakpoints;
+
+@import "bootstrap/scss/tables";
+@import "bootstrap/scss/forms/labels";
+@import "bootstrap/scss/forms/form-control";
+
+// _buttons and _alert loop over $theme-colors to emit one variant class per
+// color. The markup uses the bare .btn (styled locally as .ac_btn) and only
+// the success and danger alerts (src/pages/contact), so the loops get just
+// those; :root above already has every --bs-<color>-* variable.
+$_all-theme-colors: $theme-colors;
+$theme-colors: ();
+@import "bootstrap/scss/buttons";
+$theme-colors: map-get-multiple($_all-theme-colors, ("success", "danger"));
+@import "bootstrap/scss/alert";
+$theme-colors: $_all-theme-colors;
+
+@import "bootstrap/scss/close";
+
+// 3. Helpers and utilities -------------------------------------------------
+
+@import "bootstrap/scss/helpers/position";
+
+$grid-breakpoints: $utility-breakpoints;
+@import "bootstrap/scss/utilities/api";
+$grid-breakpoints: $_all-grid-breakpoints;

@@ -19,6 +19,17 @@
   color: var(--text-color-2);
 }
 
+/* Local .navbar-brand (PERF-09/FE-21): the Bootstrap subset
+   (src/styles/bootstrap-subset.scss) does not compile the navbar partial.
+   The brand link sits outside a .navbar, so Bootstrap's padding, margin,
+   font-size and color read unset --bs-navbar-* variables and .nav_ac below
+   sets all four anyway; these two declarations are the only ones that ever
+   reached the page. Keep this rule above .nav_ac. */
+.navbar-brand {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 .nav_ac {
   padding: 5px 15px;
   margin: 0;
