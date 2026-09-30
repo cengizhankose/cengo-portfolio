@@ -1,5 +1,4 @@
 import { Hono } from 'hono'
-import { serveStatic } from 'bun'
 import { serve } from 'bun'
 import postsRouter from './src/api/routes/posts'
 import { readFileSync, existsSync } from 'fs'
