@@ -41,9 +41,10 @@ export const AUTHOR = Object.freeze({
   ]),
 });
 
-// K-11: the six active channels, in this order. `id` values are the analytics
-// NETWORKS enum (ANL-19) without "other". URLs: 00-icerik-girdileri.md §8.
-// Facebook is gone (K-11).
+// K-11: the six active channels, in this order, and nothing else. `id` values
+// are the analytics NETWORKS enum (ANL-19) without "other". URLs:
+// 00-icerik-girdileri.md §8. The one social list of the site: the side rail
+// and the menu footer (SocialLinks), and the JSON-LD sameAs (SEO-07).
 export const SOCIAL_PROFILES = Object.freeze(
   [
     {

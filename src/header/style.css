@@ -244,9 +244,23 @@ button.nav_ac {
 
 .menu_footer a {
   color: var(--text-color-2);
-  margin-right: 10px;
 }
 
+/* Social profile links (DSG-12 step 4): the gap replaces the old right
+   margin, and every link is at least a 24x24 target (WCAG 2.5.8), "X"
+   included. The focus ring is .site__navigation a:focus-visible above. */
 .menu_footer__social {
-  row-gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  list-style: none;
+}
+
+.menu_footer__social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 4px;
 }
