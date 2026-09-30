@@ -4,8 +4,9 @@
 // The only inputs are the path slug and the list query string (BE-05, SEC-07).
 //
 // The router never imports the database: createApp() (BE-09) injects the
-// shared query object (T-06; in production its cached wrapper, BE-06), so
-// tests run without Postgres.
+// shared query object (T-06; in production its cached wrapper, BE-06) built
+// on the read-only client `dbRead` (src/db/index.ts, SEC-14: the reader role
+// can only SELECT), so tests run without Postgres.
 //
 //   GET /api/posts?limit=&cursor=&lang=&missingIn=   (BE-07 / PERF-15)
 //     200 JSON array of card fields (never content), newest first; the next
@@ -114,18 +115,18 @@ export function createPostsRouter(queries: PostQueries) {
 }
 
 // ---------------------------------------------------------------------------
-// Deprecated default export: the router over the process-wide database,
-// resolved on first query so importing this module never loads src/db.
-// Production code uses createApp(); only
+// Deprecated default export: the router over the process-wide read-only
+// database (dbRead, SEC-14), resolved on first query so importing this module
+// never loads src/db. Production code uses createApp(); only
 // tests/server/security/write-surface.test.ts still mounts this (handoff:
 // switch that test to createApp, then delete this block).
 let processQueries: Promise<PostQueries> | undefined;
 
 const loadProcessQueries = () =>
   (processQueries ??= (async () => {
-    const { db } = await import("../../db");
+    const { dbRead } = await import("../../db");
     const { createPostQueries } = await import("../../db/queries/posts");
-    return createPostQueries(db);
+    return createPostQueries(dbRead);
   })());
 
 const lazyProcessQueries = new Proxy({} as PostQueries, {
