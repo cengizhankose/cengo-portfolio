@@ -176,6 +176,15 @@ describe("dist/ is build output, not source (BE-26, FE-32)", () => {
     expect(lines.filter((line) => line === "/dist")).toHaveLength(1);
   });
 
+  it.skipIf(!inRepository)(
+    ".gitignore also keeps key and certificate files out (SEC-16 step 1)",
+    () => {
+      const lines = read(".gitignore").split("\n");
+      expect(lines).toContain("*.pem");
+      expect(lines).toContain("*.key");
+    },
+  );
+
   it.skipIf(!inRepository)("git tracks no file under dist/", () => {
     const tracked = execFileSync("git", ["ls-files", "dist"], {
       cwd: ROOT,

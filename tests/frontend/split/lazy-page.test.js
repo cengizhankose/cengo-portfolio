@@ -9,6 +9,7 @@ import {
   RELOAD_WINDOW_MS,
   guardedLoader,
   lazyPage,
+  reloadForNewRelease,
 } from "../../../src/components/routefallback/lazyPage.js";
 
 function memoryStorage(initial = {}) {
@@ -156,6 +157,34 @@ describe("guardedLoader", () => {
       throw error;
     });
     await expect(failing()).rejects.toBe(error);
+  });
+});
+
+describe("reloadForNewRelease (also the body of a vite:preloadError listener)", () => {
+  it("reloads once, then not again within the window, then again after it", () => {
+    const storage = memoryStorage();
+    const reload = vi.fn();
+    let time = 10_000;
+    const options = { storage, reload, now: () => time };
+
+    expect(reloadForNewRelease(options)).toBe(true);
+    expect(reloadForNewRelease(options)).toBe(false);
+    time += RELOAD_WINDOW_MS - 1;
+    expect(reloadForNewRelease(options)).toBe(false);
+    time += 2;
+    expect(reloadForNewRelease(options)).toBe(true);
+    expect(reload).toHaveBeenCalledTimes(2);
+  });
+
+  it("does nothing when storage is blocked", () => {
+    const reload = vi.fn();
+    const storage = {
+      getItem: () => {
+        throw new DOMException("blocked", "SecurityError");
+      },
+    };
+    expect(reloadForNewRelease({ storage, reload })).toBe(false);
+    expect(reload).not.toHaveBeenCalled();
   });
 });
 

@@ -16,9 +16,18 @@ export const RELOAD_WINDOW_MS = 60_000;
 
 // Reading `sessionStorage` can itself throw (blocked site data), so it is only
 // touched inside try/catch, never while the module loads.
-function reloadOnce({ getStorage, reload, now }) {
+function storageOf(options) {
+  return options.storage ?? globalThis.sessionStorage;
+}
+
+// Reloads the page unless it already did within the last minute. Returns
+// whether it reloaded. Also the body of a `vite:preloadError` listener for the
+// lazy imports that are not pages (`options`: storage, reload, now, for tests).
+export function reloadForNewRelease(options = {}) {
+  const now = options.now ?? Date.now;
+  const reload = options.reload ?? (() => globalThis.location.reload());
   try {
-    const storage = getStorage();
+    const storage = storageOf(options);
     const last = Number(storage.getItem(RELOAD_STAMP_KEY));
     if (last && now() - last < RELOAD_WINDOW_MS) return false;
     storage.setItem(RELOAD_STAMP_KEY, String(now()));
@@ -29,30 +38,26 @@ function reloadOnce({ getStorage, reload, now }) {
   return true;
 }
 
-function clearStamp(getStorage) {
+function clearStamp(options) {
   try {
-    getStorage().removeItem(RELOAD_STAMP_KEY);
+    storageOf(options).removeItem(RELOAD_STAMP_KEY);
   } catch {
     // Nothing to clear when storage is blocked.
   }
 }
 
 // The loader for React.lazy: `loader()` is the import(); a failure reloads the
-// page once, otherwise it is thrown on to the error boundary. `options`
-// (storage, reload, now) exist for tests.
+// page once, otherwise it is thrown on to the error boundary.
 export function guardedLoader(loader, options = {}) {
-  const getStorage = () => options.storage ?? globalThis.sessionStorage;
-  const reload = options.reload ?? (() => globalThis.location.reload());
-  const now = options.now ?? Date.now;
   return async () => {
     try {
       const module = await loader();
-      clearStamp(getStorage);
+      clearStamp(options);
       return module;
     } catch (error) {
       // While the reload runs the promise never settles: the Suspense
       // fallback stays instead of flashing the error screen.
-      if (reloadOnce({ getStorage, reload, now })) return new Promise(() => {});
+      if (reloadForNewRelease(options)) return new Promise(() => {});
       throw error;
     }
   };
