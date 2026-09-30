@@ -84,10 +84,12 @@ export function pointer(type, init = {}) {
 
 /**
  * requestAnimationFrame under test control: `frames.run()` runs the frame
- * callbacks that are queued now (one frame), `frames.pending()` counts them.
+ * callbacks that are queued now (one frame, `frameMs` after the previous
+ * one on a virtual clock), `frames.pending()` counts them.
  */
-export function stubFrames() {
+export function stubFrames({ frameMs = 1000 / 60 } = {}) {
   let nextId = 1;
+  let clock = 1000;
   const queue = new Map();
   const request = vi.fn((callback) => {
     const id = nextId++;
@@ -105,7 +107,8 @@ export function stubFrames() {
     run() {
       const callbacks = [...queue.values()];
       queue.clear();
-      callbacks.forEach((callback) => callback(performance.now()));
+      clock += frameMs;
+      callbacks.forEach((callback) => callback(clock));
     },
   };
 }

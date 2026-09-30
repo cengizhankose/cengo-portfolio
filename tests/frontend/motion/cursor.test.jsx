@@ -135,18 +135,27 @@ describe("frame loop (PERF-12: no idle requestAnimationFrame)", () => {
     expect(frames.request.mock.calls.length).toBe(requests);
   });
 
-  it("settles a jump across a 4K screen within 30 frames (< 0.5 s at 60 Hz)", () => {
-    render(<Cursor />);
-    move(0, 0);
-    move(3840, 2160);
-    let frameCount = 0;
-    while (frames.pending() && frameCount < 100) {
-      frames.run();
-      frameCount += 1;
-    }
-    expect(frameCount).toBeLessThanOrEqual(30);
-    expect(ring().style.translate).toBe("3840px 2160px");
-  });
+  it.each([
+    [30, 1000 / 30],
+    [60, 1000 / 60],
+    [144, 1000 / 144],
+  ])(
+    "settles a jump across a 4K screen in under 0.5 s at %i Hz",
+    (_hz, frameMs) => {
+      vi.unstubAllGlobals();
+      frames = stubFrames({ frameMs });
+      render(<Cursor />);
+      move(0, 0);
+      move(3840, 2160);
+      let frameCount = 0;
+      while (frames.pending() && frameCount < 500) {
+        frames.run();
+        frameCount += 1;
+      }
+      expect(frameCount * frameMs).toBeLessThan(500);
+      expect(ring().style.translate).toBe("3840px 2160px");
+    },
+  );
 
   it("ignores touch and pen input", () => {
     render(<Cursor />);

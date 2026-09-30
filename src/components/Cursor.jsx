@@ -24,11 +24,13 @@ import "./Cursor.css";
 export const CLICKABLE =
   'a, button, [role="button"], input, select, textarea, label, summary, [data-cursor-hover]';
 
-// Share of the remaining distance the ring covers in one frame, and the
+// Share of the remaining distance the ring covers per 60 Hz frame, and the
 // distance (|dx| + |dy| in px) under which it snaps to the pointer and the
-// loop stops. Together they settle a jump across a 4K screen in < 30 frames
-// (< 0.5 s at 60 Hz, PERF-12), with no visible snap.
-const EASE = 0.3;
+// loop stops. The easing is scaled by the real frame time, so the ring
+// feels the same at 30, 60 or 144 Hz and a jump across a 4K screen settles
+// in under 0.5 s (PERF-12) with no visible snap.
+const EASE = 0.32;
+const FRAME_MS = 1000 / 60;
 const SETTLE = 0.5;
 
 const isMouse = (event) => event.pointerType === "mouse";
@@ -43,22 +45,30 @@ export default function Cursor() {
     const target = { x: 0, y: 0 };
     const current = { x: 0, y: 0 };
     let frame = 0;
+    let lastTime = 0;
     let visible = false;
 
     const draw = () => {
       ring.style.translate = `${current.x}px ${current.y}px`;
     };
 
-    const tick = () => {
+    const tick = (time) => {
+      // The first frame of a run counts as one 60 Hz frame; a long gap (a
+      // background tab) is capped so the ring still glides instead of
+      // jumping to the pointer.
+      const elapsed = lastTime ? Math.min(time - lastTime, 100) : FRAME_MS;
+      lastTime = time;
+      const ease = 1 - (1 - EASE) ** (elapsed / FRAME_MS);
       const dx = target.x - current.x;
       const dy = target.y - current.y;
       if (Math.abs(dx) + Math.abs(dy) < SETTLE) {
         current.x = target.x;
         current.y = target.y;
         frame = 0;
+        lastTime = 0;
       } else {
-        current.x += dx * EASE;
-        current.y += dy * EASE;
+        current.x += dx * ease;
+        current.y += dy * ease;
         frame = requestAnimationFrame(tick);
       }
       draw();
