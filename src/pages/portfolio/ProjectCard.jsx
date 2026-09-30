@@ -80,7 +80,7 @@ export default function ProjectCard({ project, text, position }) {
             <li key={link.type}>
               <ExternalLink
                 href={link.href}
-                hreflang={link.hreflang}
+                hrefLang={link.hreflang}
                 {...projectLinkProps(project.id, link.type, position)}
               >
                 {text.cta[link.type]}
