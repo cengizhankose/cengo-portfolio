@@ -9,15 +9,28 @@
 //
 // Per-route values live in src/seo/pages/<route>.js as
 // { en: { title, description, robots? }, tr: { ... } } so later waves can edit
-// one route without touching this builder. canonical (SEO-04), og (SEO-06)
-// and jsonLd (SEO-07) are added here by later packages.
+// one route without touching this builder. getPageMeta() also returns the
+// canonical URL (SEO-04), the Open Graph and Twitter card values (SEO-06,
+// MKT-06) and the JSON-LD graph (SEO-07); socialTags() flattens og + twitter
+// into the tag list that the server and usePageMeta print.
 import {
+  absoluteUrl,
   buildTitle,
   DEFAULT_LOCALE,
+  DEFAULT_OG_IMAGE,
+  DEFAULT_OG_IMAGE_SIZE,
   LOCALES,
+  OG_LOCALE,
   SITE_NAME,
   SITE_URL,
+  TWITTER_HANDLE,
 } from "./site.js";
+import {
+  blogPostingSchema,
+  homeJsonLd,
+  isoDate,
+  jsonLdGraph,
+} from "./jsonld.js";
 import {
   LIVE,
   LOCALE_PREFIX,
@@ -32,20 +45,25 @@ import contact from "./pages/contact.js";
 import blog from "./pages/blog.js";
 import post from "./pages/post.js";
 import notFound from "./pages/notFound.js";
+import ogImage from "./pages/ogImage.js";
 
 // Site constants stay defined once in site.js; re-exported so callers that
 // follow the plan text (`import { LOCALES } from "src/seo/pages.js"`) work.
 export {
+  absoluteUrl,
   AUTHOR,
   buildHomeTitle,
   buildTitle,
   DEFAULT_LOCALE,
   DEFAULT_OG_IMAGE,
   DEFAULT_OG_IMAGE_SIZE,
+  HERO_IMAGE,
   LOCALES,
+  OG_LOCALE,
   SITE_NAME,
   SITE_URL,
   SOCIAL_PROFILES,
+  TWITTER_HANDLE,
 } from "./site.js";
 
 // Language-dimensioned registry. Static keys are the language-independent
@@ -78,8 +96,8 @@ function resolveLocale(locale) {
   return LOCALES.includes(locale) ? locale : DEFAULT_LOCALE;
 }
 
-function toRoute(route) {
-  return typeof route === "string" ? matchRoute(route) : route;
+function toRoute(route, live = LIVE) {
+  return typeof route === "string" ? matchRoute(route, live) : route;
 }
 
 function isNoindex(robots) {
@@ -94,6 +112,21 @@ export function localePath(locale, path = "/") {
     typeof path === "string" && path.startsWith("/") ? path : `/${path ?? ""}`;
   if (!prefix) return target;
   return target === "/" ? prefix : `${prefix}${target}`;
+}
+
+// canonicalUrl('/about/', 'en') -> 'https://www.cengizhankose.com/about'
+// canonicalUrl('/', 'en')       -> 'https://www.cengizhankose.com/'
+// canonicalUrl('/', 'tr')       -> 'https://www.cengizhankose.com/tr'
+// canonicalUrl('/about', 'tr')  -> 'https://www.cengizhankose.com/tr/about'
+// SEO-04: absolute, www (K-03), no query or hash, no trailing slash (the EN
+// root keeps its one), lower case. `path` is language-independent ('/about',
+// '/blog/<slug>'), the language prefix is added here. This is the same
+// normal form the server redirects every other spelling to (SEO-02), and the
+// host and path of every hreflang alternate.
+export function canonicalUrl(path, locale) {
+  const bare = (typeof path === "string" ? path : "/").split(/[?#]/, 1)[0];
+  const full = localePath(locale, bare || "/").replace(/\/+$/, "");
+  return `${SITE_URL}${(full || "/").toLowerCase()}`;
 }
 
 // The language static pages are served in for `locale`: itself once its
@@ -194,6 +227,14 @@ export function alternatesFor(route, data = {}, live = LIVE) {
   return [];
 }
 
+// The fields a page that search engines must not index (404, noindex) or that
+// has no data yet (a post still loading) does not get: no canonical, no Open
+// Graph or Twitter tags, no JSON-LD. usePageMeta removes any such tag left by
+// the previous page.
+function withoutRichFields() {
+  return { canonical: null, og: null, twitter: null, jsonLd: null };
+}
+
 function fromEntry(entry, lang) {
   const values = entry[lang] ?? entry[DEFAULT_LOCALE];
   return {
@@ -202,6 +243,7 @@ function fromEntry(entry, lang) {
     robots: values.robots ?? null,
     lang,
     alternates: [],
+    ...withoutRichFields(),
   };
 }
 
@@ -218,18 +260,180 @@ export function postDescription(postData) {
   return clean(postData?.excerpt) || clean(postData?.title);
 }
 
-// getPageMeta(route, locale, data)
-//   -> { title, description, robots, lang, alternates }
+// SEO-06: og:image for the pages without a cover, in the page language.
+function defaultOgImage(lang) {
+  return {
+    url: absoluteUrl(DEFAULT_OG_IMAGE),
+    width: DEFAULT_OG_IMAGE_SIZE.width,
+    height: DEFAULT_OG_IMAGE_SIZE.height,
+    type: DEFAULT_OG_IMAGE_SIZE.type,
+    alt: (ogImage[lang] ?? ogImage[DEFAULT_LOCALE]).alt,
+  };
+}
+
+// SEO-06 step 3: the Twitter card is the same on every page.
+function twitterCard() {
+  return {
+    card: "summary_large_image",
+    site: TWITTER_HANDLE,
+    creator: TWITTER_HANDLE,
+  };
+}
+
+// SEO-06 step 2. `alternates` (hreflang entries, SEO-11) gives the other
+// languages of the page: og:locale:alternate exists only where a counterpart
+// does. og:url is the canonical URL, the image is absolute.
+function openGraph({
+  type,
+  title,
+  description,
+  canonical,
+  lang,
+  alternates,
+  image,
+  article,
+}) {
+  return {
+    type,
+    siteName: SITE_NAME,
+    locale: OG_LOCALE[lang],
+    localeAlternate: alternates
+      .filter((entry) => entry.hreflang !== lang && OG_LOCALE[entry.hreflang])
+      .map((entry) => OG_LOCALE[entry.hreflang]),
+    title,
+    description,
+    url: canonical,
+    image,
+    ...(article ? { article } : {}),
+  };
+}
+
+// Canonical, Open Graph, Twitter and JSON-LD of a static page. A noindex page
+// (T-10 /portfolio) gets none of them: a canonical on a noindex page sends
+// mixed signals, and a share card for a page kept out of the index has no use.
+function staticRichFields(meta, path, lang) {
+  if (isNoindex(meta.robots)) return withoutRichFields();
+  const canonical = canonicalUrl(path, lang);
+  return {
+    canonical,
+    og: openGraph({
+      type: "website",
+      title: meta.title,
+      description: meta.description,
+      canonical,
+      lang,
+      alternates: meta.alternates,
+      image: defaultOgImage(lang),
+    }),
+    twitter: twitterCard(),
+    // The home page (every language) carries Person + WebSite (SEO-07).
+    jsonLd: path === "/" ? homeJsonLd(lang) : null,
+  };
+}
+
+// Canonical, Open Graph, Twitter and BlogPosting of a loaded post, in the
+// post's own language and path (SEO-04 step 2, SEO-06 step 4, SEO-07 step 3).
+function postRichFields(meta, slug, post, lang, live) {
+  if (typeof slug !== "string" || !SLUG_PATTERN.test(slug)) {
+    return withoutRichFields();
+  }
+  const canonical = canonicalUrl(`/blog/${slug}`, lang);
+  // The author is the About page of the post's language (the EN one until
+  // the TR static pages open).
+  const authorUrl = canonicalUrl("/about", staticLocale(lang, live));
+  const published = isoDate(post.publishedAt) ?? isoDate(post.createdAt);
+  const modified = isoDate(post.updatedAt) ?? published;
+  const cover = clean(post.coverImage);
+  const article = {};
+  if (published) article.publishedTime = published;
+  if (modified) article.modifiedTime = modified;
+  article.author = authorUrl;
+  return {
+    canonical,
+    og: openGraph({
+      type: "article",
+      title: meta.title,
+      description: meta.description,
+      canonical,
+      lang,
+      alternates: meta.alternates,
+      image: cover
+        ? { url: absoluteUrl(cover), alt: clean(post.title) }
+        : defaultOgImage(lang),
+      article,
+    }),
+    twitter: twitterCard(),
+    jsonLd: jsonLdGraph([
+      blogPostingSchema(post, {
+        url: canonical,
+        authorUrl,
+        description: meta.description,
+      }),
+    ]),
+  };
+}
+
+// socialTags(meta) -> [{ attribute, key, content }]
+// The Open Graph and Twitter values of getPageMeta() as the flat, ordered list
+// of <meta> tags to print (attribute 'property' for og:* and article:*, 'name'
+// for twitter:*). The server (head injection) and usePageMeta both print this
+// list, so the raw HTML and the rendered DOM carry the same tags. og:locale:
+// alternate repeats, once per other language; an empty value is skipped.
+export function socialTags(meta) {
+  const tags = [];
+  const add = (attribute, key, content) => {
+    if (content === undefined || content === null || content === "") return;
+    tags.push({ attribute, key, content: String(content) });
+  };
+
+  const og = meta?.og;
+  if (og) {
+    add("property", "og:type", og.type);
+    add("property", "og:site_name", og.siteName);
+    add("property", "og:locale", og.locale);
+    for (const alternate of og.localeAlternate ?? []) {
+      add("property", "og:locale:alternate", alternate);
+    }
+    add("property", "og:title", og.title);
+    add("property", "og:description", og.description);
+    add("property", "og:url", og.url);
+    add("property", "og:image", og.image?.url);
+    add("property", "og:image:width", og.image?.width);
+    add("property", "og:image:height", og.image?.height);
+    add("property", "og:image:type", og.image?.type);
+    add("property", "og:image:alt", og.image?.alt);
+    add("property", "article:published_time", og.article?.publishedTime);
+    add("property", "article:modified_time", og.article?.modifiedTime);
+    add("property", "article:author", og.article?.author);
+  }
+
+  const twitter = meta?.twitter;
+  if (twitter) {
+    add("name", "twitter:card", twitter.card);
+    add("name", "twitter:site", twitter.site);
+    add("name", "twitter:creator", twitter.creator);
+  }
+  return tags;
+}
+
+// getPageMeta(route, locale, data, live?)
+//   -> { title, description, robots, lang, alternates,
+//        canonical, og, twitter, jsonLd }
 //   route:  matchRoute(pathname) output ({ type, locale, path, slug? }) or a
 //           pathname string
 //   locale: 'en' | 'tr' (anything else falls back to DEFAULT_LOCALE); pass
 //           displayLocale(route) for 404 pages
 //   data:   { post?, notFound? }
+//   live:   the route table's LIVE by default; tests pass ALL_LIVE to check
+//           the state after the TR pages open (hreflang, og:locale:alternate)
 // Pure: no DOM access. `robots` is null when the page is indexable;
 // `alternates` is alternatesFor()'s list (empty when there is no pair). A
 // loaded post speaks its own language (post.lang), whatever the URL says.
-export function getPageMeta(route, locale, data = {}) {
-  const match = toRoute(route);
+// canonical, og, twitter and jsonLd are null for 404s, noindex pages and a
+// post that has not loaded (the blog meta stands in for it); see
+// staticRichFields() and postRichFields() for the rest.
+export function getPageMeta(route, locale, data = {}, live = LIVE) {
+  const match = toRoute(route, live);
   const lang = resolveLocale(locale ?? match?.locale);
   const type = match?.type;
 
@@ -238,20 +442,28 @@ export function getPageMeta(route, locale, data = {}) {
   }
 
   if (type === "static" && STATIC_PATHS.includes(match.path)) {
-    return {
+    const meta = {
       ...fromEntry(pages[match.path], lang),
-      alternates: alternatesFor(match, data),
+      alternates: alternatesFor(match, data, live),
     };
+    return { ...meta, ...staticRichFields(meta, match.path, lang) };
   }
 
   if (type === "post") {
     if (data?.post) {
-      return {
+      const postLang = LOCALES.includes(data.post.lang) ? data.post.lang : lang;
+      const slug =
+        typeof data.post.slug === "string" ? data.post.slug : match.slug;
+      const meta = {
         title: postTitle(data.post),
         description: postDescription(data.post),
         robots: null,
-        lang: LOCALES.includes(data.post.lang) ? data.post.lang : lang,
-        alternates: alternatesFor(match, data),
+        lang: postLang,
+        alternates: alternatesFor(match, data, live),
+      };
+      return {
+        ...meta,
+        ...postRichFields(meta, slug, data.post, postLang, live),
       };
     }
     // Still loading: describe the blog rather than keep the previous page's

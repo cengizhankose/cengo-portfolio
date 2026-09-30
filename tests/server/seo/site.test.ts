@@ -12,10 +12,13 @@ import {
   DEFAULT_LOCALE,
   DEFAULT_OG_IMAGE,
   DEFAULT_OG_IMAGE_SIZE,
+  HERO_IMAGE,
   LOCALES,
+  OG_LOCALE,
   SITE_NAME,
   SITE_URL,
   SOCIAL_PROFILES,
+  TWITTER_HANDLE,
 } from "../../../src/seo/site.js";
 import * as viaPages from "../../../src/seo/pages.js";
 
@@ -59,6 +62,33 @@ describe("site constants", () => {
     expect(viaPages.SITE_URL).toBe(SITE_URL);
     expect(viaPages.LOCALES).toBe(LOCALES);
     expect(viaPages.SOCIAL_PROFILES).toBe(SOCIAL_PROFILES);
+    expect(viaPages.OG_LOCALE).toBe(OG_LOCALE);
+    expect(viaPages.TWITTER_HANDLE).toBe(TWITTER_HANDLE);
+    expect(viaPages.HERO_IMAGE).toBe(HERO_IMAGE);
+  });
+
+  test("head constants for SEO-06 / SEO-07 (og:locale, Twitter handle, hero portrait)", () => {
+    expect(OG_LOCALE).toEqual({ en: "en_US", tr: "tr_TR" });
+    expect(Object.isFrozen(OG_LOCALE)).toBe(true);
+    expect(TWITTER_HANDLE).toBe("@cengzhnkse");
+    expect(HERO_IMAGE).toBe("/img/hero/cengizhan-kose-v1-1284.jpg");
+  });
+
+  test("AUTHOR carries the JSON-LD facts of 00-icerik-girdileri, deeply frozen", () => {
+    expect(AUTHOR.jobTitles).toEqual({
+      en: "Senior Fullstack Engineer",
+      tr: "Senior Fullstack Engineer",
+    });
+    expect(AUTHOR.worksFor).toEqual([{ name: "Drivee Teknoloji" }]);
+    expect(AUTHOR.awards).toHaveLength(4);
+    expect(AUTHOR.awards.every((award) => /^.+ \(\d{4}\)$/.test(award))).toBe(
+      true,
+    );
+    expect(Object.isFrozen(AUTHOR)).toBe(true);
+    expect(Object.isFrozen(AUTHOR.awards)).toBe(true);
+    expect(Object.isFrozen(AUTHOR.worksFor)).toBe(true);
+    expect(Object.isFrozen(AUTHOR.worksFor[0])).toBe(true);
+    expect(Object.isFrozen(AUTHOR.jobTitles)).toBe(true);
   });
 
   test("the default share image exists with the declared size", () => {
@@ -127,6 +157,7 @@ describe("pure ESM head modules (T-03)", () => {
     "site.js",
     "routes.js",
     "pages.js",
+    "jsonld.js",
     ...readdirSync(join(SEO, "pages")).map((f) => `pages/${f}`),
   ];
 
