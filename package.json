@@ -44,7 +44,8 @@
     "db:seed": "bun run scripts/seed-dev.ts",
     "content:publish": "bun --no-env-file scripts/content/publish-post.ts",
     "hooks:install": "git config core.hooksPath .githooks",
-    "brand:build": "bun scripts/brand/build-brand-assets.ts"
+    "brand:build": "bun scripts/brand/build-brand-assets.ts",
+    "images:build": "bun scripts/images/build-responsive.ts"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
@@ -74,6 +75,7 @@
     "prettier": "^3.9.9",
     "sass-embedded": "^1.105.1",
     "semver": "^7.8.5",
+    "sharp": "^0.35.5",
     "terser": "^5.44.1",
     "typescript": "^7.0.2",
     "vite": "^7.3.6",
