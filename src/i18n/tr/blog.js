@@ -3,7 +3,12 @@
 // strict parity test is switched on (W11, MKT-14 approves the TR voice).
 export default {
   title: "Blog",
-  empty: "Henüz yazı yok. Yakında tekrar uğra.",
+  empty: "Henüz yazı yok",
+  emptyText:
+    "Burada henüz yayımlanmış bir yazı yok. Yakında tekrar uğra ya da bu arada bana yaz.",
+  home: "Ana sayfa",
+  contact: "İletişim",
+  loadError: "Yazılar yüklenemedi",
   otherLanguage: "İngilizce yazılar",
   inOtherLanguage: "İngilizce",
 };
