@@ -28,3 +28,6 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+# keys and certificates never go into git either (SEC-16 step 1)
+*.pem
+*.key
