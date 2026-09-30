@@ -9,13 +9,16 @@ import {
   buildHomeTitle,
   buildTitle,
   getPageMeta,
-  pages,
+  pages as registry,
   postDescription,
   postTitle,
   TITLE_MAX_LENGTH,
 } from "../../../src/seo/pages.js";
 import { matchRoute, STATIC_PATHS } from "../../../src/seo/routes.js";
 import { LOCALES, SITE_NAME } from "../../../src/seo/site.js";
+
+// JS module: index it with plain string keys in the tests.
+const pages = registry as Record<string, any>;
 
 const HOME_TITLE = "Cengizhan Köse | Senior Fullstack Engineer";
 const BRANDED = /^.+ \| Cengizhan Köse$/;

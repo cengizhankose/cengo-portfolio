@@ -5,12 +5,15 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { pages } from "../../../src/seo/pages.js";
+import { pages as registry } from "../../../src/seo/pages.js";
 import {
   matchRoute,
   POST_PATH,
   STATIC_PATHS,
 } from "../../../src/seo/routes.js";
+
+// JS module: index it with plain string keys in the tests.
+const pages = registry as Record<string, any>;
 
 const ROOT = join(import.meta.dir, "..", "..", "..");
 

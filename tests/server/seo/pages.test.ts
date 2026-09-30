@@ -5,12 +5,15 @@
  * TR values render only after the W11 LIVE flip, but are checked now.
  */
 import { describe, expect, test } from "bun:test";
-import { getPageMeta, pages } from "../../../src/seo/pages.js";
+import { getPageMeta, pages as registry } from "../../../src/seo/pages.js";
 import { matchRoute, STATIC_PATHS } from "../../../src/seo/routes.js";
 import { LOCALES } from "../../../src/seo/site.js";
 
+// JS module: index it with plain string keys in the tests.
+const pages = registry as Record<string, any>;
+
 const PAGES = ["/", "/about", "/portfolio", "/contact", "/blog"];
-// Characters that only occur in Turkish text in this copy.
+// Turkish letters; every TR description contains at least one.
 const TURKISH = /[çğıİöşüÇĞÖŞÜ]/;
 
 describe("static page descriptions (SEO-09)", () => {
