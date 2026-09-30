@@ -48,7 +48,8 @@ bun run content:publish --verify                                   # local DB vs
 Production, in this order (SEC-29 / SEC-15):
 1. Commit the file and push it. `--prod` refuses a file that is untracked or has uncommitted changes.
 2. `outplane env run --app cengoportfoliolhal -- bun run content:publish content/posts/<slug>.<lang>.md --prod --publish`
-   (without `--publish` the post becomes a draft, also when it was public). The last stdout line is the JSON
+   (without `--publish` a post is written as a draft; a public post is only taken down with an explicit
+   `--draft`). The last stdout line is the JSON
    audit line (`post_publish`, commit, contentSha256); the git history of `content/posts/` is the audit trail.
 3. `outplane env run --app cengoportfoliolhal -- bun run content:publish --verify --prod` must print only
    `<slug> ok`; `drift`, `missing` or `untracked` (a row without a file, e.g. a write that bypassed the CLI) exit 1.

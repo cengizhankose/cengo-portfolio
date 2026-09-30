@@ -19,7 +19,9 @@
 //      (portfolio_writer, SEC-14) under the production TLS policy (verify-full,
 //      SEC-22), whatever NODE_ENV says.
 //   5. One atomic upsert on slug. `published` is true only with --publish,
-//      so a plain run writes (or turns the post back into) a draft.
+//      so a plain run writes a draft; turning a public post back into a
+//      draft needs an explicit --draft (a forgotten --publish never takes a
+//      live post down).
 //   6. stdout: the result line, the Cloudflare purge list (www only) and, as
 //      the last line, one JSON audit line (SEC-15). No output ever contains a
 //      connection string.
@@ -74,7 +76,7 @@ export const USAGE = `Usage:
 
   <file.md>              content file: YAML frontmatter + Markdown (content/posts/)
   --publish              make the post public (without it the post is a draft)
-  --draft                explicit draft (the default)
+  --draft                explicit draft; needed to take a public post down
   --dry-run              validate and print the metadata; never connects
   --lang, --translation-key   override the frontmatter (T-12)
   --verify               compare content/posts/*.md with the database (read only)
@@ -147,6 +149,7 @@ const defaultDeps = (): Deps => ({
 export interface CliArgs {
   file?: string;
   publish: boolean;
+  draft: boolean;
   dryRun: boolean;
   prod: boolean;
   verify: boolean;
@@ -199,6 +202,7 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
   return {
     file: positionals[0],
     publish: values.publish === true,
+    draft: values.draft === true,
     dryRun: values["dry-run"] === true,
     prod: values.prod === true,
     verify: values.verify === true,
@@ -546,6 +550,11 @@ async function publish(args: CliArgs, d: Deps): Promise<number> {
       .select({ published: posts.published })
       .from(posts)
       .where(eq(posts.slug, post.slug));
+    if (before?.published && !post.published && !args.draft) {
+      throw new CliError(
+        `${post.slug} is public: pass --publish to keep it public, or --draft to take it down`,
+      );
+    }
     try {
       result = await upsertPost(db, post);
     } catch (error) {
@@ -558,9 +567,7 @@ async function publish(args: CliArgs, d: Deps): Promise<number> {
       );
     }
     if (before?.published && !result.published) {
-      d.stderr(
-        `warning: ${post.slug} was public and is a draft now (pass --publish to keep it public)`,
-      );
+      d.stderr(`note: ${post.slug} was public and is a draft now (--draft)`);
     }
     translations = await publishedTranslations(db, {
       id: result.id,

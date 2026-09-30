@@ -140,6 +140,7 @@ describe("arguments (SEC-29 step 1)", () => {
     expect(parseCliArgs(["x.md"])).toEqual({
       file: "x.md",
       publish: false,
+      draft: false,
       dryRun: false,
       prod: false,
       verify: false,
@@ -190,7 +191,7 @@ describe("local publish (SEC-29 criteria 3-4, BE-16 criteria 2-3)", () => {
     noUrlInOutput(second);
   });
 
-  test("editing the file updates every field; a run without --publish turns a live post into a draft (with a warning)", async () => {
+  test("editing the file updates every field", async () => {
     const path = await writePost(
       "edit.md",
       postFile({ slug: SLUG, excerpt: "first", seoTitle: "Seo one" }),
@@ -203,18 +204,35 @@ describe("local publish (SEC-29 criteria 3-4, BE-16 criteria 2-3)", () => {
         "New body",
       ),
     );
-    const result = await local([path]);
+    const result = await local([path, "--publish"]);
     expect(result.code).toBe(0);
-    expect(result.stderr).toContain("was public and is a draft now");
     const [row] = await rowsFor(SLUG);
     expect(row).toMatchObject({
       title: "New title",
       content: "New body",
       excerpt: null,
       seoTitle: null,
-      published: false,
+      published: true,
     });
-    expect(row.publishedAt).toBeInstanceOf(Date); // first publication kept
+  });
+
+  test("a public post is never taken down by a forgotten --publish; --draft does it (BE-16 criterion 3)", async () => {
+    const path = await writePost("down.md", postFile({ slug: SLUG }));
+    await local([path, "--publish"]);
+    const [live] = await rowsFor(SLUG);
+
+    const forgotten = await local([path]);
+    expect(forgotten.code).toBe(1);
+    expect(forgotten.stderr).toContain("--draft");
+    expect((await rowsFor(SLUG))[0]).toEqual(live);
+
+    const down = await local([path, "--draft"]);
+    expect(down.code).toBe(0);
+    expect(down.stderr).toContain("draft now");
+    const [row] = await rowsFor(SLUG);
+    expect(row.published).toBe(false);
+    expect(row.publishedAt?.getTime()).toBe(live.publishedAt?.getTime()); // first publication kept
+    expect((await api().request(`/api/posts/${SLUG}`)).status).toBe(404);
   });
 
   test("--dry-run prints the metadata and never connects (BE-16 criterion 4)", async () => {
