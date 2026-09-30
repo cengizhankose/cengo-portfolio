@@ -1,0 +1,109 @@
+{
+  "startOnLoad": false,
+  "securityLevel": "strict",
+  "suppressErrorRendering": true,
+  "fontFamily": "Raleway, sans-serif",
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#0c0c0c",
+    "fontFamily": "Raleway, sans-serif",
+    "dropShadow": "none",
+    "textColor": "#ffffff",
+    "lineColor": "#a3a3a3",
+    "primaryColor": "#1f1f1f",
+    "primaryTextColor": "#ffffff",
+    "primaryBorderColor": "#a3a3a3",
+    "secondaryColor": "#2e2e2e",
+    "secondaryTextColor": "#ffffff",
+    "secondaryBorderColor": "#a3a3a3",
+    "tertiaryColor": "#161616",
+    "tertiaryTextColor": "#ffffff",
+    "tertiaryBorderColor": "#a3a3a3",
+    "mainBkg": "#1f1f1f",
+    "nodeBorder": "#a3a3a3",
+    "nodeTextColor": "#ffffff",
+    "clusterBkg": "#161616",
+    "clusterBorder": "#a3a3a3",
+    "titleColor": "#ffffff",
+    "edgeLabelBackground": "#0c0c0c",
+    "noteBkgColor": "#2e2e2e",
+    "noteTextColor": "#ffffff",
+    "noteBorderColor": "#a3a3a3",
+    "actorBkg": "#1f1f1f",
+    "actorBorder": "#a3a3a3",
+    "actorTextColor": "#ffffff",
+    "actorLineColor": "#a3a3a3",
+    "signalColor": "#a3a3a3",
+    "signalTextColor": "#ffffff",
+    "labelBoxBkgColor": "#1f1f1f",
+    "labelBoxBorderColor": "#a3a3a3",
+    "labelTextColor": "#ffffff",
+    "loopTextColor": "#ffffff"
+  },
+  "flowchart": {
+    "htmlLabels": false,
+    "useMaxWidth": false
+  },
+  "sequence": {
+    "useMaxWidth": false
+  },
+  "gantt": {
+    "useMaxWidth": false
+  },
+  "journey": {
+    "useMaxWidth": false
+  },
+  "timeline": {
+    "useMaxWidth": false
+  },
+  "class": {
+    "useMaxWidth": false
+  },
+  "state": {
+    "useMaxWidth": false
+  },
+  "er": {
+    "useMaxWidth": false
+  },
+  "pie": {
+    "useMaxWidth": false
+  },
+  "quadrantChart": {
+    "useMaxWidth": false
+  },
+  "xyChart": {
+    "useMaxWidth": false
+  },
+  "requirement": {
+    "useMaxWidth": false
+  },
+  "architecture": {
+    "useMaxWidth": false
+  },
+  "mindmap": {
+    "useMaxWidth": false
+  },
+  "kanban": {
+    "useMaxWidth": false
+  },
+  "gitGraph": {
+    "useMaxWidth": false
+  },
+  "c4": {
+    "useMaxWidth": false
+  },
+  "sankey": {
+    "useMaxWidth": false
+  },
+  "packet": {
+    "useMaxWidth": false
+  },
+  "block": {
+    "useMaxWidth": false
+  },
+  "radar": {
+    "useMaxWidth": false
+  },
+  "htmlLabels": false
+}
