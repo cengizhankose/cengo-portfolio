@@ -15,6 +15,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "opentype.js";
+import { format, resolveConfig } from "prettier";
 
 /** The slice of opentype.js's Font this script reads (the package ships no types). */
 interface Font {
@@ -171,7 +172,8 @@ if (process.argv.includes("--write")) {
     /( *\/\/ MEASURED:BEGIN\n)[\s\S]*?( *\/\/ MEASURED:END)/,
     `$1${block}\n$2`,
   );
-  writeFileSync(file, next);
+  const options = (await resolveConfig(file)) ?? {};
+  writeFileSync(file, await format(next, { ...options, parser: "typescript" }));
   console.log("faces.ts updated");
 } else {
   console.log(block);
