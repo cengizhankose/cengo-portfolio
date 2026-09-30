@@ -42,32 +42,24 @@ beforeEach(() => {
   document.head.innerHTML = "<title>x</title>";
 });
 
+// Copy is not pinned here beyond the decided H1 (K-06b, T-07): W7 (MKT-02)
+// rewrites the phrases and the lead in src/content/*/hero.js.
 describe("hero content (00-icerik-girdileri §2.4)", () => {
-  it("EN: name, role, rotating phrases and lead", () => {
-    expect(EN.name).toBe("Cengizhan Köse");
-    expect(EN.role).toBe("Senior Fullstack Engineer");
-    expect(EN.phrases).toEqual([
-      "Shipping for fleet technology",
-      "Shipping for e-commerce",
-      "Fleet tech, e-commerce and AI.",
-    ]);
-    expect(EN.lead).toBe(
-      "I build web and mobile products end to end with TypeScript, React, Node.js and React Native.",
-    );
+  it("the H1 is the name and the role, in both languages; the role stays English", () => {
+    for (const hero of [EN, TR]) {
+      expect(hero.name).toBe("Cengizhan Köse");
+      expect(hero.role).toBe("Senior Fullstack Engineer");
+      expect(hero.roleLang).toBe("en");
+    }
   });
 
-  it("TR: its own phrases and lead, the role stays English", () => {
-    expect(TR.name).toBe("Cengizhan Köse");
-    expect(TR.role).toBe("Senior Fullstack Engineer");
-    expect(TR.roleLang).toBe("en");
-    expect(TR.phrases).toEqual([
-      "Filo teknolojisi için ürün geliştiriyorum",
-      "E-ticaret için ürün geliştiriyorum",
-      "Filo teknolojisi, e-ticaret ve yapay zekâ.",
-    ]);
-    expect(TR.lead).toBe(
-      "TypeScript, React, Node.js ve React Native ile web ve mobil ürünleri uçtan uca geliştiriyorum.",
+  it("TR has its own phrases and lead (no EN fallback)", () => {
+    expect(TR.phrases.every((phrase) => phrase.trim().length > 0)).toBe(true);
+    TR.phrases.forEach((phrase, index) =>
+      expect(phrase).not.toBe(EN.phrases[index]),
     );
+    expect(TR.lead.trim()).not.toBe("");
+    expect(TR.lead).not.toBe(EN.lead);
   });
 
   it("DSG-07: the same number of phrases in both languages, at most 4", () => {
