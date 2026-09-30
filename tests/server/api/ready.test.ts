@@ -1,6 +1,6 @@
 // BE-20: /ready pings the database and reports build info; /health stays
 // constant; both no-store. Build info comes from build-info.json + env.
-import { afterAll, beforeAll, describe, expect, jest, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -56,34 +56,53 @@ describe("/ready", () => {
     expect(health.status).toBe(200);
   });
 
-  // Fake timers: the real 2 s budget, without spending 2 s of wall clock (BE-17 speed).
+  // The 2 s budget without 2 s of wall clock (BE-17 speed) and without
+  // bun:test's jest.advanceTimersByTime / getTimerCount: the builder gate runs
+  // on the image's Bun (1.3.3), which does not have them. Two halves instead:
+  // the real race with a short budget, then a hand-rolled clock that records
+  // the budget /ready arms and fires it on demand.
+  const hangingDb = () =>
+    ({ execute: () => new Promise(() => {}) }) as unknown as PostsDb;
+
+  test("ping() gives up once its budget runs out (real timer, short budget)", async () => {
+    const started = performance.now();
+    await expect(createPostQueries(hangingDb()).ping(25)).rejects.toThrow(
+      "database ping timed out after 25 ms",
+    );
+    expect(performance.now() - started).toBeGreaterThanOrEqual(20);
+  });
+
   test("a database that never answers -> 503 once the 2 s budget runs out", async () => {
     expect(PING_TIMEOUT_MS).toBe(2000);
-    const hanging = {
-      execute: () => new Promise(() => {}),
-    } as unknown as PostsDb;
-    const app = createApp({ queries: createPostQueries(hanging) });
-    jest.useFakeTimers();
+    const app = createApp({ queries: createPostQueries(hangingDb()) });
+    const armed: { ms: number | undefined; fire: () => void }[] = [];
+    const realSetTimeout = globalThis.setTimeout;
+    // Record instead of schedule; a long real timer stands in as the handle,
+    // so the code's unref() and clearTimeout() work as usual.
+    globalThis.setTimeout = ((fire: () => void, ms?: number) => {
+      armed.push({ ms, fire });
+      return realSetTimeout(() => {}, 60_000);
+    }) as unknown as typeof setTimeout;
+    let settled = false;
+    let pending: ReturnType<typeof captureLogs<Response>> | undefined;
     try {
-      let settled = false;
-      const pending = captureLogs(() => app.request("/ready")).then((r) => {
+      pending = captureLogs(() => app.request("/ready")).then((r) => {
         settled = true;
         return r;
       });
-      // Let the handler reach the ping and arm its timer.
-      for (let i = 0; i < 50 && jest.getTimerCount() === 0; i++)
-        await Promise.resolve();
-      expect(jest.getTimerCount()).toBe(1);
-      jest.advanceTimersByTime(PING_TIMEOUT_MS - 1);
-      for (let i = 0; i < 20; i++) await Promise.resolve();
-      expect(settled).toBe(false);
-      jest.advanceTimersByTime(1);
-      const { result: res } = await pending;
-      expect(res.status).toBe(503);
-      expect(await res.json()).toEqual({ status: "not_ready", db: "error" });
+      // Let the handler reach the ping and arm its timer (Bun.sleep does
+      // not go through globalThis.setTimeout).
+      for (let i = 0; i < 50 && armed.length === 0; i++) await Bun.sleep(0);
     } finally {
-      jest.useRealTimers();
+      globalThis.setTimeout = realSetTimeout;
     }
+    expect(armed.map((t) => t.ms)).toEqual([PING_TIMEOUT_MS]);
+    await Bun.sleep(20);
+    expect(settled).toBe(false); // nothing answers before the budget
+    armed[0].fire(); // the 2 s are up
+    const { result: res } = await pending;
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ status: "not_ready", db: "error" });
   });
 
   test("shutting down -> 503 without touching the database (BE-21 step 3)", async () => {

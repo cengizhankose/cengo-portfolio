@@ -55,6 +55,18 @@ describe.skipIf(!inCheckout("Dockerfile"))("Dockerfile", () => {
     }
   });
 
+  // The gate runs on the image's Bun, not the local one. With @types/bun at
+  // that version, `tsc` flags Bun and bun:test APIs the image lacks (review of
+  // this package: jest.advanceTimersByTime passed on 1.3.14 and broke the
+  // 1.3.3 builder). BE-27 moves both versions together.
+  test("@types/bun is pinned to the Bun version of the image (BE-17 gate, BE-27)", async () => {
+    const images = [
+      ...(await read("Dockerfile")).matchAll(/oven\/bun:(\d+\.\d+\.\d+)/g),
+    ].map((m) => m[1]);
+    expect(images.length).toBeGreaterThan(0);
+    expect([...new Set(images)]).toEqual([pkg.devDependencies["@types/bun"]]);
+  });
+
   test(".dockerignore keeps everything the gate and migrate.ts need in the context", async () => {
     const patterns = (await read(".dockerignore"))
       .split("\n")
