@@ -8,6 +8,35 @@ import { About } from "../pages/about";
 import { Socialicons } from "../components/socialicons";
 import BlogHome from "../pages/blog/BlogHome";
 import BlogPost from "../pages/blog/BlogPost";
+import { NotFound } from "../pages/notfound";
+import { matchRoute } from "../seo/routes.js";
+
+// Renders the page only where src/seo/routes.js has the route live (T-11,
+// T-12), so the client shows NotFound exactly where the server answers 404:
+// a language that is not open yet (/tr/blog until SEO-11 Adım B), a slug the
+// publish tool would never write, or a case variant such as /About (React
+// Router matches case-insensitively, the route table does not).
+function Live({ children }) {
+  const route = matchRoute(useLocation().pathname);
+  return route.type === "notfound" ? <NotFound /> : children;
+}
+
+// The page table. Every path must be known to src/seo/routes.js with all
+// languages open (tests/server/seo/routes.test.ts), so the server and the
+// client agree on what exists.
+const PAGE_ROUTES = [
+  { path: "/", Page: Home },
+  { path: "/about", Page: About },
+  { path: "/portfolio", Page: Portfolio },
+  { path: "/contact", Page: ContactUs },
+  { path: "/blog", Page: BlogHome },
+  { path: "/blog/:slug", Page: BlogPost },
+  // SEO-11 Adım A: the TR post's own path (the 301 target) and, gated until
+  // the TR pages open, the TR blog list. FE-14 (W4) turns this list into the
+  // language x page table.
+  { path: "/tr/blog", Page: BlogHome },
+  { path: "/tr/blog/:slug", Page: BlogPost },
+];
 
 function AnimatedRoutes({ focusTargetRef }) {
   const location = useLocation();
@@ -48,13 +77,18 @@ function AnimatedRoutes({ focusTargetRef }) {
       }}
     >
       <Routes location={displayLocation}>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/portfolio" element={<Portfolio />} />
-        <Route path="/contact" element={<ContactUs />} />
-        <Route path="/blog" element={<BlogHome />} />
-        <Route path="/blog/:slug" element={<BlogPost />} />
-        <Route path="*" element={<Home />} />
+        {PAGE_ROUTES.map(({ path, Page }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <Live>
+                <Page />
+              </Live>
+            }
+          />
+        ))}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );

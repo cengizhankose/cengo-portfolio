@@ -1,0 +1,46 @@
+/* NotFound page (FE-16). DSG-20 replaces this with the shared status-state
+   component (W5); until then it follows the blog pages' type and colours. */
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 60vh;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 6rem 1rem 3rem;
+  color: var(--text-color);
+}
+
+.not-found__title {
+  margin: 0;
+  font-family: "Marcellus", serif;
+  font-size: clamp(2rem, 6vw, 3rem);
+}
+
+.not-found__text {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.not-found__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.not-found__links a {
+  color: var(--text-color);
+  font-size: 1.1rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.not-found__links a:hover,
+.not-found__links a:focus-visible {
+  text-decoration-thickness: 2px;
+}
