@@ -64,21 +64,17 @@ export const About = () => {
           <ProofStrip />
         </Col>
       </Row>
-      <Row className="sec_sp">
+      <Row className="sec_sp about-anchor" id="timeline">
         <Col lg="5">
-          <h2 className="h3 color_sec py-4" id={`${ids}-timeline`}>
-            {t("about.timeline")}
-          </h2>
+          <h2 className="h3 color_sec py-4">{t("about.timeline")}</h2>
         </Col>
         <Col lg="7">
           {/* One body per role: the row with title, employer and dates, then
               the row with the outcome (MKT-15, SEO-18). The DSG-01 rule keeps
-              the cells on the theme colours. */}
-          <table
-            className="table caption-top timeline"
-            id="timeline"
-            aria-labelledby={`${ids}-timeline`}
-          >
+              the cells on the theme colours. The caption names the table for
+              assistive technology; the h2 beside it is the visible title. */}
+          <table className="table caption-top timeline">
+            <caption className="visually-hidden">{t("about.timeline")}</caption>
             {timeline.map((data) => (
               <tbody key={data.id}>
                 <tr className="timeline__role">

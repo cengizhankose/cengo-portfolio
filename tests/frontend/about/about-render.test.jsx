@@ -79,9 +79,13 @@ describe("work timeline (MKT-05, MKT-15, SEO-18)", () => {
       );
       expect(header).toBe(role.querySelector("th"));
     });
-    expect(container.querySelector("table.timeline").id).toBe("timeline");
-    expect(container.querySelector("table.timeline")).toHaveAttribute(
-      "aria-labelledby",
+    // The section is an anchor target (#timeline) and the table is named by
+    // a visually hidden caption.
+    expect(container.querySelector("#timeline")).toContainElement(
+      container.querySelector("table.timeline"),
+    );
+    expect(screen.getByRole("table", { name: "Work timeline" })).toBe(
+      container.querySelector("table.timeline"),
     );
   });
 
