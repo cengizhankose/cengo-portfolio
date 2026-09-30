@@ -1,18 +1,29 @@
+/* Theme tokens. <html data-theme> is always "light" or "dark" (set before the
+   first paint by the index.html head script, K-10); :root holds the dark
+   values so the page is dark if that script never runs.
+   --bg-color must match THEME_COLORS in src/lib/theme.js and the head script
+   (browser UI theme-color, DSG-16).
+   --text-muted: secondary text and placeholders, WCAG AA on --bg-color
+   (#a3a3a3 on #0c0c0c 7.75:1, #595959 on #fff 7.00:1; DSG-04, DSG-21). */
 :root {
+  color-scheme: dark;
   --bg-color: #0c0c0c;
   --primary-color: #0d0d0d;
   --secondary-color: #fff;
   --text-color: #fff;
   --text-color-2: #fff;
+  --text-muted: #a3a3a3;
   --overlay-color: rgb(12 12 12 / 63%);
 }
 
 [data-theme="light"] {
+  color-scheme: light;
   --bg-color: #ffffff;
   --primary-color: #ffffff;
   --secondary-color: #000;
   --text-color: #000;
   --text-color-2: #000;
+  --text-muted: #595959;
   --overlay-color: rgb(255 255 255 / 70%);
 }
 

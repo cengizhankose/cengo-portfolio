@@ -2,12 +2,48 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="theme-color"
+      content="#0c0c0c"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta
+      name="theme-color"
+      content="#ffffff"
+      media="(prefers-color-scheme: light)"
+    />
+    <!-- Theme before the first paint (K-10): stored light/dark, else the
+         system preference. Keep it above all CSS links and keep it static
+         (the CSP hashes it). Runtime counterpart: src/lib/theme.js. -->
+    <script>
+      (function () {
+        var t = null;
+        try {
+          t = localStorage.getItem("theme");
+          if (t !== null && t !== "light" && t !== "dark") {
+            localStorage.removeItem("theme");
+          }
+        } catch (e) {}
+        if (t !== "light" && t !== "dark") {
+          t =
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: light)").matches
+              ? "light"
+              : "dark";
+        }
+        var d = document.documentElement;
+        d.setAttribute("data-theme", t);
+        d.style.colorScheme = t;
+        var c = t === "light" ? "#ffffff" : "#0c0c0c";
+        var m = document.querySelectorAll('meta[name="theme-color"]');
+        for (var i = 0; i < m.length; i++) m[i].setAttribute("content", c);
+      })();
+    </script>
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
     <meta name="author" content="Cengizhan Köse" />
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link

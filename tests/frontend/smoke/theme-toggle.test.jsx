@@ -1,5 +1,6 @@
-// Smoke: theme toggle (FE-22). Current behaviour only; W3-DSG-theme-init
-// (FE-08/FE-09, K-10 system theme) owns and updates this file.
+// Smoke: theme toggle (FE-22), updated for K-10 (FE-08/FE-09, DSG-15): a
+// stored choice wins, otherwise the system preference; nothing is stored
+// until the visitor clicks. Details: tests/frontend/theme/**.
 import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
@@ -12,6 +13,15 @@ describe("Themetoggle (smoke)", () => {
     render(<Themetoggle />);
 
     expect(document.documentElement).toHaveAttribute("data-theme", "light");
+  });
+
+  it("without a stored choice uses the system theme and stores nothing", () => {
+    // tests/frontend/setup.js: matchMedia matches nothing, so the OS is not
+    // asking for light and the system theme is dark.
+    render(<Themetoggle />);
+
+    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+    expect(window.localStorage.getItem("theme")).toBeNull();
   });
 
   it("switches dark -> light -> dark on click and persists the choice", async () => {
