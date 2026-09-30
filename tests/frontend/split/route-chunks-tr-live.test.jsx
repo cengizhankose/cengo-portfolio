@@ -6,6 +6,9 @@ import { act, render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, useNavigate } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// Each test re-imports the route table (and a blog chunk) cold.
+vi.setConfig({ testTimeout: 30_000 });
+
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
   return {

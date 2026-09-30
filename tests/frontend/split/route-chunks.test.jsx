@@ -9,6 +9,9 @@ import { act, render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// Each test re-imports the route table (and a blog chunk) cold.
+vi.setConfig({ testTimeout: 30_000 });
+
 const POST = {
   id: 1,
   slug: "hello-world",

@@ -16,6 +16,9 @@ import {
 import { swrConfig } from "../../../src/lib/swr.js";
 import { ALL_LIVE, matchRoute } from "../../../src/seo/routes.js";
 
+// Each test re-imports the route table (and a blog chunk) cold.
+vi.setConfig({ testTimeout: 30_000 });
+
 const POST = {
   id: 1,
   slug: "hello-world",

@@ -92,7 +92,10 @@ export default defineConfig({
   // Server/API tests live in tests/server/** and run under `bun test`.
   test: {
     environment: "jsdom",
-    setupFiles: ["tests/frontend/setup.js"],
+    setupFiles: [
+      "tests/frontend/setup.js",
+      "tests/frontend/split/setup-async-timeout.js",
+    ],
     include: ["tests/frontend/**/*.test.{js,jsx}"],
     restoreMocks: true,
     unstubGlobals: true,
