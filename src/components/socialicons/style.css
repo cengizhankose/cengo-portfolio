@@ -1,21 +1,47 @@
+/* Side rail of social profile links (DSG-12, DSG-30).
+
+   Desktop: a fixed column at the left edge, centred vertically: six 32x32
+   icon targets 8px apart (6 x 32 + 5 x 8 = 232px), then the caption, set
+   vertically and read bottom-to-top, with its rule between the icons and
+   the text. The caption uses writing-mode instead of a rotated box, so its
+   length (EN "Follow Me", TR "Takip et", or a longer text later) moves
+   nothing and cannot run into the icons.
+
+   Below 992px the rail is part of the page flow: the caption above one row
+   of icons (232px, one line at 375px). */
 .stick_follow_icon {
-  top: 50%;
-  left: 30px;
-  width: 20px;
-  height: 200px;
   position: fixed;
-  margin-top: -100px;
+  top: 50%;
+  left: 24px;
+  width: 32px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
 .stick_follow_icon ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
+.stick_follow_icon a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--text-color);
+}
+
 .stick_follow_icon svg {
-  width: 1.3em;
-  height: 1.3em;
+  width: 16px;
+  height: 16px;
   fill: var(--text-color);
 }
 
@@ -25,67 +51,54 @@
 }
 
 .stick_follow_icon p {
-  top: 70px;
-  left: -24px;
-  width: 68px;
-  height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
   color: var(--text-color);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
-  position: relative;
-  transform: rotate(-90deg);
 }
 
-.stick_follow_icon ul li {
-  display: block;
-  font-size: 12px;
-  text-align: center;
-  margin-bottom: 10px;
-  transition: all 0.3s;
-}
-
-.stick_follow_icon p:after {
-  top: 9px;
-  right: -48px;
-  width: 40px;
-  height: 1px;
+/* The rule: after the text in the flow, so above it once the caption is
+   turned to read bottom-to-top. */
+.stick_follow_icon p::after {
   content: "";
   display: block;
-  position: absolute;
+  flex: none;
+  width: 1px;
+  height: 40px;
   background-color: var(--text-color);
 }
 
 @media only screen and (max-width: 991px) {
   .stick_follow_icon {
-    width: unset;
-    height: unset;
     position: static;
-    margin-top: unset;
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: center;
+    width: auto;
+    transform: none;
+    flex-direction: column-reverse;
+    gap: 12px;
     padding: 40px 0;
-    align-items: center;
   }
-  .stick_follow_icon p {
-    top: unset;
-    left: unset;
-    width: unset;
-    height: unset;
-    white-space: nowrap;
-    position: relative;
-    transform: unset;
-    font-size: 17px;
-    margin-right: 65px;
-  }
+
   .stick_follow_icon ul {
-    margin-bottom: 20px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
   }
-  .stick_follow_icon ul li {
-    display: inline;
-    margin-bottom: 29px;
-    margin-right: 10px;
+
+  .stick_follow_icon p {
+    writing-mode: horizontal-tb;
+    transform: none;
+    font-size: 17px;
+  }
+
+  .stick_follow_icon p::after {
+    width: 40px;
+    height: 1px;
   }
 }

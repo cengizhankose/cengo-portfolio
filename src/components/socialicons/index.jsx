@@ -1,35 +1,31 @@
 import "./style.css";
-import { DEFAULT_LOCALE, SOCIAL_PROFILES } from "../../seo/site.js";
+import { SOCIAL_PROFILES } from "../../seo/site.js";
 import { translate } from "../../i18n/translate.js";
-import { getSocialLinks } from "./icons";
+import { LOCATIONS } from "../../lib/analytics/events.js";
+import { UiLocale } from "../ExternalLink.jsx";
+import SocialLinks from "../SocialLinks.jsx";
 
 // { id: url } in K-11 order, from the single list in src/seo/site.js
-// (SEO-25). The header's menu footer uses the same map.
+// (SEO-25). Kept for callers that look a profile up by id.
 export const SOCIAL_PROFILE_URLS = Object.freeze(
   Object.fromEntries(SOCIAL_PROFILES.map(({ id, url }) => [id, url])),
 );
 
-// Icon-only profile links (FE-02): each link is named by its channel label
-// (a brand name, the same in every language), the icon itself is decorative.
-// `followLabel` is the translated caption: the parent inside the router
-// passes t("social.follow"); a bare render gets the EN text.
-export const Socialicons = ({
-  followLabel = translate(DEFAULT_LOCALE, "social.follow"),
-}) => {
-  const links = getSocialLinks(SOCIAL_PROFILE_URLS);
-
-  return (
-    <div className="stick_follow_icon">
-      <ul>
-        {links.map(({ id, label, url, Icon }) => (
-          <li key={id}>
-            <a href={url} aria-label={label}>
-              <Icon aria-hidden="true" focusable="false" />
-            </a>
-          </li>
-        ))}
-      </ul>
-      <p>{followLabel}</p>
-    </div>
-  );
-};
+// The side rail (DSG-12, DSG-30): the icon variant of SocialLinks and the
+// vertical caption. Links and caption speak `locale`, else the route's
+// interface language, else EN outside a router. `followLabel` overrides the
+// caption (routes.jsx passes t("social.follow")).
+export const Socialicons = ({ followLabel, locale }) => (
+  <UiLocale locale={locale}>
+    {(lang) => (
+      <div className="stick_follow_icon">
+        <SocialLinks
+          variant="icons"
+          locale={lang}
+          location={LOCATIONS.SOCIAL_RAIL}
+        />
+        <p>{followLabel ?? translate(lang, "social.follow")}</p>
+      </div>
+    )}
+  </UiLocale>
+);

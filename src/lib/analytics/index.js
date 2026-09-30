@@ -3,6 +3,8 @@
 //
 //   initAnalytics()          once, from src/main.jsx. No-op unless production
 //                            build + www host + website id + not opted out.
+//                            When on, it also starts the outbound link
+//                            listener (ANL-09, outbound.js).
 //   track(name, props)       custom event; props are sanitised (events.js).
 //   trackPageview(ctx)       SPA page view (called by ANL-07's hook, W7).
 //   setPageContext(ctx)      page_type / ui_locale / content_language added to
@@ -27,6 +29,7 @@ import {
   safeStorage,
   shouldTrack,
 } from "./guard.js";
+import { initOutboundTracking } from "./outbound.js";
 import { buildTrackedUrl, cleanPath, trackedReferrer } from "./url.js";
 
 /** At most this many calls wait for the tracker script. */
@@ -161,6 +164,9 @@ export function initAnalytics({
 
     state = "loading";
     injectTracker(win.document, config);
+    // ANL-09: outbound clicks, only once tracking is on. Clicks before the
+    // tracker has loaded wait in the queue like any other event.
+    initOutboundTracking({ send: track, doc: win.document });
     // ANL-06 / PERF-23: web-vitals stays out of the entry chunk.
     import("../webVitals.js")
       .then((module) => module.initWebVitals())

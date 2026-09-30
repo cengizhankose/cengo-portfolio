@@ -5,9 +5,9 @@ import { Link, useLocation } from "react-router-dom";
 import { logotext } from "../content/shared.js";
 import Themetoggle from "../components/themetoggle";
 import { LanguageSwitcher } from "../components/langswitch";
-import { SOCIAL_PROFILE_URLS } from "../components/socialicons";
-import { getSocialLinks } from "../components/socialicons/icons";
+import SocialLinks from "../components/SocialLinks.jsx";
 import { useLocalePath, useT, useUiLocale } from "../i18n";
+import { LOCATIONS } from "../lib/analytics/events.js";
 
 const MENU_ID = "site-navigation";
 
@@ -20,10 +20,6 @@ const NAV_ITEMS = [
   { path: "/blog", key: "blog" },
   { path: "/contact", key: "contact" },
 ];
-
-// Same K-11 list and order as the side strip; the visible text is the name
-// (a brand name, not translated).
-const SOCIAL_LINKS = getSocialLinks(SOCIAL_PROFILE_URLS);
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -198,13 +194,14 @@ const Headermain = () => {
             </div>
           </div>
           <div className="menu_footer d-flex flex-column flex-md-row justify-content-between align-items-md-center position-absolute w-100 p-3">
-            <ul className="menu_footer__social d-flex flex-wrap m-0 p-0">
-              {SOCIAL_LINKS.map(({ id, label, url }) => (
-                <li key={id}>
-                  <a href={url}>{label}</a>
-                </li>
-              ))}
-            </ul>
+            {/* Same K-11 list and order as the side rail (DSG-30); the
+                visible text is the channel's brand name. */}
+            <SocialLinks
+              variant="text"
+              locale={uiLocale}
+              location={LOCATIONS.MENU_FOOTER}
+              className="menu_footer__social m-0 p-0"
+            />
             <p className="copyright m-0">
               {t("footer.copyright", { year: new Date().getFullYear() })}
             </p>

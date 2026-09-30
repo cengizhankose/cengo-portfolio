@@ -4,4 +4,6 @@
 export default {
   label: "Sosyal bağlantılar",
   follow: "Takip et",
+  profile: "{name} profili (yeni sekmede açılır)",
+  newTab: "(yeni sekmede açılır)",
 };
