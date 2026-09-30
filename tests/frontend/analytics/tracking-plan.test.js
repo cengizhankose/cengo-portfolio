@@ -149,6 +149,19 @@ describe("code only sends catalogued events (ANL-19 step 5b)", () => {
     expect(unknown).toEqual([]);
   });
 
+  it("the app entry starts analytics exactly once", () => {
+    const callers = SOURCES.filter(
+      ({ path, text }) =>
+        !path.startsWith("src/lib/analytics/") &&
+        /^\s*initAnalytics\(\s*\);?\s*$/m.test(text),
+    ).map(({ path }) => path);
+    expect(callers).toHaveLength(1);
+    const entry = SOURCES.find(({ path }) => path === callers[0]);
+    expect(entry.text).toMatch(
+      /import \{ initAnalytics \} from "\.\/lib\/analytics(\/index\.js)?";/,
+    );
+  });
+
   it("only src/lib/analytics talks to window.umami", () => {
     const offenders = SOURCES.filter(
       ({ path, text }) =>
