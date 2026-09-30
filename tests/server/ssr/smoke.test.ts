@@ -2,7 +2,9 @@
  * scripts/seo-smoke.ts (SEO-01 step 12): the post-deploy check. Run against an
  * in-process app (no port) and through the command line against a real server.
  */
-import { describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, test } from "bun:test";
+import { cpSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Hono } from "hono";
 import { createApp } from "../../../src/api/app";
@@ -14,13 +16,23 @@ import { fakeQueries, FIXTURE_DIST, makePost } from "./helpers";
 silenceLogs();
 
 const REPO = join(import.meta.dir, "..", "..", "..");
+
+// The fixture dist plus the blog chunk's stylesheet, as Vite writes it
+// (assets/style-<hash>.css), so the pages can link it.
+const DIST = mkdtempSync(join(tmpdir(), "seo-smoke-dist-"));
+cpSync(FIXTURE_DIST, DIST, { recursive: true });
+writeFileSync(
+  join(DIST, "assets", "style-blog1.css"),
+  ".blog-container{padding:80px 20px}.blog-post-container{padding:20px}",
+);
+afterAll(() => rmSync(DIST, { recursive: true }));
 const BASE = "http://smoke.test";
 
 const siteApp = (seoInject?: boolean) =>
   createApp({
     queries: fakeQueries(),
     serveSpa: true,
-    distDir: FIXTURE_DIST,
+    distDir: DIST,
     env: { RATE_LIMIT_DISABLED: "1" },
   });
 
@@ -88,7 +100,7 @@ describe("runSmoke against the app", () => {
     const queries = fakeQueries();
     const api = createApp({ queries, env: { RATE_LIMIT_DISABLED: "1" } });
     off.route("/", api);
-    mountSite(off, { distDir: FIXTURE_DIST, queries, seoInject: false });
+    mountSite(off, { distDir: DIST, queries, seoInject: false });
     const { ok, failures } = await runSmoke(BASE, {
       fetch: viaApp(off),
       minWords: 5,
@@ -99,6 +111,26 @@ describe("runSmoke against the app", () => {
         "/about has one meta description",
         "/about has a readable snapshot in #root",
         "/blog/hello-world has one canonical",
+      ]),
+    );
+  });
+
+  test("fails when a blog page does not link a stylesheet for its snapshot (layout shift)", async () => {
+    // The plain fixture dist has no blog stylesheet, so nothing is linked.
+    const app = createApp({
+      queries: fakeQueries(),
+      serveSpa: true,
+      distDir: FIXTURE_DIST,
+      env: { RATE_LIMIT_DISABLED: "1" },
+    });
+    const { failures } = await runSmoke(BASE, {
+      fetch: viaApp(app),
+      minWords: 5,
+    });
+    expect(failures).toEqual(
+      expect.arrayContaining([
+        "/blog links a stylesheet that styles its snapshot (.blog-container)",
+        "/blog/hello-world links a stylesheet that styles its snapshot (.blog-post-container)",
       ]),
     );
   });
@@ -130,7 +162,7 @@ describe("runSmoke against the app", () => {
         ],
       }),
       serveSpa: true,
-      distDir: FIXTURE_DIST,
+      distDir: DIST,
       env: { RATE_LIMIT_DISABLED: "1" },
     });
     const { lines, ok } = await runSmoke(BASE, {
@@ -154,7 +186,7 @@ describe("runSmoke against the app", () => {
     const app = createApp({
       queries: fakeQueries({ posts: [makePost()] }),
       serveSpa: true,
-      distDir: FIXTURE_DIST,
+      distDir: DIST,
       env: { RATE_LIMIT_DISABLED: "1" },
     });
     const { failures } = await runSmoke(BASE, {
@@ -180,7 +212,7 @@ describe("runSmoke against the app", () => {
         posts: [makePost({ translationKey: null, translations: [] }), long],
       }),
       serveSpa: true,
-      distDir: FIXTURE_DIST,
+      distDir: DIST,
       env: { RATE_LIMIT_DISABLED: "1" },
     });
     // hello-world has fewer than 100 words: it would fail a 250-word threshold, but only

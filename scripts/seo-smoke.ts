@@ -12,7 +12,9 @@
 //     post), a filled <div id="root">;
 //   - titles that differ from page to page within one language;
 //   - hreflang pairs that point back (page A lists B, B lists A and itself);
-//   - a post's #root holds its article: word count, one <h1>;
+//   - a post's #root holds its article: word count, one <h1>; the blog pages
+//     link a stylesheet that styles that snapshot (else it is drawn unstyled
+//     and jumps when the lazy chunk's CSS arrives);
 //   - the old address of a post (the other language's prefix) is one 301;
 //   - two made-up addresses (one under /tr/) are 404 with noindex and no
 //     canonical.
@@ -173,6 +175,23 @@ export async function runSmoke(
     }
   };
 
+  // The text of every stylesheet `html` links (same origin only).
+  const stylesheetText = async (html: string): Promise<string> => {
+    const parts: string[] = [];
+    for (const href of linkHref(html, "stylesheet")) {
+      if (!href.startsWith("/")) continue;
+      try {
+        const res = await fetchImpl(`${base}${href}`, {
+          signal: AbortSignal.timeout(timeoutMs),
+        });
+        if (res.ok) parts.push(await res.text());
+      } catch {
+        // an unreachable stylesheet simply does not match below
+      }
+    }
+    return parts.join("\n");
+  };
+
   // ---- which pages exist: the static ones, the newest post per language
   const trOpen = (await get("/tr")).status === 200;
   lines.push(
@@ -280,6 +299,13 @@ export async function runSmoke(
       check(
         html.includes('id="__SEO_DATA__"'),
         `${at} has the first-data block`,
+      );
+      // The class names the snapshot prints (src/seo/snapshot.ts) must be
+      // styled from the first paint.
+      const marker = isPost ? ".blog-post-container" : ".blog-container";
+      check(
+        (await stylesheetText(html)).includes(marker),
+        `${at} links a stylesheet that styles its snapshot (${marker})`,
       );
     }
   }
