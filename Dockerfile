@@ -1,4 +1,7 @@
 # Multi-stage Dockerfile for Vite + Bun React app + Hono API (single container)
+# The builder's test gate runs on this Bun. @types/bun in package.json is pinned
+# to the same version so `tsc` flags APIs this Bun lacks; bump both together
+# (BE-27; enforced by tests/server/ops/build-gate.test.ts).
 FROM oven/bun:1.3.3-alpine AS base
 WORKDIR /app
 
