@@ -11,17 +11,26 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:3000
+      # SEC-12: Vite binds 127.0.0.1 by default; inside the container it must
+      # listen on all interfaces for the published port to reach it.
+      - VITE_HOST=0.0.0.0
+      # The dev API talks to the compose database (no TLS locally, BE-13).
+      - PG_CONNECTION_URL=postgres://portfolio@db:5432/portfolio_dev
+      - PG_SSL_MODE=disable
     volumes:
       - .:/app
       - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - portfolio-network
     profiles:
       - development
 
-  # Production service - serves built app
+  # Production image against the compose database (BE-21 stop-time check;
+  # BE-25 finalises this file). Never used by Out Plane.
   app-prod:
     build:
       context: .
@@ -31,16 +40,24 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - PG_CONNECTION_URL=postgres://portfolio@db:5432/portfolio_dev
+      # Plaintext is accepted in production mode only for a local host (the
+      # compose `db` inside a container); Out Plane keeps verify-full (SEC-22).
+      - PG_SSL_MODE=disable
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - portfolio-network
     profiles:
       - production
 
-  # Local development database (K-02 = A, BE-04 / SEC-06). Never used by the
-  # production image or Out Plane. `bun run db:up` starts it (targeting the
-  # service by name enables its profile). Trust auth, no password: the port is
-  # published on 127.0.0.1 only and the database holds seed data only.
+  # Local development database (K-02 = A, BE-04 / SEC-06). Never used by
+  # Out Plane. `bun run db:up` starts it (targeting the service by name
+  # enables its profile); the app-dev / app-prod profiles start it as their
+  # dependency. Trust auth, no password: the port is published on 127.0.0.1
+  # only and the database holds seed data only.
   db:
     image: postgres:18-alpine
     environment:
@@ -61,6 +78,8 @@ services:
       - portfolio-network
     profiles:
       - dev
+      - development
+      - production
 
 networks:
   portfolio-network:
