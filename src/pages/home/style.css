@@ -117,7 +117,7 @@ section {
    last one fades in at 2.6s and is settled at 3s (< 5s, WCAG 2.2.2).
    Reduced motion: no animation, the last phrase from the start. */
 .intro__tagline {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   font-size: 1.25rem;
   font-weight: 500;
   line-height: 1.3;
@@ -182,8 +182,61 @@ section {
   }
 }
 
+/* Subheadline (MKT-02, MKT-16): the lead and the short status line under it
+   read as one unit, then the turning line, the proof line and the CTAs.
+   --text-muted is the theme token that holds >= 4.5:1 on the page background
+   in both themes (src/index.css). */
 .intro__lead {
-  margin-bottom: 2.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.intro__status {
+  margin-bottom: 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.intro__proof {
+  margin-bottom: 2rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+/* CTAs (MKT-19, DSG-28): one button, one evidence link, the reply note under
+   them. The button is an <a> itself (no block inside an inline link), so its
+   box and its focus ring are the same box. */
+.intro_btn-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+}
+
+.intro_btn-action .ac_btn {
+  margin-right: 0;
+}
+
+.intro_btn-action .ac_btn:focus-visible,
+.intro__textlink:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 3px;
+}
+
+.intro__textlink {
+  color: var(--text-color);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.intro__textlink:hover {
+  text-decoration-thickness: 2px;
+}
+
+.intro__note {
+  margin: 0.75rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
 }
 
 .intro_sec .text h3 {
@@ -239,6 +292,7 @@ section {
 .ac_btn {
   padding: 4px 19px;
   color: var(--secondary-color);
+  text-decoration: none;
   position: relative;
   border: var(--secondary-color) 2px solid;
   overflow: hidden;
@@ -249,10 +303,6 @@ section {
   cursor: pointer;
   border-radius: 0;
   margin-right: 20px;
-}
-
-.ac_btn a {
-  text-decoration: none;
 }
 
 .ac_btn:hover {
@@ -279,6 +329,7 @@ section {
 }
 
 .ac_btn .ring {
+  display: block;
   width: 100%;
   height: 100%;
   position: absolute;
@@ -306,11 +357,6 @@ section {
   z-index: -2;
   transition: all 0.7s cubic-bezier(0.55, 0, 0.1, 1);
   z-index: -3;
-}
-
-#button_p {
-  background: var(--secondary-color);
-  color: var(--primary-color);
 }
 
 #button_h:hover {
