@@ -283,6 +283,16 @@
   outline-offset: 2px;
 }
 
+/* Pre-rendered diagrams (PERF-05): <Mermaid> prints the light and the dark
+   drawing and CSS shows the one that matches the theme, so a theme change
+   needs no script and no new drawing. Dark is the site's default (:root in
+   src/index.css; <html data-theme> is always set by the head script, K-10),
+   so the light drawing is the one that needs the attribute. */
+:root[data-theme="light"] .mermaid-theme--dark,
+:root:not([data-theme="light"]) .mermaid-theme--light {
+  display: none;
+}
+
 /* Holds the diagram's place while Mermaid loads and draws (no layout jump,
    no raw source on screen). */
 .mermaid-placeholder {

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
+import { DiagramsContext } from "./Mermaid.jsx";
 import PostMarkdown from "./PostMarkdown.jsx";
 import { NotFound } from "../notfound";
 import { StatusState } from "../../components/statusstate";
@@ -149,7 +150,9 @@ function BlogPostPage() {
             )}
           </p>
         )}
-        <PostMarkdown content={post.content} lang={lang} />
+        <DiagramsContext.Provider value={post.diagrams ?? null}>
+          <PostMarkdown content={post.content} lang={lang} />
+        </DiagramsContext.Provider>
       </article>
     </div>
   );
