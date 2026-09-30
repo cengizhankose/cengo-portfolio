@@ -43,6 +43,7 @@ import about from "./pages/about.js";
 import portfolio from "./pages/portfolio.js";
 import contact from "./pages/contact.js";
 import blog from "./pages/blog.js";
+import privacy from "./pages/privacy.js";
 import post from "./pages/post.js";
 import notFound from "./pages/notFound.js";
 import ogImage from "./pages/ogImage.js";
@@ -74,6 +75,7 @@ export const pages = Object.freeze({
   "/portfolio": portfolio,
   "/contact": contact,
   "/blog": blog,
+  "/privacy": privacy,
   notFound,
   postNotFound: post,
 });
