@@ -25,8 +25,8 @@ RUN bun run build
 FROM base AS production
 ENV NODE_ENV=production
 COPY --from=builder /app/dist ./dist
-COPY src/api ./src/api
-COPY src/db ./src/db
+# whole src/: server.ts imports src/api, src/db and src/server (later also src/seo, src/i18n, src/content)
+COPY src ./src
 COPY drizzle.config.ts ./drizzle.config.ts
 COPY server.ts ./server.ts
 EXPOSE 3000
