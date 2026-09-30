@@ -21,6 +21,16 @@ bun run deploy       # Deploy to GitHub Pages (gh-pages)
 ./docker-deploy.sh prod   # Docker production build
 ```
 
+## Secrets
+
+- Secrets never go into git. `.env` / `.env.*` are gitignored; only `.env.example` (names + local placeholders) is tracked.
+  Local secrets, if any, go in `.env.local`. Production values live only in the Out Plane environment.
+- Run `bun run hooks:install` once per clone (needs `brew install gitleaks`): the pre-commit hook blocks `.env*` files
+  and runs gitleaks on staged changes. CI runs gitleaks (`.github/workflows/security.yml`).
+- The public API is read-only (K-01 = A): no write routes, no API key in the runtime. Content is published by CLI.
+- Design rule: if a secret ever has to be compared again, compare SHA-256 digests with `crypto.timingSafeEqual`,
+  never `===`/`!==`, and fail closed when the expected value is missing (no fallback defaults).
+
 ## Architecture Overview
 
 ### Tech Stack

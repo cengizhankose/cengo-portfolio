@@ -41,7 +41,8 @@
     "deploy": "gh-pages -d dist",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "hooks:install": "git config core.hooksPath .githooks"
   },
   "eslintConfig": {
     "extends": [

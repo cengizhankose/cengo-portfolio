@@ -1,0 +1,30 @@
+# Secret scanning (SEC-16).
+name: security
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # new advisories appear without code changes
+    - cron: "0 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # scan the full history, not just the tip
+      # Personal-account repo: no GITLEAKS_LICENSE needed. Findings are never
+      # silenced with .gitleaksignore for leaked values; rotate, then purge history (K-07).
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
