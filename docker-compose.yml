@@ -37,6 +37,31 @@ services:
     profiles:
       - production
 
+  # Local development database (K-02 = A, BE-04 / SEC-06). Never used by the
+  # production image or Out Plane. `bun run db:up` starts it (targeting the
+  # service by name enables its profile). Trust auth, no password: the port is
+  # published on 127.0.0.1 only and the database holds seed data only.
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: portfolio_dev
+      POSTGRES_USER: portfolio
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      # PG 18 images keep data in a versioned directory under this path
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d portfolio_dev"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    networks:
+      - portfolio-network
+    profiles:
+      - dev
+
 networks:
   portfolio-network:
     driver: bridge
@@ -44,3 +69,4 @@ networks:
 volumes:
   node_modules:
     driver: local
+  pgdata: {}

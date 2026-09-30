@@ -1,0 +1,17 @@
+#!/bin/sh
+# Secret-leak guard (SEC-16). Enable once per clone: bun run hooks:install
+set -e
+
+# 1. No .env files, except the tracked example. Deletions stay allowed so that
+#    `git rm --cached .env` can be committed.
+if git diff --cached --name-only --diff-filter=d | grep -E '(^|/)\.env($|\.)' | grep -v -E '(^|/)\.env\.example$'; then
+  echo "ERROR: .env files must not be committed (only .env.example is tracked)." >&2
+  exit 1
+fi
+
+# 2. gitleaks on the staged changes, findings redacted.
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "ERROR: gitleaks is not installed (brew install gitleaks); commit blocked." >&2
+  exit 1
+fi
+gitleaks git --pre-commit --staged --redact --no-banner

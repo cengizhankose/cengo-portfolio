@@ -1,7 +1,18 @@
+// Local development API (`bun run api`). Production is served by server.ts.
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serve } from 'bun'
-import postsRouter from './routes/posts'
+import { assertNonProdDb } from '../db/guard'
+
+// Refuse a non-local database before the DB module is loaded (BE-04 / SEC-06).
+try {
+  assertNonProdDb()
+} catch (error) {
+  console.error(`[api] ${(error as Error).message}`)
+  process.exit(1)
+}
+
+const { default: postsRouter } = await import('./routes/posts')
 
 const app = new Hono()
 
