@@ -8,6 +8,13 @@
       "when": 1768345364936,
       "tag": "0000_nasty_mentor",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790781850605,
+      "tag": "0001_posts_hardening_i18n",
+      "breakpoints": true
     }
   ]
 }
