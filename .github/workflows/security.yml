@@ -1,4 +1,4 @@
-# Secret scanning (SEC-16).
+# Secret scanning and dependency audit (SEC-16, SEC-11).
 name: security
 
 on:
@@ -28,3 +28,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_COMMENTS: "false"
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          # Same Bun as the Dockerfile base image; BE-27 moves this to package.json#packageManager.
+          bun-version: 1.3.3
+      # Also proves bun.lock matches package.json; --ignore-scripts keeps lifecycle scripts off.
+      - run: bun install --frozen-lockfile --ignore-scripts
+      # No high/critical advisory is deferred (claudedocs/security/audit-deferrals.md), so the
+      # gate is high. A new high must be fixed or deferred there with a reason and review date.
+      - run: bun audit --audit-level=high
