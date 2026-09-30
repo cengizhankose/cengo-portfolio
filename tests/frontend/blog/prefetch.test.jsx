@@ -5,9 +5,10 @@
 import { act, fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Link } from "react-router-dom";
-import { unload } from "swr";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { IntentPrefetch } from "../../../src/hooks/useIntentPrefetch";
+import { PRELOAD_TTL_MS } from "../../../src/hooks/usePosts.js";
+import { track } from "../../../src/lib/analytics";
 import {
   PREFETCH_SELECTOR,
   installIntentPrefetch,
@@ -23,6 +24,14 @@ import {
   renderBlog,
   testSWRValue,
 } from "./support.jsx";
+
+vi.mock("../../../src/lib/analytics", async (importOriginal) => ({
+  ...(await importOriginal()),
+  track: vi.fn(),
+}));
+
+const errorEvents = () =>
+  track.mock.calls.filter(([name]) => name === "error_occurred");
 
 // Records every "Loading..." that is ever put into the document.
 function watchLoading() {
@@ -49,9 +58,9 @@ const Links = () => (
 
 let fetchMock;
 beforeEach(() => {
-  // swr keeps preloaded requests in a module-global map; a test must not
-  // find the previous test's answer there.
-  unload({ revalidate: false });
+  // Preloads are kept per swr cache, and every render here gets a new one
+  // (testSWRValue), so no test finds the previous test's answer.
+  track.mockClear();
   document.head.innerHTML = "<title>x</title>";
   fetchMock = vi.fn(async (url) => {
     if (url === "/api/posts?lang=en") return json([POST_EN]);
@@ -198,6 +207,74 @@ describe("intent -> request (PERF-14 criterion 2)", () => {
       uninstall();
       link.remove();
       window.removeEventListener("unhandledrejection", unhandled);
+    }
+  });
+
+  it("a failed hover preload is not replayed: the click asks again, shows the post, reports nothing", async () => {
+    const user = userEvent.setup();
+    renderWithPrefetch("/blog");
+    const card = await screen.findByRole("link", { name: "Hello world" });
+    fetchMock.mockClear();
+
+    fetchMock.mockImplementationOnce(async () =>
+      json({ error: "Unavailable" }, 503),
+    );
+    fireEvent.pointerOver(card);
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+    expect(calls(fetchMock)).toEqual(["/api/posts/hello-world"]);
+
+    await user.click(card);
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Hello world" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+    expect(calls(fetchMock)).toEqual([
+      "/api/posts/hello-world",
+      "/api/posts/hello-world",
+    ]);
+    expect(errorEvents()).toEqual([]);
+  });
+
+  it("an answer older than PRELOAD_TTL_MS is shown at once and refreshed, not reused", async () => {
+    const user = userEvent.setup();
+    const start = Date.now();
+    const clock = vi.spyOn(Date, "now").mockReturnValue(start);
+    try {
+      renderWithPrefetch("/blog");
+      const card = await screen.findByRole("link", { name: "Hello world" });
+      fetchMock.mockClear();
+
+      fireEvent.pointerOver(card);
+      await act(async () => new Promise((resolve) => setTimeout(resolve, 0)));
+      expect(calls(fetchMock)).toEqual(["/api/posts/hello-world"]);
+
+      // The post changes on the server; the click comes long after the hover.
+      fetchMock.mockImplementation(async (url) =>
+        url === "/api/posts/hello-world"
+          ? json({ ...POST_EN, title: "Hello world, edited" })
+          : json([]),
+      );
+      clock.mockReturnValue(start + PRELOAD_TTL_MS + 1);
+
+      const loading = watchLoading();
+      await user.click(card);
+      // The hover's answer is on screen at once (from the cache) ...
+      expect(document.querySelector(".blog-post-title-full")).toBeTruthy();
+      loading.stop();
+      expect(loading.seen).toEqual([]);
+      // ... and the page asks again instead of reusing it.
+      expect(
+        await screen.findByRole("heading", {
+          level: 1,
+          name: "Hello world, edited",
+        }),
+      ).toBeInTheDocument();
+      expect(calls(fetchMock)).toEqual([
+        "/api/posts/hello-world",
+        "/api/posts/hello-world",
+      ]);
+    } finally {
+      clock.mockRestore();
     }
   });
 
