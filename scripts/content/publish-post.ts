@@ -18,17 +18,26 @@
 //      K-02) with PG_CONNECTION_URL; with --prod only PG_WRITE_CONNECTION_URL
 //      (portfolio_writer, SEC-14) under the production TLS policy (verify-full,
 //      SEC-22), whatever NODE_ENV says.
-//   5. One atomic upsert on slug. `published` is true only with --publish,
-//      so a plain run writes a draft; turning a public post back into a
-//      draft needs an explicit --draft (a forgotten --publish never takes a
-//      live post down).
-//   6. stdout: the result line, the Cloudflare purge list (www only) and, as
+//   5. Diagrams (PERF-05, T-05 stage B): every diagram block of the post is
+//      drawn as a light and a dark SVG, cleaned and verified before any
+//      connection opens (scripts/lib/diagrams.ts; needs Chrome or Chromium on
+//      this machine, CHROME_PATH overrides the search). A diagram that cannot
+//      be drawn stops the run. --dry-run only counts them.
+//   6. One atomic upsert on slug, content and diagrams together (the page
+//      looks a diagram up by a key derived from the block's text, so the two
+//      must never come from different runs). `published` is true only with
+//      --publish, so a plain run writes a draft; turning a public post back
+//      into a draft needs an explicit --draft (a forgotten --publish never
+//      takes a live post down).
+//   7. stdout: the result line, the Cloudflare purge list (www only) and, as
 //      the last line, one JSON audit line (SEC-15). No output ever contains a
 //      connection string.
 //
 // --verify only reads (PG_CONNECTION_URL, the reader role in production) and
 // prints `<slug> ok|drift <fields>|missing|untracked` for content/posts/*.md
-// against the posts table; anything but ok exits 1 (SEC-15).
+// against the posts table; anything but ok exits 1 (SEC-15). `diagrams` is
+// one of the fields: the keys of the file's diagram blocks against the keys
+// stored on the row.
 //
 // Production runs only inside `outplane env run --app <app> -- bun run
 // content:publish ... --prod`, so credentials never touch the disk. The
@@ -52,6 +61,13 @@ import type { PostsDb } from "../../src/db/queries/posts";
 import * as schema from "../../src/db/schema";
 import { posts, type PostLang } from "../../src/db/schema";
 import type { ClientSsl } from "../../src/db/tls";
+import {
+  diagramKeys,
+  renderDiagrams,
+  storedDiagramKeys,
+  type PostDiagrams,
+  type RenderDiagrams,
+} from "../lib/diagrams";
 import { LOCALE_PREFIX } from "../../src/seo/routes.js";
 import { LOCALES, SITE_URL } from "../../src/seo/site.js";
 import { fileGitState, runGit, type GitRunner } from "./git";
@@ -113,6 +129,8 @@ export interface Deps {
   openDb: OpenDb;
   git: GitRunner;
   now: () => Date;
+  /** Draws the post's diagrams (PERF-05); `{}` without drawing anything when it has none. */
+  renderDiagrams: RenderDiagrams;
 }
 
 /** postgres.js + drizzle, one connection, CLI application name (BE-13 settings otherwise). */
@@ -141,6 +159,7 @@ const defaultDeps = (): Deps => ({
   openDb: openPostgres,
   git: runGit,
   now: () => new Date(),
+  renderDiagrams,
 });
 
 // ---------------------------------------------------------------------------
@@ -278,7 +297,7 @@ export function selectTarget(
 }
 
 // ---------------------------------------------------------------------------
-// Database work (shared with later publish steps, e.g. PERF-05 diagrams)
+// Database work
 
 export interface UpsertResult {
   id: number;
@@ -290,6 +309,9 @@ export interface UpsertResult {
 
 export class LanguageConflict extends CliError {}
 
+/** What a write stores: the validated file plus the post's drawn diagrams (PERF-05). */
+export type WriteInput = PublishInput & { diagrams?: PostDiagrams };
+
 /**
  * One atomic statement (BE-16 step 6): insert, or update the row with the
  * same slug. published_at is set on the first publication only (BE-19).
@@ -298,7 +320,7 @@ export class LanguageConflict extends CliError {}
  */
 export async function upsertPost(
   db: PostsDb,
-  input: PublishInput,
+  input: WriteInput,
 ): Promise<UpsertResult> {
   const fields = {
     title: input.title,
@@ -308,6 +330,9 @@ export async function upsertPost(
     translationKey: input.translationKey ?? null,
     seoTitle: input.seoTitle ?? null,
     published: input.published,
+    // PERF-05: written together with the content it was drawn from; a caller
+    // that has no diagrams to give leaves the column as it is.
+    ...(input.diagrams !== undefined && { diagrams: input.diagrams }),
   };
   const rows = await db
     .insert(posts)
@@ -524,6 +549,7 @@ async function publish(args: CliArgs, d: Deps): Promise<number> {
         `seoTitle=${post.seoTitle === undefined ? "-" : JSON.stringify(post.seoTitle)}`,
         `excerpt=${post.excerpt === undefined ? "-" : `${post.excerpt.length} chars`}`,
         `content=${post.content.length} chars`,
+        `diagrams=${diagramKeys(post.content).length}`,
         `published=${post.published}`,
       ].join("\n"),
     );
@@ -536,6 +562,13 @@ async function publish(args: CliArgs, d: Deps): Promise<number> {
       `warning: commit ${git.commit!.slice(0, 12)} is not on a remote branch yet; push it so the audit trail is shared`,
     );
   }
+
+  // PERF-05: every diagram is drawn and checked before any connection, so one
+  // that cannot be drawn never leaves a half-written post behind.
+  const diagrams = await d.renderDiagrams(post.content, {
+    lang: post.lang,
+    progress: (line) => d.stdout(`diagram ${line}`),
+  });
 
   const { db, close } = d.openDb(target.url, target.options);
   let result: UpsertResult;
@@ -556,7 +589,7 @@ async function publish(args: CliArgs, d: Deps): Promise<number> {
       );
     }
     try {
-      result = await upsertPost(db, post);
+      result = await upsertPost(db, { ...post, diagrams });
     } catch (error) {
       const conflict = postInputConflict(error);
       if (!conflict) throw error;
@@ -578,6 +611,10 @@ async function publish(args: CliArgs, d: Deps): Promise<number> {
   d.stdout(
     `${result.action} id=${result.id} slug=${result.slug} lang=${result.lang} published=${result.published}`,
   );
+  const drawn = Object.keys(diagrams).length;
+  if (drawn > 0) {
+    d.stdout(`diagrams: ${drawn} stored (light and dark, sanitised)`);
+  }
   if (post.translationKey) {
     const present = new Set(translations.map((t) => t.lang));
     for (const lang of LOCALES as readonly PostLang[]) {
@@ -622,19 +659,26 @@ const COMPARED_FIELDS = [
   "lang",
   "translationKey",
   "seoTitle",
+  // PERF-05: the diagram keys (not the SVGs): the file's blocks against what
+  // the row stores. A post published before its diagrams were drawn, or with
+  // an older CLI, drifts here until it is published again.
+  "diagrams",
 ] as const;
 type ComparedField = (typeof COMPARED_FIELDS)[number];
 type Comparable = Record<ComparedField, string | null>;
 
 const comparable = (
   post: Partial<Record<ComparedField, unknown>>,
+  diagrams: string[],
 ): Comparable =>
   Object.fromEntries(
     COMPARED_FIELDS.map((field) => [
       field,
       field === "content"
         ? sha256Hex(String(post.content ?? ""))
-        : ((post[field] as string | null | undefined) ?? null),
+        : field === "diagrams"
+          ? diagrams.join(",")
+          : ((post[field] as string | null | undefined) ?? null),
     ]),
   ) as Comparable;
 
@@ -658,8 +702,8 @@ export function comparePosts(
       out.push({ slug: file.slug, status: "missing" });
       continue;
     }
-    const a = comparable(file);
-    const b = comparable(row);
+    const a = comparable(file, diagramKeys(String(file.content ?? "")));
+    const b = comparable(row, storedDiagramKeys(row.diagrams));
     const fields = COMPARED_FIELDS.filter((field) => a[field] !== b[field]);
     out.push(
       fields.length > 0
@@ -723,6 +767,7 @@ async function verify(args: CliArgs, d: Deps): Promise<number> {
         lang: posts.lang,
         translationKey: posts.translationKey,
         seoTitle: posts.seoTitle,
+        diagrams: posts.diagrams,
       })
       .from(posts);
   } finally {
