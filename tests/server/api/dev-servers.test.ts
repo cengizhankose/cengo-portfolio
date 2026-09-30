@@ -79,7 +79,8 @@ describe("dev API (bun src/api/index.ts)", () => {
         PORT: "0",
         LOG_LEVEL: "info",
         PG_CONNECTION_URL: "postgres://test@127.0.0.1:1/portfolio_test",
-        PG_SSL_MODE: "disable",
+        // Unset on purpose: a guarded local DB defaults to plaintext (no TLS locally).
+        PG_SSL_MODE: "",
         PG_CA_CERT: "",
       },
       stdout: "pipe",
@@ -102,7 +103,7 @@ describe("dev API (bun src/api/index.ts)", () => {
       .map((line) => JSON.parse(line))
       .find((entry) => entry.msg === "api started");
     expect(started).toMatchObject({ level: "info", hostname: "127.0.0.1" });
-    expect(output).toContain('"db configured"');
+    expect(output).toContain('"msg":"db configured","max":5,"ssl":"disable"');
     port = started.port;
     expect(port).toBeGreaterThan(0);
     expect((await fetch(`http://127.0.0.1:${port}/health`)).status).toBe(200);

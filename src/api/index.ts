@@ -9,11 +9,20 @@ import { assertNonProdDb } from "../db/guard";
 const HOSTNAME = "127.0.0.1";
 
 // Refuse a non-local database before the DB module is loaded (BE-04 / SEC-06).
+let localDb = false;
 try {
-  assertNonProdDb();
+  localDb = assertNonProdDb().local;
 } catch (error) {
   log("error", "api refused to start", errorFields(error));
   process.exit(1);
+}
+
+// The guard has proven a localhost *_dev/*_test database (the compose DB has
+// no TLS): without an explicit PG_SSL_MODE, talk plaintext to it instead of
+// failing on the verify-full default (older .env files lack PG_SSL_MODE).
+// A remote database reached through the override keeps verify-full.
+if (localDb && !process.env.PG_SSL_MODE?.trim()) {
+  process.env.PG_SSL_MODE = "disable";
 }
 
 try {
