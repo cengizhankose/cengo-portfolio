@@ -197,3 +197,13 @@
     transform: translateZ(0);
   }
 }
+
+/* Intro reel (MKT-18): fills the column, keeps the 16:9 box before the
+   poster arrives (the width and height attributes carry the ratio). */
+.about-reel {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: var(--border-color);
+}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./style.css";
 import { VscGrabber, VscClose } from "react-icons/vsc";
 import { Link, useLocation } from "react-router-dom";
+import { hasPublishedCases } from "../content/projects.js";
 import { logotext } from "../content/shared.js";
 import Themetoggle from "../components/themetoggle";
 import { LanguageSwitcher } from "../components/langswitch";
@@ -13,13 +14,21 @@ const MENU_ID = "site-navigation";
 
 // Menu sections: path (made language-specific with useLocalePath) and the
 // nav.* dictionary key of the label.
-const NAV_ITEMS = [
+const ALL_NAV_ITEMS = [
   { path: "/", key: "home" },
   { path: "/portfolio", key: "portfolio" },
   { path: "/about", key: "about" },
   { path: "/blog", key: "blog" },
   { path: "/contact", key: "contact" },
 ];
+
+// T-10: the portfolio is in the menu while it has cases to show; with none,
+// the page stays reachable by its URL (noindex, src/seo/pages/portfolio.js)
+// and the link is left out. Both follow hasPublishedCases() in
+// src/content/projects.js.
+const NAV_ITEMS = ALL_NAV_ITEMS.filter(
+  ({ path }) => path !== "/portfolio" || hasPublishedCases(),
+);
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';

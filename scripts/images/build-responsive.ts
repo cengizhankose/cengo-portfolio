@@ -16,18 +16,29 @@
  *         cengizhan-kose-v1-{640,768,1000,1284}.{avif,webp,jpg}
  *         (names, widths and version come from src/pages/home/heroImage.js,
  *         the same module the home page's <picture> reads)
+ *   portfolio-salesgym | portfolio-farmin | portfolio-effort-lab
+ *         scripts/images/sources/<name>.png -> public/img/projects/
+ *         <name>-v1-{480,800,1280}.{avif,webp}, cropped to 16:10, each file
+ *         at most 150 KB (FE-04, DSG-08; names, widths and the budget come
+ *         from src/pages/portfolio/projectImage.js). The sources are the
+ *         owner's own screenshots, downloaded once (00-icerik-girdileri.md
+ *         section 9).
  *
- * Add a preset for another image set (W8 portfolio covers) instead of
- * passing paths on the command line, so each set is reproducible.
+ * Add a preset for another image set instead of passing paths on the command
+ * line, so each set is reproducible.
  *
  * Every variant is auto-oriented, converted to sRGB (the master is Display
  * P3), stripped of metadata and never upscaled. sharp (libvips, mozjpeg,
  * libaom) is a devDependency and is imported only when encoding, so tests
  * and typecheck can load this module without the native binary.
  */
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { HERO_IMAGE } from "../../src/pages/home/heroImage.js";
+import {
+  PROJECT_IMAGE,
+  projectImageName,
+} from "../../src/pages/portfolio/projectImage.js";
 
 // import.meta.dirname (not Bun's .dir): Vitest imports this module in its tests.
 export const ROOT = join(import.meta.dirname, "..", "..");
@@ -52,6 +63,19 @@ export interface ResponsiveSpec {
   /** Output widths in pixels, ascending. */
   widths: readonly number[];
   formats: readonly FormatSpec[];
+  /**
+   * Crop to this width:height ratio (`fit: cover`, see `position`). Without
+   * it the image keeps the source's own ratio.
+   */
+  aspect?: readonly [number, number];
+  /** Where the crop keeps the image (sharp `position`); default `centre`. */
+  position?: string;
+  /**
+   * Largest size of any output file. A file over the budget is re-encoded at
+   * a lower quality (down to MIN_QUALITY); if it still does not fit the
+   * build fails instead of writing a heavy file.
+   */
+  maxBytes?: number;
 }
 
 export interface Variant {
@@ -79,7 +103,38 @@ export const PHOTO_FORMATS: readonly FormatSpec[] = Object.freeze([
   { format: "jpg", quality: () => 72 },
 ]);
 
+/**
+ * Encoder settings for the portfolio covers (DSG-08, FE-04): AVIF and WebP
+ * only (every browser that shows a card image supports WebP). The starting
+ * qualities are the photo ones; maxBytes steps them down for busy screenshots.
+ */
+export const COVER_FORMATS: readonly FormatSpec[] = Object.freeze([
+  { format: "avif", quality: () => 55 },
+  { format: "webp", quality: () => 75 },
+]);
+
+/** The lowest quality the byte budget may step down to. */
+export const MIN_QUALITY = 40;
+const QUALITY_STEP = 5;
+
+const coverPreset = (id: string): ResponsiveSpec => {
+  const name = projectImageName(id);
+  return {
+    source: `scripts/images/sources/${name}.png`,
+    outDir: join("public", PROJECT_IMAGE.dir),
+    name,
+    version: PROJECT_IMAGE.version,
+    widths: PROJECT_IMAGE.widths,
+    formats: COVER_FORMATS,
+    aspect: [16, 10],
+    maxBytes: PROJECT_IMAGE.maxBytes,
+  };
+};
+
 export const PRESETS: Readonly<Record<string, ResponsiveSpec>> = Object.freeze({
+  "portfolio-salesgym": coverPreset("salesgym"),
+  "portfolio-farmin": coverPreset("farmin"),
+  "portfolio-effort-lab": coverPreset("effort_lab"),
   hero: {
     source: "scripts/images/sources/cengizhan-kose.jpg",
     outDir: join("public", HERO_IMAGE.dir),
@@ -89,6 +144,16 @@ export const PRESETS: Readonly<Record<string, ResponsiveSpec>> = Object.freeze({
     formats: PHOTO_FORMATS,
   },
 });
+
+/** Output height of a width, for a spec with an aspect ratio. */
+export function outputHeight(
+  spec: Pick<ResponsiveSpec, "aspect">,
+  width: number,
+): number | undefined {
+  return spec.aspect
+    ? Math.round((width * spec.aspect[1]) / spec.aspect[0])
+    : undefined;
+}
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const VERSION = /^v[1-9][0-9]*$/;
@@ -116,6 +181,15 @@ export function planVariants(spec: ResponsiveSpec): Variant[] {
   }
   if (spec.widths.length === 0 || spec.formats.length === 0) {
     throw new Error("a spec needs at least one width and one format");
+  }
+  if (
+    spec.aspect &&
+    !(spec.aspect.length === 2 && spec.aspect.every((n) => n > 0))
+  ) {
+    throw new Error(`aspect must be two positive numbers: ${spec.aspect}`);
+  }
+  if (spec.maxBytes !== undefined && !(spec.maxBytes > 0)) {
+    throw new Error(`maxBytes must be positive: ${spec.maxBytes}`);
   }
   spec.widths.forEach((width, index) => {
     if (!Number.isInteger(width) || width <= 0) {
@@ -168,33 +242,81 @@ export async function buildResponsive(
   const { default: sharp } = await import("sharp");
   const source = join(root, spec.source);
   const meta = await sharp(source).metadata();
-  // Width after EXIF orientation, which rotate() below applies.
-  const sourceWidth = (meta.orientation ?? 1) >= 5 ? meta.height : meta.width;
+  // Size after EXIF orientation, which rotate() below applies.
+  const turned = (meta.orientation ?? 1) >= 5;
+  const sourceWidth = turned ? meta.height : meta.width;
+  const sourceHeight = turned ? meta.width : meta.height;
   const largest = spec.widths[spec.widths.length - 1];
-  if (!sourceWidth || largest > sourceWidth) {
+  const largestHeight = outputHeight(spec, largest);
+  if (!sourceWidth || !sourceHeight || largest > sourceWidth) {
     throw new Error(
       `${spec.source} is ${sourceWidth}px wide; ${largest}w would be upscaled`,
+    );
+  }
+  // A cropped output is scaled until it covers the box: a source that is too
+  // short for the ratio would be stretched vertically.
+  if (largestHeight && largestHeight > sourceHeight) {
+    throw new Error(
+      `${spec.source} is ${sourceHeight}px high; ${largest}x${largestHeight} would be upscaled`,
     );
   }
   await mkdir(join(root, spec.outDir), { recursive: true });
 
   const built: BuiltVariant[] = [];
   for (const variant of variants) {
-    const pipeline = sharp(source)
-      .rotate()
-      .resize({ width: variant.width, kernel: "lanczos3" })
-      .toColourspace("srgb");
-    const info = await encode(pipeline, variant).toFile(
-      join(root, variant.file),
-    );
-    built.push({ ...variant, height: info.height, bytes: info.size });
+    const height = outputHeight(spec, variant.width);
+    const pipeline = () =>
+      sharp(source)
+        .rotate()
+        .resize({
+          width: variant.width,
+          ...(height
+            ? { height, fit: "cover" as const, position: spec.position }
+            : {}),
+          kernel: "lanczos3",
+        })
+        .toColourspace("srgb");
+
+    if (spec.maxBytes === undefined) {
+      const info = await encode(pipeline(), variant).toFile(
+        join(root, variant.file),
+      );
+      built.push({ ...variant, height: info.height, bytes: info.size });
+      continue;
+    }
+
+    // Byte budget: step the quality down until the file fits.
+    let quality = variant.quality;
+    for (;;) {
+      const { data, info } = await encode(pipeline(), {
+        ...variant,
+        quality,
+      }).toBuffer({ resolveWithObject: true });
+      if (data.length <= spec.maxBytes) {
+        await writeFile(join(root, variant.file), data);
+        built.push({
+          ...variant,
+          quality,
+          height: info.height,
+          bytes: data.length,
+        });
+        break;
+      }
+      if (quality - QUALITY_STEP < MIN_QUALITY) {
+        throw new Error(
+          `${variant.file}: ${data.length} B at quality ${quality} is over the ${spec.maxBytes} B budget; use a simpler crop or a smaller source`,
+        );
+      }
+      quality -= QUALITY_STEP;
+    }
   }
   return built;
 }
 
 if (import.meta.main) {
   const name = process.argv[2];
-  const spec = name ? PRESETS[name] : undefined;
+  // hasOwn: "constructor" or "toString" must not resolve an inherited property.
+  const spec = name && Object.hasOwn(PRESETS, name) ? PRESETS[name] : undefined;
   if (!spec) {
     console.error(
       `usage: bun scripts/images/build-responsive.ts <preset>\npresets: ${Object.keys(PRESETS).join(", ")}`,

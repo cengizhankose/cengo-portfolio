@@ -3,15 +3,23 @@ import { useEffect, useId } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { Link, useLocation } from "react-router-dom";
 import { AwardLine, DotLine, ProofStrip } from "../../components/proofstrip";
-import { useContent, useLocalePath, useRoute, useT } from "../../i18n";
+import { INTRO_REEL } from "../../content/projects.js";
+import {
+  useContent,
+  useLocale,
+  useLocalePath,
+  useRoute,
+  useT,
+} from "../../i18n";
 import { getPageMeta } from "../../seo/pages.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
 
 // Heading outline (SEO-13, FE-27, MKT-15): one h1, an h2 per section, an h3
 // per service, per proof label and for the side projects. `h3` / `h5` classes
 // keep the visual sizes. Order: story, proof, work timeline, skills,
-// services, the hackathon archive (#awards), talks, and the contact call to
-// action in the last <section>.
+// services, the hackathon archive (#awards), the intro reel (MKT-18, only
+// while INTRO_REEL.published), talks, and the contact call to action in the
+// last <section>.
 export const About = () => {
   const route = useRoute();
   const t = useT();
@@ -19,6 +27,10 @@ export const About = () => {
   const { hash } = useLocation();
   const { about, timeline, skills, services, awards } = useContent();
   const ids = useId();
+  const locale = useLocale();
+  // The reel has a voice-over: it is published only with a captions file
+  // (tests/frontend/portfolio), so the track below always has its source.
+  const captions = INTRO_REEL.captions[locale] ?? INTRO_REEL.captions.en;
   usePageMeta(getPageMeta(route, route.locale));
 
   // The router does not scroll to a hash: "10 podiums since 2021 → See all"
@@ -164,6 +176,39 @@ export const About = () => {
           </ol>
         </Col>
       </Row>
+      {INTRO_REEL.published && (
+        <Row className="sec_sp about-anchor" id="reel">
+          <Col lg="5">
+            <h2 className="h3 color_sec py-4">{t("portfolio.reel.title")}</h2>
+          </Col>
+          <Col lg="7">
+            {/* 15 seconds, no autoplay (reduced motion, data use): the file
+                loads only when the visitor presses play (preload="none"). */}
+            <video
+              className="about-reel"
+              controls
+              preload="none"
+              playsInline
+              poster={INTRO_REEL.poster}
+              width={INTRO_REEL.width}
+              height={INTRO_REEL.height}
+              aria-label={t("portfolio.reel.label")}
+            >
+              <source src={INTRO_REEL.src} type="video/mp4" />
+              <track
+                kind="captions"
+                src={captions}
+                srcLang={INTRO_REEL.captions[locale] ? locale : "en"}
+                label={
+                  INTRO_REEL.captions[locale] ? locale.toUpperCase() : "EN"
+                }
+                default
+              />
+              {t("portfolio.reel.fallback")}
+            </video>
+          </Col>
+        </Row>
+      )}
       <Row className="sec_sp about-anchor" id="talks">
         <Col lg="5">
           <h2 className="h3 color_sec py-4">{t("about.talks")}</h2>
