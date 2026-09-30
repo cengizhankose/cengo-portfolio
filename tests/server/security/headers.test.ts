@@ -124,6 +124,8 @@ function expectBaseHeaders(res: Response) {
     "camera=(), microphone=(), geolocation=()",
   );
   expect(res.headers.get("x-powered-by")).toBeNull();
+  // Browser default kept for DNS prefetch (Google Fonts preconnect until W8).
+  expect(res.headers.get("x-dns-prefetch-control")).toBeNull();
   expect(countSix(res)).toBe(6);
 }
 
