@@ -17,22 +17,18 @@ export type SslMode = (typeof SSL_MODES)[number];
 
 /** Declared TLS setting (what dbOptions() reports, see src/db/config.ts). */
 export type SslSetting =
-  | false
-  | "require"
-  | "verify-full"
-  | { ca: string; rejectUnauthorized: true };
+  false | "require" | "verify-full" | { ca: string; rejectUnauthorized: true };
 
 /** The concrete postgres.js `ssl` option. */
 export type ClientSsl =
-  | false
-  | "require"
-  | { rejectUnauthorized: true; ca?: string };
+  false | "require" | { rejectUnauthorized: true; ca?: string };
 
 type Env = Record<string, string | undefined>;
 
 // libpq modes that do not verify the certificate (postgres.js also maps
 // 'require'/'allow'/'prefer' to rejectUnauthorized=false).
-const WEAK_URL_SSLMODE = /[?&]sslmode=(disable|allow|prefer|require|no-verify)(&|$)/i;
+const WEAK_URL_SSLMODE =
+  /[?&]sslmode=(disable|allow|prefer|require|no-verify)(&|$)/i;
 
 const explicitMode = (env: Env) => env.PG_SSL_MODE?.trim() || undefined;
 

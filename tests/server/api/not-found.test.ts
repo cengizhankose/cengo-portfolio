@@ -10,7 +10,11 @@ const DIST = join(REPO_ROOT, "tests/server/fixtures/dist");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 // Production shape: the site is mounted, so a miss here would otherwise get the shell.
-const app = createApp({ queries: fakeQueries(), serveSpa: true, distDir: DIST });
+const app = createApp({
+  queries: fakeQueries(),
+  serveSpa: true,
+  distDir: DIST,
+});
 
 async function expectJson404(res: Response) {
   expect(res.status).toBe(404);
@@ -19,7 +23,9 @@ async function expectJson404(res: Response) {
   expect(res.headers.get("x-request-id")).toMatch(UUID);
   const body = (await res.json()) as Record<string, unknown>;
   expect(body).toEqual({ error: "Not found", code: "NOT_FOUND" });
-  expect(Object.keys(body).filter((k) => !["error", "code", "issues"].includes(k))).toEqual([]);
+  expect(
+    Object.keys(body).filter((k) => !["error", "code", "issues"].includes(k)),
+  ).toEqual([]);
 }
 
 describe("unknown /api paths (BE-11 criterion 4)", () => {
@@ -53,8 +59,16 @@ describe("write requests (K-01 = A: no write routes) get the envelope too", () =
   ])("%s %s -> JSON 404", async (method, path) => {
     const res = await app.request(path, {
       method,
-      headers: { "content-type": "application/json", "x-api-key": "your-secret-key" },
-      body: JSON.stringify({ slug: "pwned", title: "x", content: "<script>", published: true }),
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": "your-secret-key",
+      },
+      body: JSON.stringify({
+        slug: "pwned",
+        title: "x",
+        content: "<script>",
+        published: true,
+      }),
     });
     await expectJson404(res);
   });

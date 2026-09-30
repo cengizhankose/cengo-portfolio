@@ -151,9 +151,9 @@ describe("createPostQueries against Postgres (PGlite, production schema)", () =>
   });
 
   test("a post without translation_key has no translations", async () => {
-    expect((await queries.getPublishedPostBySlug("older"))?.translations).toEqual(
-      [],
-    );
+    expect(
+      (await queries.getPublishedPostBySlug("older"))?.translations,
+    ).toEqual([]);
   });
 
   test("a draft translation is never listed (SEC-08)", async () => {

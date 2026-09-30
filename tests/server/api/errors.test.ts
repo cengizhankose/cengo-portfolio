@@ -18,7 +18,8 @@ import type { AppEnv } from "../../../src/api/types";
 import { REPO_ROOT } from "../db/pglite";
 import { captureLogs, fakeQueries } from "./fake-queries";
 
-const SECRETISH = "connect ECONNREFUSED db.internal.invalid:5432 password=hunter2";
+const SECRETISH =
+  "connect ECONNREFUSED db.internal.invalid:5432 password=hunter2";
 
 describe("unexpected errors -> 500 INTERNAL (BE-10 criterion 2)", () => {
   test("a throwing query object does not leak internals", async () => {
@@ -34,7 +35,10 @@ describe("unexpected errors -> 500 INTERNAL (BE-10 criterion 2)", () => {
     expect(res.headers.get("cache-control")).toBe("no-store");
     expect(res.headers.get("content-type")).toStartWith("application/json");
     const text = await res.text();
-    expect(JSON.parse(text)).toEqual({ error: "Internal Server Error", code: "INTERNAL" });
+    expect(JSON.parse(text)).toEqual({
+      error: "Internal Server Error",
+      code: "INTERNAL",
+    });
     expect(text).not.toContain("stack");
     expect(text).not.toContain("    at ");
     expect(text).not.toContain("ECONNREFUSED");
@@ -59,14 +63,19 @@ describe("the envelope itself (BE-10 criterion 3)", () => {
   app.get("/api/http-429", () => {
     throw new HTTPException(429, {
       message: "Too many requests",
-      res: new Response(null, { status: 429, headers: { "Retry-After": "30" } }),
+      res: new Response(null, {
+        status: 429,
+        headers: { "Retry-After": "30" },
+      }),
     });
   });
   app.get("/api/http-418", () => {
     throw new HTTPException(418);
   });
   app.get("/api/http-503", () => {
-    throw new HTTPException(503, { message: "internal detail: pool exhausted" });
+    throw new HTTPException(503, {
+      message: "internal detail: pool exhausted",
+    });
   });
   app.get("/api/not-found", () => {
     throw new NotFoundError();
@@ -99,20 +108,29 @@ describe("the envelope itself (BE-10 criterion 3)", () => {
   test("BadRequestError(BAD_CURSOR) -> 400 without issues", async () => {
     const res = await call("/api/bad-cursor");
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "Invalid cursor", code: "BAD_CURSOR" });
+    expect(await res.json()).toEqual({
+      error: "Invalid cursor",
+      code: "BAD_CURSOR",
+    });
   });
 
   test("HTTPException(400) -> 400 BAD_REQUEST", async () => {
     const res = await call("/api/http-400");
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "Malformed", code: "BAD_REQUEST" });
+    expect(await res.json()).toEqual({
+      error: "Malformed",
+      code: "BAD_REQUEST",
+    });
   });
 
   test("HTTPException(429) -> RATE_LIMITED and keeps Retry-After", async () => {
     const res = await call("/api/http-429");
     expect(res.status).toBe(429);
     expect(res.headers.get("retry-after")).toBe("30");
-    expect(await res.json()).toEqual({ error: "Too many requests", code: "RATE_LIMITED" });
+    expect(await res.json()).toEqual({
+      error: "Too many requests",
+      code: "RATE_LIMITED",
+    });
   });
 
   test("an unmapped status gets HTTP_<status>", async () => {
@@ -122,9 +140,14 @@ describe("the envelope itself (BE-10 criterion 3)", () => {
   });
 
   test("HTTPException 5xx keeps its status but never exposes its message", async () => {
-    const { result: res, lines } = await captureLogs(() => app.request("/api/http-503"));
+    const { result: res, lines } = await captureLogs(() =>
+      app.request("/api/http-503"),
+    );
     expect(res.status).toBe(503);
-    expect(await res.json()).toEqual({ error: "Service Unavailable", code: "HTTP_503" });
+    expect(await res.json()).toEqual({
+      error: "Service Unavailable",
+      code: "HTTP_503",
+    });
     expect(lines.find((l) => l.msg === "unhandled")).toMatchObject({
       err: "internal detail: pool exhausted",
     });
@@ -134,7 +157,10 @@ describe("the envelope itself (BE-10 criterion 3)", () => {
     for (const path of ["/api/not-found", "/api/nothing-here"]) {
       const res = await call(path);
       expect(res.status).toBe(404);
-      expect(await res.json()).toEqual({ error: "Not found", code: "NOT_FOUND" });
+      expect(await res.json()).toEqual({
+        error: "Not found",
+        code: "NOT_FOUND",
+      });
     }
   });
 
@@ -162,7 +188,9 @@ describe("the envelope itself (BE-10 criterion 3)", () => {
 describe("source rules (BE-10 criterion 4)", () => {
   async function grep(re: RegExp) {
     const hits: string[] = [];
-    for await (const file of new Glob("src/api/**/*.ts").scan({ cwd: REPO_ROOT })) {
+    for await (const file of new Glob("src/api/**/*.ts").scan({
+      cwd: REPO_ROOT,
+    })) {
       const text = await Bun.file(join(REPO_ROOT, file)).text();
       if (re.test(text)) hits.push(file);
     }
@@ -174,11 +202,15 @@ describe("source rules (BE-10 criterion 4)", () => {
   });
 
   test("codes the read-only API never produces are not defined", async () => {
-    expect(await grep(/ValidationError|SLUG_CONFLICT|PAYLOAD_TOO_LARGE/)).toEqual([]);
+    expect(
+      await grep(/ValidationError|SLUG_CONFLICT|PAYLOAD_TOO_LARGE/),
+    ).toEqual([]);
   });
 
   test("no try/catch left in the posts router", async () => {
-    const source = await Bun.file(join(REPO_ROOT, "src/api/routes/posts.ts")).text();
+    const source = await Bun.file(
+      join(REPO_ROOT, "src/api/routes/posts.ts"),
+    ).text();
     expect(source).not.toMatch(/\btry\s*\{/);
   });
 });

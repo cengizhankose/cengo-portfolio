@@ -166,7 +166,10 @@ function optionalDate(value: unknown): Date | undefined {
 // T-12: the live posts that predate `lang` are Turkish (the 0001 backfill).
 function liveLang(value: unknown, index: number): PostLang {
   if (value === undefined || value === null) return "tr";
-  if (typeof value === "string" && (POST_LANGS as readonly string[]).includes(value))
+  if (
+    typeof value === "string" &&
+    (POST_LANGS as readonly string[]).includes(value)
+  )
     return value as PostLang;
   throw new Error(`Live post #${index}: invalid lang`);
 }

@@ -48,7 +48,9 @@ async function refused(url: string): Promise<boolean> {
 
 /** `lsof` listen lines for a port, or null where lsof is not installed. */
 function listenLines(port: number): string[] | null {
-  const which = Bun.spawnSync(["sh", "-c", "command -v lsof"], { stdout: "pipe" });
+  const which = Bun.spawnSync(["sh", "-c", "command -v lsof"], {
+    stdout: "pipe",
+  });
   if (which.exitCode !== 0) return null;
   const out = Bun.spawnSync(["lsof", "-nP", `-iTCP:${port}`, "-sTCP:LISTEN"], {
     stdout: "pipe",
@@ -133,7 +135,10 @@ describe("Vite dev server", () => {
     const saved = process.env.VITE_HOST;
     delete process.env.VITE_HOST;
     try {
-      const { default: config } = await import("../../../vite.config.js");
+      // vite.config.js is plain JS (no declarations): read it as an untyped module.
+      const { default: config } = (await import(
+        "../../../vite.config.js" as string
+      )) as { default: any };
       expect(config.server.host).toBe("127.0.0.1");
       expect(config.preview.host).toBe("127.0.0.1");
       expect(config.server.proxy["/api"].target).toBe("http://127.0.0.1:3001");
@@ -168,7 +173,9 @@ describe("Vite dev server", () => {
     const deadline = Date.now() + 20_000;
     let up = false;
     while (!up && Date.now() < deadline) {
-      up = await fetch(`http://127.0.0.1:${port}/`, { signal: AbortSignal.timeout(1000) }).then(
+      up = await fetch(`http://127.0.0.1:${port}/`, {
+        signal: AbortSignal.timeout(1000),
+      }).then(
         (res) => res.ok,
         () => false,
       );

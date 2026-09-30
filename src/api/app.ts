@@ -86,7 +86,10 @@ export function createApp({
 }
 
 /** PORT parsing shared by both entry points: an integer 0-65535 (0 = any free port), else `fallback`. */
-export function portFromEnv(value: string | undefined, fallback: number): number {
+export function portFromEnv(
+  value: string | undefined,
+  fallback: number,
+): number {
   if (value === undefined || value.trim() === "") return fallback;
   const port = Number(value);
   return Number.isInteger(port) && port >= 0 && port <= 65535 ? port : fallback;

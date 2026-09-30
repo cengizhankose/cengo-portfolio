@@ -91,8 +91,20 @@ describe("schema after all migrations (fresh database)", () => {
 
   test("one post per (translation_key, lang) (BE-19 criterion 6)", async () => {
     await ctx.db.insert(posts).values([
-      { slug: "merhaba-dunya", lang: "tr", translationKey: "hello-world", title: "t", content: "c" },
-      { slug: "hello-world", lang: "en", translationKey: "hello-world", title: "t", content: "c" },
+      {
+        slug: "merhaba-dunya",
+        lang: "tr",
+        translationKey: "hello-world",
+        title: "t",
+        content: "c",
+      },
+      {
+        slug: "hello-world",
+        lang: "en",
+        translationKey: "hello-world",
+        title: "t",
+        content: "c",
+      },
     ]);
     const message = await errorOf(() =>
       ctx.db.insert(posts).values({
@@ -138,7 +150,8 @@ describe("upgrading a 0000 database with live-like rows", () => {
 
   beforeAll(async () => {
     client = new PGlite();
-    for (const s of await statements("0000_nasty_mentor.sql")) await client.exec(s);
+    for (const s of await statements("0000_nasty_mentor.sql"))
+      await client.exec(s);
     // A non-UTC session must not shift instants: the USING clause fixes UTC.
     await client.exec(`SET TIME ZONE 'Europe/Istanbul'`);
     await client.exec(`
@@ -238,10 +251,12 @@ describe("query plans with 1,000 posts (PERF-22 criterion 2)", () => {
 test("drizzle-kit check passes on the migration folder (PERF-22 criterion 1)", () => {
   const env: Record<string, string | undefined> = { ...process.env };
   delete env.PG_CONNECTION_URL; // `check` is offline; nothing may connect
-  const proc = Bun.spawnSync(
-    [process.execPath, "x", "drizzle-kit", "check"],
-    { cwd: REPO_ROOT, env, stdout: "pipe", stderr: "pipe" },
-  );
+  const proc = Bun.spawnSync([process.execPath, "x", "drizzle-kit", "check"], {
+    cwd: REPO_ROOT,
+    env,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
   const output = proc.stdout.toString() + proc.stderr.toString();
   expect(proc.exitCode).toBe(0);
   expect(output).toContain("Everything's fine");

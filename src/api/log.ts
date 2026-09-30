@@ -39,7 +39,12 @@ export function log(
     line = JSON.stringify(entry);
   } catch {
     // Unserialisable field (cycle, BigInt): keep the event, drop the fields.
-    line = JSON.stringify({ ts: entry.ts, level, msg, logError: "unserialisable fields" });
+    line = JSON.stringify({
+      ts: entry.ts,
+      level,
+      msg,
+      logError: "unserialisable fields",
+    });
   }
   console.log(line);
 }

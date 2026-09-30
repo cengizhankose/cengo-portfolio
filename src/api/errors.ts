@@ -81,7 +81,11 @@ export const isApiPath = (path: string): boolean =>
   path === "/api" || path.startsWith("/api/");
 
 // Site paths keep plain-text errors; API clients get the JSON envelope.
-function respond(c: Context<AppEnv>, status: ContentfulStatusCode, body: ErrorBody) {
+function respond(
+  c: Context<AppEnv>,
+  status: ContentfulStatusCode,
+  body: ErrorBody,
+) {
   return isApiPath(c.req.path)
     ? c.json(body, status, NO_STORE)
     : c.text(body.error, status, NO_STORE);

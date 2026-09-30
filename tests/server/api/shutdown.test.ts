@@ -69,7 +69,10 @@ describe("createShutdown with a real Bun.serve (BE-21 criterion 3)", () => {
       exit: (code) => exits.push(code),
     });
     await captureLogs(() =>
-      Promise.all([lifecycle.shutdown("SIGTERM"), lifecycle.shutdown("SIGINT")]),
+      Promise.all([
+        lifecycle.shutdown("SIGTERM"),
+        lifecycle.shutdown("SIGINT"),
+      ]),
     );
     expect(stops).toBe(1);
     expect(exits).toEqual([0]);

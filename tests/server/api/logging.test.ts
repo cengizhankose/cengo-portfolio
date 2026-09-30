@@ -17,7 +17,9 @@ describe("request log line", () => {
   test("has the agreed fields and the response's X-Request-Id", async () => {
     delete process.env.LOG_LEVEL;
     const app = createApp({ queries: fakeQueries() });
-    const { result: res, lines } = await captureLogs(() => app.request("/api/posts"));
+    const { result: res, lines } = await captureLogs(() =>
+      app.request("/api/posts"),
+    );
     const reqId = res.headers.get("x-request-id");
     expect(reqId).toMatch(UUID);
     const requestLines = lines.filter((l) => l.msg === "request");
@@ -93,7 +95,9 @@ describe("unhandled errors (BE-08 criterion 5)", () => {
         },
       }),
     });
-    const { result: res, lines } = await captureLogs(() => app.request("/api/posts"));
+    const { result: res, lines } = await captureLogs(() =>
+      app.request("/api/posts"),
+    );
     const reqId = res.headers.get("x-request-id");
     const unhandled = lines.filter((l) => l.msg === "unhandled");
     expect(unhandled).toHaveLength(1);
@@ -105,7 +109,10 @@ describe("unhandled errors (BE-08 criterion 5)", () => {
     });
     expect(String(unhandled[0].stack)).toContain("query exploded");
     // The request line carries the final status.
-    expect(lines.find((l) => l.msg === "request")).toMatchObject({ reqId, status: 500 });
+    expect(lines.find((l) => l.msg === "request")).toMatchObject({
+      reqId,
+      status: 500,
+    });
   });
 });
 
@@ -113,7 +120,13 @@ describe("log()", () => {
   test("fields cannot overwrite ts, level or msg; undefined fields are dropped", async () => {
     delete process.env.LOG_LEVEL;
     const { lines } = await captureLogs(async () =>
-      log("info", "hello", { level: "error", msg: "x", ts: "never", extra: 1, gone: undefined }),
+      log("info", "hello", {
+        level: "error",
+        msg: "x",
+        ts: "never",
+        extra: 1,
+        gone: undefined,
+      }),
     );
     expect(lines[0]).toMatchObject({ level: "info", msg: "hello", extra: 1 });
     expect(lines[0].ts).not.toBe("never");
@@ -131,7 +144,12 @@ describe("log()", () => {
 
   test("an unserialisable field keeps the event", async () => {
     delete process.env.LOG_LEVEL;
-    const { lines } = await captureLogs(async () => log("info", "big", { n: 1n }));
-    expect(lines[0]).toMatchObject({ msg: "big", logError: "unserialisable fields" });
+    const { lines } = await captureLogs(async () =>
+      log("info", "big", { n: 1n }),
+    );
+    expect(lines[0]).toMatchObject({
+      msg: "big",
+      logError: "unserialisable fields",
+    });
   });
 });

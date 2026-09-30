@@ -10,9 +10,10 @@ const DIST = join(REPO_ROOT, "tests/server/fixtures/dist");
 
 describe("createApp", () => {
   test("GET /health answers 200 without a port (BE-09 criterion 6)", async () => {
-    const res = await createApp({ queries: fakeQueries(), serveSpa: false }).request(
-      "/health",
-    );
+    const res = await createApp({
+      queries: fakeQueries(),
+      serveSpa: false,
+    }).request("/health");
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ status: "ok" });
     expect(res.headers.get("cache-control")).toBe("no-store");
@@ -40,14 +41,18 @@ describe("createApp", () => {
   });
 
   test("serveSpa: true mounts the built site after the API", async () => {
-    const app = createApp({ queries: fakeQueries(), serveSpa: true, distDir: DIST });
+    const app = createApp({
+      queries: fakeQueries(),
+      serveSpa: true,
+      distDir: DIST,
+    });
     const home = await app.request("/");
     expect(home.status).toBe(200);
     expect(home.headers.get("content-type")).toStartWith("text/html");
     expect((await app.request("/assets/app-3f9a1c.js")).status).toBe(200);
-    expect((await app.request("/api/posts")).headers.get("content-type")).toStartWith(
-      "application/json",
-    );
+    expect(
+      (await app.request("/api/posts")).headers.get("content-type"),
+    ).toStartWith("application/json");
   });
 
   test("serveSpa without distDir is a programming error", () => {
@@ -67,7 +72,11 @@ describe("createApp", () => {
       ],
       {
         cwd: REPO_ROOT,
-        env: { PATH: process.env.PATH ?? "", HOME: process.env.HOME ?? "", PG_CONNECTION_URL: "" },
+        env: {
+          PATH: process.env.PATH ?? "",
+          HOME: process.env.HOME ?? "",
+          PG_CONNECTION_URL: "",
+        },
         stdout: "pipe",
         stderr: "pipe",
       },
@@ -87,7 +96,9 @@ describe("portFromEnv", () => {
     ["70000", 3000],
     ["30.5", 3000],
   ])("%p -> %p", (value, expected) => {
-    expect(portFromEnv(value as string | undefined, 3000)).toBe(expected as number);
+    expect(portFromEnv(value as string | undefined, 3000)).toBe(
+      expected as number,
+    );
   });
 });
 
@@ -96,15 +107,22 @@ describe("one app definition (BE-09 criteria 1-2)", () => {
     const hits: string[] = [];
     for (const pattern of patterns) {
       for await (const file of new Glob(pattern).scan({ cwd: REPO_ROOT })) {
-        const lines = (await Bun.file(join(REPO_ROOT, file)).text()).split("\n");
-        lines.forEach((line, i) => re.test(line) && hits.push(`${file}:${i + 1}`));
+        const lines = (await Bun.file(join(REPO_ROOT, file)).text()).split(
+          "\n",
+        );
+        lines.forEach(
+          (line, i) => re.test(line) && hits.push(`${file}:${i + 1}`),
+        );
       }
     }
     return hits;
   }
 
   test("'/health' is defined exactly once, in src/api/app.ts", async () => {
-    const hits = await scan(["server.ts", "src/**/*.{ts,tsx,js,jsx}"], /["']\/health["']/);
+    const hits = await scan(
+      ["server.ts", "src/**/*.{ts,tsx,js,jsx}"],
+      /["']\/health["']/,
+    );
     expect(hits).toHaveLength(1);
     expect(hits[0]).toStartWith("src/api/app.ts:");
   });
@@ -127,8 +145,13 @@ describe("one app definition (BE-09 criteria 1-2)", () => {
   });
 
   test("outside the blog pages (FE-33 handoff), src/ has none either", async () => {
-    const hits = await scan(["src/**/*.{ts,tsx,js,jsx}"], /API_PORT|hono\/cors|VITE_API_URL/);
-    expect(hits.filter((hit) => !hit.startsWith("src/pages/blog/"))).toEqual([]);
+    const hits = await scan(
+      ["src/**/*.{ts,tsx,js,jsx}"],
+      /API_PORT|hono\/cors|VITE_API_URL/,
+    );
+    expect(hits.filter((hit) => !hit.startsWith("src/pages/blog/"))).toEqual(
+      [],
+    );
   });
 
   test("bun run api: PORT=3001, watch mode, the dev entry point", async () => {

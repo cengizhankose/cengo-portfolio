@@ -9,7 +9,8 @@ import {
   sslSetting,
 } from "../../../src/db/tls";
 
-const REMOTE = "postgres://someuser:not-a-real-secret@db.prod.invalid:5432/portfolio";
+const REMOTE =
+  "postgres://someuser:not-a-real-secret@db.prod.invalid:5432/portfolio";
 const PROD = { NODE_ENV: "production" };
 
 describe("dbOptions (BE-13 criterion 1)", () => {
@@ -54,7 +55,10 @@ describe("dbOptions (BE-13 criterion 1)", () => {
 
 describe("clientConfig (what postgres.js receives)", () => {
   test("verify-full becomes an explicit verifying TLS object (SEC-22)", () => {
-    const { options, summary } = clientConfig(`${REMOTE}?sslmode=verify-full`, PROD);
+    const { options, summary } = clientConfig(
+      `${REMOTE}?sslmode=verify-full`,
+      PROD,
+    );
     expect(options.ssl).toEqual({ rejectUnauthorized: true });
     expect(summary).toEqual({ max: 5, ssl: "verify-full" });
   });
@@ -66,7 +70,9 @@ describe("clientConfig (what postgres.js receives)", () => {
 
   test("the summary never contains the URL", () => {
     const { summary } = clientConfig(REMOTE, PROD);
-    expect(JSON.stringify(summary)).not.toMatch(/someuser|secret|prod\.invalid/);
+    expect(JSON.stringify(summary)).not.toMatch(
+      /someuser|secret|prod\.invalid/,
+    );
   });
 });
 
@@ -86,13 +92,18 @@ describe("assertProdTls (SEC-22)", () => {
   );
 
   test("production accepts sslmode=verify-full and a URL without sslmode", () => {
-    expect(() => assertProdTls(`${REMOTE}?sslmode=verify-full`, PROD)).not.toThrow();
+    expect(() =>
+      assertProdTls(`${REMOTE}?sslmode=verify-full`, PROD),
+    ).not.toThrow();
     expect(() => assertProdTls(REMOTE, PROD)).not.toThrow();
   });
 
   test("an explicit PG_SSL_MODE=require is the documented override", () => {
     expect(() =>
-      assertProdTls(`${REMOTE}?sslmode=require`, { ...PROD, PG_SSL_MODE: "require" }),
+      assertProdTls(`${REMOTE}?sslmode=require`, {
+        ...PROD,
+        PG_SSL_MODE: "require",
+      }),
     ).not.toThrow();
   });
 
@@ -105,17 +116,28 @@ describe("assertProdTls (SEC-22)", () => {
   test("plaintext is allowed for the compose database (local production-image run)", () => {
     const composeUrl = "postgres://portfolio@db:5432/portfolio_dev";
     expect(() =>
-      assertProdTls(composeUrl, { ...PROD, PG_SSL_MODE: "disable" }, { inContainer: true }),
+      assertProdTls(
+        composeUrl,
+        { ...PROD, PG_SSL_MODE: "disable" },
+        { inContainer: true },
+      ),
     ).not.toThrow();
     expect(() =>
-      assertProdTls(composeUrl, { ...PROD, PG_SSL_MODE: "disable" }, { inContainer: false }),
+      assertProdTls(
+        composeUrl,
+        { ...PROD, PG_SSL_MODE: "disable" },
+        { inContainer: false },
+      ),
     ).toThrow();
   });
 
   test("outside production nothing is enforced", () => {
     expect(() => assertProdTls(`${REMOTE}?sslmode=disable`, {})).not.toThrow();
     expect(() =>
-      assertProdTls(REMOTE, { NODE_ENV: "development", PG_SSL_MODE: "disable" }),
+      assertProdTls(REMOTE, {
+        NODE_ENV: "development",
+        PG_SSL_MODE: "disable",
+      }),
     ).not.toThrow();
   });
 });

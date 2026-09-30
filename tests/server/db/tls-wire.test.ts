@@ -27,9 +27,7 @@ function parseStartupParams(body: Uint8Array): Record<string, string> {
 
 /** ErrorResponse ('E'), so the client rejects the query instead of reconnecting. */
 function fatalError(message: string): Uint8Array {
-  const fields = new TextEncoder().encode(
-    `SFATAL\0C28000\0M${message}\0\0`,
-  );
+  const fields = new TextEncoder().encode(`SFATAL\0C28000\0M${message}\0\0`);
   const out = new Uint8Array(5 + fields.byteLength);
   out[0] = "E".charCodeAt(0);
   new DataView(out.buffer).setInt32(1, 4 + fields.byteLength);
@@ -39,13 +37,21 @@ function fatalError(message: string): Uint8Array {
 
 /** A TCP server that answers the SSLRequest with 'N' and records what follows. */
 function fakePostgres() {
-  const seen: Seen = { sslRequest: false, tlsClientHello: false, plaintextStartup: null };
+  const seen: Seen = {
+    sslRequest: false,
+    tlsClientHello: false,
+    plaintextStartup: null,
+  };
   const server = Bun.listen({
     hostname: "127.0.0.1",
     port: 0,
     socket: {
       data(socket, data) {
-        const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+        const view = new DataView(
+          data.buffer,
+          data.byteOffset,
+          data.byteLength,
+        );
         if (data.byteLength >= 8 && view.getInt32(4) === SSL_REQUEST_CODE) {
           seen.sslRequest = true;
           socket.write("N"); // "this server does not speak TLS"
@@ -157,7 +163,8 @@ describe("process start (SEC-22 criteria 1-2)", () => {
       ],
       {
         NODE_ENV: "production",
-        PG_CONNECTION_URL: "postgres://u:p@db.example.com/x?sslmode=verify-full",
+        PG_CONNECTION_URL:
+          "postgres://u:p@db.example.com/x?sslmode=verify-full",
       },
     );
     expect(code).toBe(0);

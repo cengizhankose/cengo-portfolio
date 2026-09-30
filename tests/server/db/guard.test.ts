@@ -40,10 +40,22 @@ describe("assertNonProdDb", () => {
   // FIRST '@' and splits hosts on ','. Every URL the parsers read differently
   // is refused.
   test.each([
-    ["first-@ vs last-@ split", "postgres://a@db.prod.invalid,b@localhost/portfolio_dev"],
-    ["two '@' in the authority", "postgres://a@db.prod.invalid@localhost/portfolio_dev"],
-    ["encoded comma host list", "postgres://u@db.prod.invalid%2Clocalhost/portfolio_dev"],
-    ["encoded host that decodes to localhost", "postgres://u@local%68ost/portfolio_dev"],
+    [
+      "first-@ vs last-@ split",
+      "postgres://a@db.prod.invalid,b@localhost/portfolio_dev",
+    ],
+    [
+      "two '@' in the authority",
+      "postgres://a@db.prod.invalid@localhost/portfolio_dev",
+    ],
+    [
+      "encoded comma host list",
+      "postgres://u@db.prod.invalid%2Clocalhost/portfolio_dev",
+    ],
+    [
+      "encoded host that decodes to localhost",
+      "postgres://u@local%68ost/portfolio_dev",
+    ],
     ["unix socket path host", "postgres://u@%2Ftmp/portfolio_dev"],
   ])("refuses a parser-ambiguous URL: %s", (_label, url) => {
     expect(() => assertNonProdDb(url, strict)).toThrow(

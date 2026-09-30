@@ -29,7 +29,9 @@ export async function createStrictTestDb() {
  */
 export async function createTestDb() {
   const ctx = await createStrictTestDb();
-  await ctx.client.exec(`ALTER TABLE "posts" ALTER COLUMN "lang" SET DEFAULT 'tr'`);
+  await ctx.client.exec(
+    `ALTER TABLE "posts" ALTER COLUMN "lang" SET DEFAULT 'tr'`,
+  );
   return ctx;
 }
 

@@ -33,7 +33,10 @@ export function createShutdown({
       shuttingDown = true;
       log("info", "shutdown start", { signal });
       const force = setTimeout(() => {
-        log("error", "shutdown timed out", { signal, afterMs: forceExitAfterMs });
+        log("error", "shutdown timed out", {
+          signal,
+          afterMs: forceExitAfterMs,
+        });
         exit(1);
       }, forceExitAfterMs);
       (force as { unref?: () => void }).unref?.();

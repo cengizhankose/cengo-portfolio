@@ -38,8 +38,8 @@ export function fakeQueries(overrides: Partial<PostQueries> = {}): PostQueries {
 
 /** Captures console.log lines (the JSON logger's sink) while `fn` runs. */
 export async function captureLogs<T>(
-  fn: () => Promise<T>,
-): Promise<{ result: T; lines: Record<string, unknown>[] }> {
+  fn: () => T | Promise<T>,
+): Promise<{ result: Awaited<T>; lines: Record<string, unknown>[] }> {
   const original = console.log;
   const lines: Record<string, unknown>[] = [];
   console.log = (...args: unknown[]) => {
