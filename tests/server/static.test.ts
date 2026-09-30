@@ -130,6 +130,14 @@ describe('static files (PERF-17, PERF-18, BE-22, BE-23)', () => {
     expect(await res.text()).toBe('')
   })
 
+  test('a trailing slash never serves a file (/robots.txt/, /standalone.html/)', async () => {
+    for (const path of ['/robots.txt/', '/standalone.html/', '/assets/app-3f9a1c.js/']) {
+      const res = await get(path)
+      expect(res.status).toBe(404)
+      expect(res.headers.get('cache-control')).toBe('no-store')
+    }
+  })
+
   test('a directory without index.html is not a file', async () => {
     const res = await get('/img')
     expect(res.status).toBe(404)

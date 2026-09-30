@@ -84,15 +84,18 @@ export function mountSite(app: Hono<any, any, any>, { distDir }: MountSiteOption
   }
 
   app.get('*', async (c) => {
-    const target = safeResolve(distRoot, new URL(c.req.url).pathname)
+    const { pathname } = new URL(c.req.url)
+    const target = safeResolve(distRoot, pathname)
     if (target === null) return notFound(c)
     const sitePath = toSitePath(distRoot, target)
     if (isHiddenPath(sitePath)) return notFound(c)
+    // `/robots.txt/` must not serve robots.txt: a trailing slash only matches a directory index.
+    const asDirectory = pathname.endsWith('/')
 
     const htmlFile = htmlByTarget.get(target)
-    if (htmlFile) return sendHtml(c, htmlFile, 200)
+    if (htmlFile && (!asDirectory || htmlFile === join(target, 'index.html'))) return sendHtml(c, htmlFile, 200)
 
-    const info = await stat(target).catch(() => null)
+    const info = asDirectory ? null : await stat(target).catch(() => null)
     if (info?.isFile()) return sendFile(c, target, sitePath, info.size)
 
     if (extname(sitePath) !== '' || isFileOnlyPath(sitePath)) return notFound(c)
