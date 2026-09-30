@@ -102,9 +102,31 @@ function flush() {
   }
 }
 
+function watchTracker(script) {
+  script.addEventListener("load", () => {
+    state = "ready";
+    flush();
+  });
+  script.addEventListener("error", () => {
+    state = "failed";
+    queue = [];
+  });
+}
+
 function injectTracker(doc, config) {
   const existing = doc.getElementById(TRACKER_ELEMENT_ID);
-  if (existing) return existing;
+  if (existing) {
+    // A tag that is already in the document (printed by the server, or left
+    // by an earlier init): either it has loaded already and window.umami is
+    // there, or it is still loading and we wait for it like our own tag.
+    if (typeof getWindow()?.umami?.track === "function") {
+      state = "ready";
+      flush();
+    } else {
+      watchTracker(existing);
+    }
+    return existing;
+  }
 
   const script = doc.createElement("script");
   script.id = TRACKER_ELEMENT_ID;
@@ -116,14 +138,7 @@ function injectTracker(doc, config) {
   if (config.respectDoNotTrack) {
     script.setAttribute("data-do-not-track", "true");
   }
-  script.addEventListener("load", () => {
-    state = "ready";
-    flush();
-  });
-  script.addEventListener("error", () => {
-    state = "failed";
-    queue = [];
-  });
+  watchTracker(script);
   doc.head.appendChild(script);
   return script;
 }
@@ -231,16 +246,18 @@ export function track(name, props = {}) {
  * referrer (ANL-03); later ones send the bare path and the previous path as
  * referrer, as Umami's auto-tracking would.
  */
-export function trackPageview({
-  path,
-  search,
-  pageType,
-  postSlug,
-  uiLocale,
-  contentLanguage,
-  title,
-} = {}) {
+export function trackPageview(context = {}) {
   try {
+    // trackPageview("/about") is the same as trackPageview({ path: "/about" }).
+    const {
+      path,
+      search,
+      pageType,
+      postSlug,
+      uiLocale,
+      contentLanguage,
+      title,
+    } = typeof context === "string" ? { path: context } : (context ?? {});
     const win = getWindow();
     const pathname = cleanPath(path ?? win?.location.pathname ?? "/");
     setPageContext({

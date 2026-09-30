@@ -389,6 +389,62 @@ describe("setPageContext (ANL-18 criterion 2)", () => {
   });
 });
 
+describe("tracker tag already in the document (W2 review handoff)", () => {
+  function printTag() {
+    const tag = document.createElement("script");
+    tag.id = "umami-tracker";
+    document.head.appendChild(tag);
+    return tag;
+  }
+
+  it("a tag still loading is watched: queued events flush on load", () => {
+    const tag = printTag();
+    expect(start()).toBe(true);
+    expect(document.querySelectorAll("#umami-tracker")).toHaveLength(1);
+    analytics.track("cta_clicked", { cta_id: "hero_contact" });
+    expect(umamiTrack).not.toHaveBeenCalled();
+    window.umami = { track: umamiTrack };
+    tag.dispatchEvent(new Event("load"));
+    expect(lastPayload().name).toBe("cta_clicked");
+  });
+
+  it("a tag that has loaded already (window.umami set) sends at once", () => {
+    printTag();
+    window.umami = { track: umamiTrack };
+    expect(start()).toBe(true);
+    analytics.track("cta_clicked", { cta_id: "hero_contact" });
+    expect(lastPayload().name).toBe("cta_clicked");
+  });
+
+  it("a tag that fails to load drops the queue", () => {
+    const tag = printTag();
+    start();
+    analytics.track("cta_clicked", { cta_id: "hero_contact" });
+    tag.dispatchEvent(new Event("error"));
+    window.umami = { track: umamiTrack };
+    analytics.track("cta_clicked", { cta_id: "hero_contact" });
+    expect(umamiTrack).not.toHaveBeenCalled();
+  });
+});
+
+describe("trackPageview argument (W2 review handoff)", () => {
+  beforeEach(() => {
+    start();
+    loadTracker();
+  });
+
+  it("accepts a bare path string like { path }", () => {
+    analytics.trackPageview("/tr/about");
+    expect(sentPayloads()[0].url).toBe("/tr/about");
+  });
+
+  it("still reads the location when called without an argument", () => {
+    window.history.replaceState(null, "", "/blog");
+    analytics.trackPageview();
+    expect(sentPayloads()[0].url).toBe("/blog");
+  });
+});
+
 describe("robustness (ANL-01 step 4)", () => {
   it("drops unknown event names", () => {
     start();
