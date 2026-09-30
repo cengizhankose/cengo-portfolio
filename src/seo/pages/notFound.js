@@ -1,6 +1,8 @@
-// Meta for unknown paths (T-11 soft-404 fix, FE-16). Always noindex. The
-// NotFound component itself arrives in W3 (FE-16); until then unknown paths
-// render the home page with this meta.
+// Meta for unknown paths (T-11 soft-404 fix, SEO-02, FE-16). Always noindex.
+// The server prints this title and robots into the 404 shell
+// (src/server/static.ts) and the NotFound page (src/pages/notfound) sets the
+// same values client-side. The TR entry is used once the TR static pages are
+// live (SEO-11 Adım B); until then /tr/... 404s are EN.
 import { buildTitle } from "../site.js";
 
 export default {
