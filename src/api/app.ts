@@ -8,8 +8,8 @@
 // Order:
 //   requestId -> request logger -> security headers -> /api rate limit
 //   -> canonical host -> /health -> /ready -> /api/posts -> /api/* JSON 404
-//   -> RSS feeds (mountFeeds) -> site (mountSite) -> notFound / onError
-//   (T-01 envelope)
+//   -> RSS feeds (mountFeeds) -> /sitemap.xml (mountSitemap) -> site
+//   (mountSite) -> notFound / onError (T-01 envelope)
 //
 // Everything before /health is registered for every host (SEC-30): the
 // default *.outplane.app address gets the same headers, limit and 404 policy
@@ -18,6 +18,7 @@ import { Hono } from "hono";
 import { requestId } from "hono/request-id";
 import type { PostQueries } from "../db/queries/posts";
 import { mountFeeds } from "../server/rss";
+import { mountSitemap } from "../server/sitemap";
 import { mountSite } from "../server/static";
 import { EMPTY_BUILD_INFO, type BuildInfo } from "./build-info";
 import { errorHandler, notFoundHandler } from "./errors";
@@ -126,6 +127,10 @@ export function createApp({
   //     rss.ts): before the site handler, so the extension-miss 404 of the
   //     static policy never sees them; no routes.js entry is needed.
   mountFeeds(app, { queries });
+
+  // 8c. /sitemap.xml (SEO-05, src/server/sitemap.ts): the bilingual XML
+  //     sitemap, also before the site handler.
+  mountSitemap(app, { queries });
 
   // 9. The built site: static files, HTML shell, file 404s (T-11, src/server/static.ts).
   if (serveSpa) mountSite(app, { distDir: distDir!, queries });
