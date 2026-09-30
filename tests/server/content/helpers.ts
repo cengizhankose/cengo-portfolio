@@ -17,6 +17,9 @@ export const LOCAL_URL = "postgres://postgres@127.0.0.1:1/portfolio_test";
 export const REMOTE_URL =
   "postgres://someuser:not-a-real-secret@db.prod.invalid:5432/portfolio";
 
+/** PGlite start + migrations can take seconds on a loaded machine or in the image gate. */
+export const SETUP_TIMEOUT_MS = 30_000;
+
 /** git is not part of the Docker test gate (alpine image, no .git): those tests skip there. */
 export const HAS_GIT = Bun.which("git") !== null;
 

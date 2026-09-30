@@ -39,6 +39,7 @@ import {
   runCli,
   runMain,
   tempDir,
+  SETUP_TIMEOUT_MS,
 } from "./helpers";
 
 const AUDIT_KEYS = [
@@ -63,7 +64,7 @@ const db = () => drizzle(client, { schema });
 beforeAll(async () => {
   client = new PGlite();
   await migrate(drizzle(client, { schema }), { migrationsFolder: MIGRATIONS });
-});
+}, SETUP_TIMEOUT_MS);
 afterAll(async () => {
   await client.close();
 });
@@ -139,28 +140,32 @@ describe.skipIf(!HAS_GIT)(
     beforeAll(async () => {
       repo = await gitRepo({ [name]: postFile({ slug: "audit-post" }) });
       counter = connectionCounter();
-    });
+    }, SETUP_TIMEOUT_MS);
     afterAll(async () => {
       counter.stop();
       await repo.cleanup();
     });
 
-    test("uncommitted change -> exit 1 before connecting, stderr says commit", async () => {
-      await appendFile(join(repo.dir, name), "\nextra line\n");
-      try {
-        const result = await runCli(
-          [name, "--prod", "--publish"],
-          writerEnv(),
-          repo.dir,
-        );
-        expect(result.code).toBe(1);
-        expect(result.stderr).toContain("commit");
-        expect(result.stderr).not.toContain("postgres://");
-      } finally {
-        git(["checkout", "--", name], repo.dir);
-      }
-      expect(counter.connections).toBe(0);
-    });
+    test(
+      "uncommitted change -> exit 1 before connecting, stderr says commit",
+      async () => {
+        await appendFile(join(repo.dir, name), "\nextra line\n");
+        try {
+          const result = await runCli(
+            [name, "--prod", "--publish"],
+            writerEnv(),
+            repo.dir,
+          );
+          expect(result.code).toBe(1);
+          expect(result.stderr).toContain("commit");
+          expect(result.stderr).not.toContain("postgres://");
+        } finally {
+          git(["checkout", "--", name], repo.dir);
+        }
+        expect(counter.connections).toBe(0);
+      },
+      SETUP_TIMEOUT_MS,
+    );
 
     test("staged but not committed -> refused as well", async () => {
       await appendFile(join(repo.dir, name), "\nstaged\n");
@@ -288,7 +293,7 @@ describe("--verify (SEC-15 criterion 3)", () => {
 
   beforeAll(async () => {
     content = await tempDir("verify-content-");
-  });
+  }, SETUP_TIMEOUT_MS);
   afterAll(async () => {
     await content.cleanup();
   });
@@ -418,44 +423,48 @@ describe("--verify over the wire (the CLI process, real postgres.js)", () => {
     await migrate(drizzle(pg, { schema }), { migrationsFolder: MIGRATIONS });
     wire = await startPgliteWire(pg);
     work = await tempDir("verify-proc-");
-  });
+  }, SETUP_TIMEOUT_MS);
   afterAll(async () => {
     await wire.close();
     await work.cleanup();
   });
 
-  test("ok after publishing, drift after a manual change", async () => {
-    const env = { PG_CONNECTION_URL: wire.url, PG_SSL_MODE: "disable" };
-    const file = join(work.dir, "wire.en.md");
-    await writeFile(file, postFile({ slug: "wire-post" }));
-    expect((await runCli([file, "--publish"], env, work.dir)).code).toBe(0);
-    // --verify reads content/posts of the repository; point a copy of main()
-    // at the temp directory instead by running in-process over the same wire.
-    const inProcess = (await import("../../../scripts/content/publish-post"))
-      .main;
-    const out: string[] = [];
-    const code = await inProcess(["--verify"], {
-      env,
-      contentDir: work.dir,
-      stdout: (l) => out.push(l),
-      stderr: () => {},
-    });
-    expect(code).toBe(0);
-    expect(out).toEqual(["wire-post ok"]);
-    await wire.db.query(
-      "update posts set content = 'x' where slug = 'wire-post'",
-    );
-    const drift: string[] = [];
-    expect(
-      await inProcess(["--verify"], {
+  test(
+    "ok after publishing, drift after a manual change",
+    async () => {
+      const env = { PG_CONNECTION_URL: wire.url, PG_SSL_MODE: "disable" };
+      const file = join(work.dir, "wire.en.md");
+      await writeFile(file, postFile({ slug: "wire-post" }));
+      expect((await runCli([file, "--publish"], env, work.dir)).code).toBe(0);
+      // --verify reads content/posts of the repository; point a copy of main()
+      // at the temp directory instead by running in-process over the same wire.
+      const inProcess = (await import("../../../scripts/content/publish-post"))
+        .main;
+      const out: string[] = [];
+      const code = await inProcess(["--verify"], {
         env,
         contentDir: work.dir,
-        stdout: (l) => drift.push(l),
+        stdout: (l) => out.push(l),
         stderr: () => {},
-      }),
-    ).toBe(1);
-    expect(drift).toEqual(["wire-post drift content"]);
-  });
+      });
+      expect(code).toBe(0);
+      expect(out).toEqual(["wire-post ok"]);
+      await wire.db.query(
+        "update posts set content = 'x' where slug = 'wire-post'",
+      );
+      const drift: string[] = [];
+      expect(
+        await inProcess(["--verify"], {
+          env,
+          contentDir: work.dir,
+          stdout: (l) => drift.push(l),
+          stderr: () => {},
+        }),
+      ).toBe(1);
+      expect(drift).toEqual(["wire-post drift content"]);
+    },
+    SETUP_TIMEOUT_MS,
+  );
 });
 
 test("comparePosts: statuses sorted by slug, null and undefined are the same", () => {

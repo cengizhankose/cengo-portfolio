@@ -22,6 +22,7 @@ import {
   REPO_ROOT,
   runMain,
   tempDir,
+  SETUP_TIMEOUT_MS,
 } from "./helpers";
 
 const LEAST_PRIVILEGE = await Bun.file(
@@ -67,7 +68,7 @@ beforeAll(async () => {
   await client.exec("create database umami owner umami");
   await client.exec(LEAST_PRIVILEGE);
   await client.exec(UMAMI_ISOLATION);
-});
+}, SETUP_TIMEOUT_MS);
 afterAll(async () => {
   await client.close();
 });
@@ -238,7 +239,7 @@ describe("runtime reads only (SEC-14 criteria 4-5)", () => {
     );
     await pg.exec(LEAST_PRIVILEGE);
     wire = await startPgliteWire(pg);
-  });
+  }, SETUP_TIMEOUT_MS);
   afterAll(async () => {
     await wire.close();
   });
@@ -259,24 +260,28 @@ describe("runtime reads only (SEC-14 criteria 4-5)", () => {
     return { code: exit, out: out.trim(), err };
   };
 
-  test("src/db/index.ts: an INSERT through dbRead as the reader -> permission denied", async () => {
-    await wire.db.exec("set role portfolio_reader");
-    try {
-      const result = await spawnBun(
-        `const { dbRead, closeDb } = await import('./src/db/index.ts');
+  test(
+    "src/db/index.ts: an INSERT through dbRead as the reader -> permission denied",
+    async () => {
+      await wire.db.exec("set role portfolio_reader");
+      try {
+        const result = await spawnBun(
+          `const { dbRead, closeDb } = await import('./src/db/index.ts');
          const { posts } = await import('./src/db/schema');
          try {
            await dbRead.insert(posts).values({ slug: 'x-y', lang: 'en', title: 't', content: 'c' });
            console.log('inserted');
          } catch (e) { console.log(e.cause?.code ?? e.code, String(e.cause?.message ?? e.message)); }
          await closeDb(1);`,
-        { PG_CONNECTION_URL: wire.url, PG_SSL_MODE: "disable" },
-      );
-      expect(result.out).toBe("42501 permission denied for table posts");
-    } finally {
-      await wire.db.exec("reset role");
-    }
-  });
+          { PG_CONNECTION_URL: wire.url, PG_SSL_MODE: "disable" },
+        );
+        expect(result.out).toBe("42501 permission denied for table posts");
+      } finally {
+        await wire.db.exec("reset role");
+      }
+    },
+    SETUP_TIMEOUT_MS,
+  );
 
   test("src/db/index.ts: every session starts read-only; db is the same read-only handle", async () => {
     const result = await spawnBun(
@@ -305,21 +310,25 @@ describe("runtime reads only (SEC-14 criteria 4-5)", () => {
     expect(hits).toEqual([]);
   });
 
-  test("migrations cannot run as the reader: PG_MIGRATE_URL is needed on every production start", async () => {
-    // drizzle's migrator always runs CREATE SCHEMA IF NOT EXISTS drizzle, and
-    // Postgres checks the CREATE privilege first (owner step for SEC-14).
-    await runMigrations(wire.url, { env: { PG_SSL_MODE: "disable" } });
-    await wire.db.exec("set role portfolio_reader");
-    try {
-      const error = await errorOf(() =>
-        runMigrations(wire.url, { env: { PG_SSL_MODE: "disable" } }),
-      );
-      const cause = (error as { cause?: { code?: string } }).cause;
-      expect(cause?.code ?? error.code).toBe("42501");
-    } finally {
-      await wire.db.exec("reset role");
-    }
-  });
+  test(
+    "migrations cannot run as the reader: PG_MIGRATE_URL is needed on every production start",
+    async () => {
+      // drizzle's migrator always runs CREATE SCHEMA IF NOT EXISTS drizzle, and
+      // Postgres checks the CREATE privilege first (owner step for SEC-14).
+      await runMigrations(wire.url, { env: { PG_SSL_MODE: "disable" } });
+      await wire.db.exec("set role portfolio_reader");
+      try {
+        const error = await errorOf(() =>
+          runMigrations(wire.url, { env: { PG_SSL_MODE: "disable" } }),
+        );
+        const cause = (error as { cause?: { code?: string } }).cause;
+        expect(cause?.code ?? error.code).toBe("42501");
+      } finally {
+        await wire.db.exec("reset role");
+      }
+    },
+    SETUP_TIMEOUT_MS,
+  );
 });
 
 describe("configuration (SEC-14 step 4)", () => {

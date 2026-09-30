@@ -45,6 +45,7 @@ import {
   runCli,
   runMain,
   tempDir,
+  SETUP_TIMEOUT_MS,
 } from "./helpers";
 
 const SLUG = "sec29-test";
@@ -98,7 +99,7 @@ beforeAll(async () => {
   ({ dir, cleanup: cleanupDir } = await tempDir());
   client = new PGlite();
   await migrate(drizzle(client, { schema }), { migrationsFolder: MIGRATIONS });
-});
+}, SETUP_TIMEOUT_MS);
 afterAll(async () => {
   await client.close();
   await cleanupDir();
@@ -462,7 +463,7 @@ describe("process level (bun --no-env-file, as `bun run content:publish`)", () =
     await migrate(drizzle(pg, { schema }), { migrationsFolder: MIGRATIONS });
     wire = await startPgliteWire(pg);
     work = await tempDir("publish-proc-");
-  });
+  }, SETUP_TIMEOUT_MS);
   afterAll(async () => {
     await wire.close();
     await work.cleanup();
@@ -479,58 +480,66 @@ describe("process level (bun --no-env-file, as `bun run content:publish`)", () =
     expect(result.stderr).toContain("Usage:");
   });
 
-  test("draft, then --publish, then again: real postgres.js over the wire (SEC-29 criteria 3-4)", async () => {
-    const file = join(work.dir, `${SLUG}.en.md`);
-    await writeFile(file, postFile({ slug: SLUG }));
-    const pgDb = drizzle(wire.db, { schema });
-    const app = new Hono().route(
-      "/api/posts",
-      createPostsRouter(createPostQueries(pgDb)),
-    );
-    const published = async () =>
-      (await pgDb.select().from(posts).where(eq(posts.slug, SLUG))).map(
-        (r) => r.published,
-      );
-
-    const draft = await runCli([file], localEnv(), work.dir);
-    expect(draft.code).toBe(0);
-    expect(await published()).toEqual([false]);
-    expect((await app.request(`/api/posts/${SLUG}`)).status).toBe(404);
-
-    const live = await runCli([file, "--publish"], localEnv(), work.dir);
-    expect(live.code).toBe(0);
-    expect(await published()).toEqual([true]);
-    expect((await app.request(`/api/posts/${SLUG}`)).status).toBe(200);
-
-    const again = await runCli([file, "--publish"], localEnv(), work.dir);
-    expect(again.code).toBe(0);
-    expect(again.stdout).toStartWith("updated ");
-    expect(await published()).toEqual([true]);
-
-    for (const run of [draft, live, again]) {
-      expect(run.stderr).toBe("");
-      noUrlInOutput(run);
-    }
-  });
-
-  test("a local run reads .env (it restarts with Bun's .env loading)", async () => {
-    const envDir = await tempDir("publish-envfile-");
-    try {
-      await writeFile(
-        join(envDir.dir, ".env"),
-        `PG_CONNECTION_URL=${REMOTE_URL}\n`,
-      );
-      const file = join(envDir.dir, "post.md");
+  test(
+    "draft, then --publish, then again: real postgres.js over the wire (SEC-29 criteria 3-4)",
+    async () => {
+      const file = join(work.dir, `${SLUG}.en.md`);
       await writeFile(file, postFile({ slug: SLUG }));
-      // The .env URL is read, and the guard refuses it.
-      const result = await runCli([file], {}, envDir.dir);
-      expect(result.code).toBe(1);
-      expect(result.stderr).toContain("Refusing to use database");
-      noUrlInOutput(result);
-    } finally {
-      await envDir.cleanup();
-    }
-  });
+      const pgDb = drizzle(wire.db, { schema });
+      const app = new Hono().route(
+        "/api/posts",
+        createPostsRouter(createPostQueries(pgDb)),
+      );
+      const published = async () =>
+        (await pgDb.select().from(posts).where(eq(posts.slug, SLUG))).map(
+          (r) => r.published,
+        );
+
+      const draft = await runCli([file], localEnv(), work.dir);
+      expect(draft.code).toBe(0);
+      expect(await published()).toEqual([false]);
+      expect((await app.request(`/api/posts/${SLUG}`)).status).toBe(404);
+
+      const live = await runCli([file, "--publish"], localEnv(), work.dir);
+      expect(live.code).toBe(0);
+      expect(await published()).toEqual([true]);
+      expect((await app.request(`/api/posts/${SLUG}`)).status).toBe(200);
+
+      const again = await runCli([file, "--publish"], localEnv(), work.dir);
+      expect(again.code).toBe(0);
+      expect(again.stdout).toStartWith("updated ");
+      expect(await published()).toEqual([true]);
+
+      for (const run of [draft, live, again]) {
+        expect(run.stderr).toBe("");
+        noUrlInOutput(run);
+      }
+    },
+    SETUP_TIMEOUT_MS,
+  );
+
+  test(
+    "a local run reads .env (it restarts with Bun's .env loading)",
+    async () => {
+      const envDir = await tempDir("publish-envfile-");
+      try {
+        await writeFile(
+          join(envDir.dir, ".env"),
+          `PG_CONNECTION_URL=${REMOTE_URL}\n`,
+        );
+        const file = join(envDir.dir, "post.md");
+        await writeFile(file, postFile({ slug: SLUG }));
+        // The .env URL is read, and the guard refuses it.
+        const result = await runCli([file], {}, envDir.dir);
+        expect(result.code).toBe(1);
+        expect(result.stderr).toContain("Refusing to use database");
+        noUrlInOutput(result);
+      } finally {
+        await envDir.cleanup();
+      }
+    },
+    SETUP_TIMEOUT_MS,
+  );
 
   test("--prod started without --no-env-file is refused", async () => {
     const proc = Bun.spawnSync(
@@ -556,7 +565,7 @@ describe("process level (bun --no-env-file, as `bun run content:publish`)", () =
     const name = `${SLUG}.en.md`;
     beforeAll(async () => {
       repo = await gitRepo({ [name]: postFile({ slug: SLUG }) });
-    });
+    }, SETUP_TIMEOUT_MS);
     afterAll(async () => {
       await repo.cleanup();
     });
