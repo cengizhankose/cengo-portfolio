@@ -107,7 +107,7 @@ describe("frame loop (PERF-12: no idle requestAnimationFrame)", () => {
     move(120, 80);
 
     expect(ring()).toHaveAttribute("data-visible");
-    expect(ring().style.transform).toBe("translate3d(120px, 80px, 0)");
+    expect(ring().style.translate).toBe("120px 80px");
     expect(frames.request).not.toHaveBeenCalled();
   });
 
@@ -127,7 +127,7 @@ describe("frame loop (PERF-12: no idle requestAnimationFrame)", () => {
     expect(frames.pending()).toBe(0);
     expect(steps).toBeGreaterThan(5); // it eases in, not a jump
     expect(steps).toBeLessThan(60); // and settles in under a second at 60 Hz
-    expect(ring().style.transform).toBe("translate3d(120px, 50px, 0)");
+    expect(ring().style.translate).toBe("120px 50px");
 
     // Idle: nothing is scheduled until the pointer moves again.
     const requests = frames.request.mock.calls.length;
@@ -141,7 +141,7 @@ describe("frame loop (PERF-12: no idle requestAnimationFrame)", () => {
     move(60, 60, { pointerType: "pen" });
 
     expect(ring()).not.toHaveAttribute("data-visible");
-    expect(ring().style.transform).toBe("");
+    expect(ring().style.translate).toBe("");
     expect(frames.request).not.toHaveBeenCalled();
   });
 
@@ -153,7 +153,7 @@ describe("frame loop (PERF-12: no idle requestAnimationFrame)", () => {
 
     move(300, 200);
     expect(ring()).toHaveAttribute("data-visible");
-    expect(ring().style.transform).toBe("translate3d(300px, 200px, 0)");
+    expect(ring().style.translate).toBe("300px 200px");
   });
 });
 

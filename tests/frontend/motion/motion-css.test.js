@@ -163,6 +163,16 @@ describe("cursor ring styles (DSG-21, FE-07, PERF-11)", () => {
     });
   });
 
+  it("moves with `translate` and grows with `scale`, so hovering never shifts it", () => {
+    // `scale` applies on top of `transform` (it would scale the position
+    // too) but under `translate` (CSS Transforms 2 order).
+    expect(ring["will-change"]).toBe("translate");
+    expect(ring).not.toHaveProperty("transform");
+    const source = read("src/components/Cursor.jsx");
+    expect(source).toMatch(/style\.translate = /);
+    expect(source).not.toMatch(/style\.transform/);
+  });
+
   it("uses no invert filter, blend mode or !important", () => {
     expect(CURSOR.replace(/\/\*[\s\S]*?\*\//g, "")).not.toMatch(
       /invert|mix-blend-mode|!important/,

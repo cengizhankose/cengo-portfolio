@@ -6,7 +6,11 @@
 // only draws a ring that follows it (pointer-events: none, aria-hidden).
 //
 // No React state: the pointer position lives in the effect's closure and is
-// written to the DOM as a transform, so moving the mouse never re-renders.
+// written to the DOM as the `translate` property (compositor-only, like a
+// transform), so moving the mouse never re-renders. Not `transform`: the
+// hover growth is the separate `scale` property, which applies on top of
+// `transform` and would scale the position too, while `translate` applies
+// after `scale` (CSS Transforms 2 order: translate, rotate, scale, transform).
 // Three listeners are added once on mount and removed on unmount:
 //   window   pointermove  target position; starts the frame loop if idle
 //   document pointerover  delegated hover check for anything clickable
@@ -40,7 +44,7 @@ export default function Cursor() {
     let visible = false;
 
     const draw = () => {
-      ring.style.transform = `translate3d(${current.x}px, ${current.y}px, 0)`;
+      ring.style.translate = `${current.x}px ${current.y}px`;
     };
 
     const tick = () => {
