@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { DiagramsContext } from "./Mermaid.jsx";
 import PostMarkdown from "./PostMarkdown.jsx";
@@ -19,7 +19,11 @@ import {
 import { formatDate, toDate, toIsoDate } from "../../lib/format.js";
 import { errorStatus } from "../../lib/swr.js";
 import { getPageMeta } from "../../seo/pages.js";
+import { AUTHOR } from "../../seo/site.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
+import PostFooter from "./PostFooter.jsx";
+import { PostSkeleton } from "./Skeleton.jsx";
+import { useBlogReadTracking } from "./useBlogReadTracking.js";
 import "./style.css";
 
 // T-12 / SEO-11: a post lives under its own language's path. Returns that
@@ -29,6 +33,11 @@ function ownLanguagePath(post, route, slug) {
   if (!lang || lang === route.locale || !LIVE.post.includes(lang)) return null;
   return localePath(lang, `/blog/${post.slug ?? slug}`);
 }
+
+// Cover images are drawn 1200x630 (MKT-20); the attributes reserve the space
+// before the file arrives (FE-34, DSG-29) and the cover is decoration: the
+// title sits right next to it, so alt is empty.
+const COVER_SIZE = Object.freeze({ width: 1200, height: 630 });
 
 // "Edited" only when the post changed on a later day than it was published
 // (BE-07: publishedAt, else createdAt for older rows).
@@ -48,7 +57,7 @@ function editedDate(post, published) {
 // Data: usePost(slug) (T-04, FE-12). Every slug is its own swr key, so a new
 // slug starts in 'loading' and a late answer for the previous slug can never
 // reach this page. States:
-//   loading   placeholder at least one screen high (PERF-16);
+//   loading   PostSkeleton, at least one screen high (PERF-16);
 //   notfound  API 404 -> NotFound variant "post" (noindex, SEO-08);
 //   error     network / 5xx / bad payload: indexable blog meta (W2 handoff),
 //             "Try again" (mutate) and the way back to the blog (DSG-20);
@@ -66,6 +75,9 @@ function BlogPostPage() {
   // indexable fallback meta.
   const notFound = status === "notfound";
   const movedTo = ownLanguagePath(post, route, slug);
+  // ANL-10: read depth and engaged time of the article text, once it is shown.
+  const bodyRef = useRef(null);
+  useBlogReadTracking(post?.slug ?? slug, bodyRef, Boolean(post) && !movedTo);
   usePageMeta(
     getPageMeta(route, route.locale, notFound ? { notFound: true } : { post }),
   );
@@ -90,17 +102,7 @@ function BlogPostPage() {
     "/blog",
   );
 
-  if (status === "loading" || movedTo) {
-    return (
-      <div
-        className="blog-loading blog-loading--page"
-        role="status"
-        lang={uiLocale}
-      >
-        {t("status.loading")}
-      </div>
-    );
-  }
+  if (status === "loading" || movedTo) return <PostSkeleton />;
   if (notFound) return <NotFound variant="post" />;
   if (status === "error") {
     return (
@@ -122,6 +124,8 @@ function BlogPostPage() {
   const publishedValue = post.publishedAt ?? post.createdAt;
   const published = toIsoDate(publishedValue);
   const edited = editedDate(post, publishedValue);
+  // The byline links to the same About page as the JSON-LD author (SEO-16).
+  const aboutPath = localePath(staticLocale(lang), "/about");
 
   return (
     <div className="blog-post-container" lang={uiLocale}>
@@ -132,11 +136,21 @@ function BlogPostPage() {
         {post.coverImage && (
           <img
             src={post.coverImage}
-            alt={post.title}
+            alt=""
+            width={COVER_SIZE.width}
+            height={COVER_SIZE.height}
+            decoding="async"
             className="blog-post-cover"
           />
         )}
         <h1 className="blog-post-title-full">{post.title}</h1>
+        <p className="blog-post-byline">
+          {translate(lang, "post.byline.by")}{" "}
+          <Link to={aboutPath} rel="author">
+            {AUTHOR.name}
+          </Link>{" "}
+          {translate(lang, "post.byline.with")}
+        </p>
         {published && (
           <p className="blog-post-date">
             {translate(lang, "post.published")}{" "}
@@ -150,9 +164,12 @@ function BlogPostPage() {
             )}
           </p>
         )}
-        <DiagramsContext.Provider value={post.diagrams ?? null}>
-          <PostMarkdown content={post.content} lang={lang} />
-        </DiagramsContext.Provider>
+        <div className="blog-post-body" ref={bodyRef}>
+          <DiagramsContext.Provider value={post.diagrams ?? null}>
+            <PostMarkdown content={post.content} lang={lang} />
+          </DiagramsContext.Provider>
+        </div>
+        <PostFooter lang={lang} />
       </article>
     </div>
   );

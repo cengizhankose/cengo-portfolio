@@ -12,13 +12,20 @@ import { formatDate, toIsoDate } from "../../lib/format.js";
 import { groupPostsForLocale, postLanguage } from "../../lib/postGroups.js";
 import { errorStatus } from "../../lib/swr.js";
 import { getPageMeta } from "../../seo/pages.js";
+import { FEED_PATH } from "../../seo/pages/post.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
+import { ListSkeleton } from "./Skeleton.jsx";
 import "./style.css";
 
 // Kept as an export for callers and tests: the grouping rule itself lives in
 // src/lib/postGroups.js, shared with the server snapshot (SEO-01), so the raw
 // HTML and this page always list the same posts in the same groups.
 export const groupPosts = groupPostsForLocale;
+
+// Covers are drawn 1200x630 (MKT-20). The title sits right beside the card's
+// cover, so the image is decoration (alt ""), and the attributes reserve its
+// space before the file arrives (FE-34, DSG-29).
+const COVER_SIZE = Object.freeze({ width: 1200, height: 630 });
 
 // One post card. The card carries the post's language (lang); the date is
 // written in the page's language (SEO-21 step 3), so it gets its own `lang`
@@ -34,7 +41,15 @@ function PostCard({ post, locale, heading: Heading, t }) {
   return (
     <article className="blog-card" lang={lang}>
       {post.coverImage && (
-        <img src={post.coverImage} alt={post.title} className="blog-cover" />
+        <img
+          src={post.coverImage}
+          alt=""
+          width={COVER_SIZE.width}
+          height={COVER_SIZE.height}
+          loading="lazy"
+          decoding="async"
+          className="blog-cover"
+        />
       )}
       <Heading className="blog-post-title">
         <Link to={localePath(lang, `/blog/${post.slug}`)}>{post.title}</Link>
@@ -67,7 +82,7 @@ function PostCard({ post, locale, heading: Heading, t }) {
 
 // The blog index (FE-12, FE-03, ANL-15, DSG-20). Four states from
 // useBlogIndex (T-04), each under the page's own "Blog" heading:
-//   loading  a placeholder that keeps the page's height (PERF-16);
+//   loading  ListSkeleton, bars in the place of the cards (PERF-16);
 //   error    what failed, "Try again" (refetches only what failed) and a
 //            way home; never shown as "No posts yet";
 //   success  the two language groups (T-12), or the empty state when both
@@ -91,11 +106,8 @@ function BlogHomePage() {
   return (
     <div className="blog-container">
       <h1 className="blog-title">{t("blog.title")}</h1>
-      {status === "loading" && (
-        <div className="blog-loading" role="status">
-          {t("status.loading")}
-        </div>
-      )}
+      <p className="blog-tagline">{t("blog.tagline")}</p>
+      {status === "loading" && <ListSkeleton />}
       {status === "error" && (
         <StatusState
           headingLevel={2}
@@ -118,6 +130,11 @@ function BlogHomePage() {
             { to: lp("/contact"), label: t("blog.contact") },
           ]}
         />
+      )}
+      {empty && (
+        <p className="blog-empty-feed">
+          <a href={localePath(locale, FEED_PATH)}>{t("blog.emptyFeed")}</a>
+        </p>
       )}
       {own.length > 0 && (
         <div className="blog-grid">
