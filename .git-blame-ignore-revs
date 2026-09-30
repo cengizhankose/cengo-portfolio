@@ -1,0 +1,8 @@
+# Commits `git blame` should skip: bulk, behaviour-neutral formatting and
+# lint auto-fix commits only. GitHub's blame view reads this file
+# automatically; locally enable it once with
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# FE-22: the orchestrator appends the full hash of the one-off
+# `bun run format` (+ `eslint --fix`) commit made on the integration branch
+# right after the W1 merge, one hash per line with a comment above it.
