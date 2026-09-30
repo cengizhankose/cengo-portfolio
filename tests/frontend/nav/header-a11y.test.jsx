@@ -34,7 +34,7 @@ describe("theme toggle (DSG-02, FE-02)", () => {
     ["dark", "dark"],
     ["light", "light"],
   ])(
-    "stored theme %s renders %s and aria-pressed matches it",
+    "stored theme %j renders %s and aria-pressed matches it",
     (stored, expected) => {
       if (stored !== null) window.localStorage.setItem("theme", stored);
       renderHeader();
