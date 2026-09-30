@@ -9,10 +9,11 @@ import { usePageMeta } from "../../seo/usePageMeta.js";
 
 // SEC-24: @emailjs/browser v4 options. blockHeadless rejects automated
 // browsers, limitRate allows one send per 30 s per browser (localStorage).
+const RATE_LIMIT_ID = "contact-form";
 const SEND_OPTIONS = {
   publicKey: contactConfig.YOUR_PUBLIC_KEY,
   blockHeadless: true,
-  limitRate: { id: "contact-form", throttle: 30000 },
+  limitRate: { id: RATE_LIMIT_ID, throttle: 30000 },
 };
 
 // EmailJS rejects with status 429 when limitRate blocks a send.
@@ -25,7 +26,23 @@ const RATE_LIMITED = 429;
 // like any failed send and the error message offers the mailto: link.
 const loadEmailjs = () => import("@emailjs/browser").then((sdk) => sdk.default);
 
-const EMPTY_FIELDS = { name: "", email: "", message: "", company: "" };
+// limitRate stores its timestamp before the request goes out. When the send
+// then fails, nothing was delivered: drop the timestamp so an immediate retry
+// is not refused with the "one message every 30 seconds" message.
+function forgetRateLimit() {
+  try {
+    window.localStorage.removeItem(RATE_LIMIT_ID);
+  } catch {
+    // Site data blocked: no timestamp was stored.
+  }
+}
+
+// Honeypot field (SEC-24). Not `company`: Chrome classifies that name as
+// COMPANY_NAME and address autofill fills it together with Name, even off
+// screen, which would silently drop a real visitor's message.
+const HONEYPOT = "subject";
+
+const EMPTY_FIELDS = { name: "", email: "", message: "", [HONEYPOT]: "" };
 
 const { messages } = contactConfig;
 
@@ -82,9 +99,9 @@ export const ContactUs = () => {
     e.preventDefault();
     if (sending.current || formData.loading) return;
 
-    // Honeypot (SEC-24): people never see the `company` field, bots fill
-    // it. Nothing is sent, the bot still sees the success message.
-    if (formData.company) {
+    // Honeypot (SEC-24): people never see this field, bots fill it. Nothing
+    // is sent, the bot still sees the success message.
+    if (formData[HONEYPOT]) {
       showResult("success", true);
       return;
     }
@@ -121,10 +138,9 @@ export const ContactUs = () => {
           sending.current = false;
           // The raw error stays in the console, never in the UI.
           console.error("Contact form: message not sent", error);
-          showResult(
-            error?.status === RATE_LIMITED ? "rateLimited" : "error",
-            false,
-          );
+          const rateLimited = error?.status === RATE_LIMITED;
+          if (!rateLimited) forgetRateLimit();
+          showResult(rateLimited ? "rateLimited" : "error", false);
         },
       );
   };
@@ -232,11 +248,14 @@ export const ContactUs = () => {
               <div className="contact__hp" aria-hidden="true">
                 <input
                   type="text"
-                  id="company"
-                  name="company"
+                  id={HONEYPOT}
+                  name={HONEYPOT}
                   tabIndex={-1}
                   autoComplete="off"
-                  value={formData.company}
+                  data-1p-ignore
+                  data-lpignore="true"
+                  data-bwignore="true"
+                  value={formData[HONEYPOT]}
                   onChange={handleChange}
                 />
               </div>

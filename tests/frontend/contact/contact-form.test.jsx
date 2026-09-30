@@ -25,11 +25,13 @@ import { contactConfig } from "../../../src/content_option";
 import { ContactUs } from "../../../src/pages/contact";
 
 const TYPED = { name: "Jane Doe", email: "jane@example.com", message: "Hi" };
+const HONEYPOT = "subject";
 const FIELD_IDS = ["name", "email", "message"];
+const RATE_LIMIT_ID = "contact-form";
 const SEND_OPTIONS = {
   publicKey: contactConfig.YOUR_PUBLIC_KEY,
   blockHeadless: true,
-  limitRate: { id: "contact-form", throttle: 30000 },
+  limitRate: { id: RATE_LIMIT_ID, throttle: 30000 },
 };
 
 let consoleError;
@@ -204,6 +206,47 @@ describe("failed send (MKT-11, DSG-05, FE-15, FE-36)", () => {
     ).toHaveAttribute("href", `mailto:${contactConfig.YOUR_EMAIL}`);
     expect(values()).toEqual([TYPED.name, TYPED.email, TYPED.message]);
   });
+
+  // limitRate writes its timestamp before the request. A send that fails for
+  // another reason delivered nothing, so the timestamp is dropped and an
+  // immediate retry is not answered with the 30 s message.
+  it.each([
+    ["drops", "a network error", { status: 0, text: "Network Error" }, null],
+    ["drops", "an EmailJS error", { status: 400, text: "Bad Request" }, null],
+    [
+      "keeps",
+      "a 429 rate limit",
+      { status: 429, text: "Too Many Requests" },
+      "1700000000000",
+    ],
+  ])(
+    "%s the stored rate-limit timestamp after %s",
+    async (_verb, _case, rejection, expected) => {
+      window.localStorage.setItem(RATE_LIMIT_ID, "1700000000000");
+      emailjs.send.mockRejectedValue(rejection);
+      const user = userEvent.setup();
+      renderContact();
+      await fillForm(user);
+
+      await user.click(submitButton());
+      await screen.findByRole("alert");
+
+      expect(window.localStorage.getItem(RATE_LIMIT_ID)).toBe(expected);
+    },
+  );
+
+  it("leaves the rate-limit timestamp alone after a successful send", async () => {
+    window.localStorage.setItem(RATE_LIMIT_ID, "1700000000000");
+    emailjs.send.mockResolvedValue({ status: 200, text: "OK" });
+    const user = userEvent.setup();
+    renderContact();
+    await fillForm(user);
+
+    await user.click(submitButton());
+    await screen.findByRole("alert");
+
+    expect(window.localStorage.getItem(RATE_LIMIT_ID)).toBe("1700000000000");
+  });
 });
 
 describe("successful send (MKT-11, DSG-05, FE-15)", () => {
@@ -335,28 +378,43 @@ describe("honeypot (SEC-24)", () => {
   it("is out of the tab order and the accessibility tree, and has no label", () => {
     renderContact();
 
-    const trap = document.getElementById("company");
+    const trap = document.getElementById(HONEYPOT);
     expect(trap).toHaveAttribute("tabindex", "-1");
     expect(trap).toHaveAttribute("autocomplete", "off");
     expect(trap.closest("[aria-hidden='true']")).not.toBeNull();
     expect(trap.labels).toHaveLength(0);
-    expect(screen.queryByRole("textbox", { name: /company/i })).toBeNull();
+    expect(screen.queryByRole("textbox", { name: /subject/i })).toBeNull();
+  });
+
+  // A real visitor's autofill must not fill the trap: that would drop the
+  // message while showing "Message sent". Chrome 154 classifies a field named
+  // `company` as COMPANY_NAME (filled together with Name, even off screen);
+  // `subject` stays UNKNOWN_TYPE. Password managers are told to skip it.
+  it("uses a name autofill does not classify and opts out of password managers", () => {
+    renderContact();
+
+    const trap = document.getElementById(HONEYPOT);
+    expect(trap).toHaveAttribute("name", "subject");
+    expect(document.getElementById("company")).toBeNull();
+    expect(trap).toHaveAttribute("data-1p-ignore");
+    expect(trap).toHaveAttribute("data-lpignore", "true");
+    expect(trap).toHaveAttribute("data-bwignore", "true");
   });
 
   it("does not call send when the hidden field is filled, and still reports success", async () => {
     const user = userEvent.setup();
     renderContact();
     await fillForm(user);
-    fireEvent.change(document.getElementById("company"), {
-      target: { value: "ACME" },
+    fireEvent.change(document.getElementById(HONEYPOT), {
+      target: { value: "Cheap offer" },
     });
 
     await user.click(submitButton());
 
-    expect(emailjs.send).toHaveBeenCalledTimes(0);
     expect(await screen.findByRole("alert")).toHaveClass("alert-success");
+    expect(emailjs.send).toHaveBeenCalledTimes(0);
     expect(values()).toEqual(["", "", ""]);
-    expect(document.getElementById("company").value).toBe("");
+    expect(document.getElementById(HONEYPOT).value).toBe("");
   });
 });
 
