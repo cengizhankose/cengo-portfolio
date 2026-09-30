@@ -70,6 +70,7 @@
     "jsdom": "^29.1.1",
     "opentype.js": "^2.0.0",
     "prettier": "^3.9.9",
+    "sass-embedded": "^1.105.1",
     "terser": "^5.44.1",
     "typescript": "^7.0.2",
     "vite": "^7.3.6",

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
+import "../styles/bootstrap-subset.scss";
 import { BrowserRouter as Router, useLocation } from "react-router-dom";
 import AppRoutes from "./routes";
 import Headermain from "../header";
