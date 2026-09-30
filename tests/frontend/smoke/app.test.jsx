@@ -40,6 +40,33 @@ describe("App (smoke)", () => {
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
   });
 
+  it("opens with one static h1, name and role, and the rotating line outside it (K-06b)", () => {
+    render(<App />);
+
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(document.querySelectorAll("h1")).toHaveLength(1);
+    expect(h1.textContent.replace(/\s+/g, " ").trim()).toBe(
+      "Cengizhan Köse Senior Fullstack Engineer",
+    );
+    expect(document.querySelectorAll("#home h2")).toHaveLength(0);
+    const rotator = document.querySelector(".rotator");
+    expect(rotator).toHaveAttribute("aria-hidden", "true");
+    expect(rotator.closest("h1")).toBeNull();
+  });
+
+  it("draws no cursor ring without a fine pointer and keeps the system cursor (T-14)", async () => {
+    // tests/frontend/setup.js: matchMedia matches nothing (no mouse).
+    render(<App />);
+    window.dispatchEvent(
+      new PointerEvent("pointermove", { clientX: 5, clientY: 5 }),
+    );
+    await act(async () => {});
+
+    expect(document.querySelector(".cursor-ring")).toBeNull();
+    expect(document.body.style.cursor).toBe("");
+    expect(document.querySelectorAll('[style*="cursor"]')).toHaveLength(0);
+  });
+
   it("renders the site header with a home link and the menu button", () => {
     const { container } = render(<App />);
 
