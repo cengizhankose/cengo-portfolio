@@ -180,10 +180,24 @@ const dataportfolio = [
 const contactConfig = {
   YOUR_EMAIL: "kose651@gmail.com",
   description:
-    "Feel free to contact me about web to mobile project. I can develop high quality products for your business needs. ",
+    "Feel free to contact me about web and mobile projects. I can develop high-quality products for your business needs.",
+  // EmailJS IDs and the public key are public by design (they ship in the
+  // bundle). Abuse is limited in the EmailJS panel (allowed domains) and by
+  // the SDK options in src/pages/contact (SEC-24).
   YOUR_SERVICE_ID: "service_5i3xexc",
   YOUR_TEMPLATE_ID: "template_w4youof",
-  YOUR_USER_ID: "aPMkFJ3oavgGNOmn3",
+  YOUR_PUBLIC_KEY: "aPMkFJ3oavgGNOmn3",
+  // Form status messages (MKT-09, FE-36, DSG-23). FE-14 moves them to the
+  // i18n dictionaries under the same keys (contact.success, contact.error,
+  // contact.rateLimited, contact.emailMe). `{emailMe}` is replaced by a
+  // mailto: link whose text is `emailMe`.
+  messages: {
+    success: "Message sent. I’ll reply to your email shortly.",
+    error: "Your message couldn’t be sent. Please try again or {emailMe}.",
+    rateLimited:
+      "You can send one message every 30 seconds. Wait a moment and try again, or {emailMe}.",
+    emailMe: "email me directly",
+  },
 };
 
 // { id: url } in K-11 order, derived from the single list in src/seo/site.js

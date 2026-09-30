@@ -7,9 +7,56 @@
   border: 1px solid var(--secondary-color);
 }
 
+/* Spacing comes from the mb-3 field wrappers (DSG-04, DSG-34). */
 .contact__form input.form-control {
-  margin-bottom: 2em;
   height: calc(2.5em + 0.75rem + 2px);
+}
+
+/* Visible labels and example-only placeholders (DSG-04). --text-muted is the
+   theme token from src/index.css (>= 4.5:1 on the page background). */
+.contact__form .form-label {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.contact__form .form-control::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+/* Focus (DSG-13): Bootstrap's .form-control:focus switches colour and
+   background to --bs-body-*, so both are pinned to the theme here. The ring
+   is the text colour, >= 3:1 on the background in both themes. */
+.contact__form .form-control:focus {
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  border-color: var(--text-color);
+  box-shadow: none;
+}
+
+.contact__form .form-control:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 2px;
+}
+
+.contact__form .ac_btn:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 3px;
+}
+
+/* The result alert takes focus after a send (FE-15): same ring as the form. */
+.co_alert:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 2px;
+}
+
+/* Honeypot (SEC-24): kept in the layout for bots, off screen for people. */
+.contact__hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 button.btn.ac_btn:hover {
