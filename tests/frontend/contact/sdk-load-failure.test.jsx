@@ -40,9 +40,10 @@ describe("SDK chunk not loaded", () => {
     );
     await user.type(screen.getByLabelText("Name"), TYPED.name);
     await user.type(screen.getByLabelText("Email"), TYPED.email);
+    await user.selectOptions(screen.getByLabelText("Project type"), "web");
     await user.type(screen.getByLabelText("Message"), TYPED.message);
 
-    await user.click(screen.getByRole("button", { name: "Send message" }));
+    await user.click(screen.getByRole("button", { name: "Send details" }));
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveClass("alert-danger");
@@ -53,7 +54,7 @@ describe("SDK chunk not loaded", () => {
     expect(values()).toEqual([TYPED.name, TYPED.email, TYPED.message]);
     expect(document.activeElement).toBe(alert);
     expect(
-      screen.getByRole("button", { name: "Send message" }),
+      screen.getByRole("button", { name: "Send details" }),
     ).not.toBeDisabled();
     expect(consoleError).toHaveBeenCalledWith(
       "Contact form: message not sent",

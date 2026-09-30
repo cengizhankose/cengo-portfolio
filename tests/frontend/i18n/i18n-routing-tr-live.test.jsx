@@ -107,11 +107,13 @@ describe("with the TR pages live", () => {
   it("/tr: the home page with TR call-to-action links", async () => {
     renderAt("/tr");
     const main = within(screen.getByRole("main"));
+    // W7-MKT-hero-contact-conversion (MKT-19): one button to the contact
+    // page and an evidence link to the portfolio.
     expect(
-      await main.findByRole("link", { name: TR["cta.aboutMe"] }),
-    ).toHaveAttribute("href", "/tr/about");
-    expect(
-      main.getByRole("link", { name: TR["cta.contactMe"] }),
+      await main.findByRole("link", { name: TR["cta.primary"] }),
     ).toHaveAttribute("href", "/tr/contact");
+    expect(
+      main.getByRole("link", { name: TR["cta.secondary"] }),
+    ).toHaveAttribute("href", "/tr/portfolio");
   });
 });

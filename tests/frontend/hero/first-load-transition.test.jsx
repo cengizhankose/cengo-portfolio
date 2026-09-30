@@ -1,7 +1,8 @@
 // PERF-07 step 3: the landing page has no entry animation (its LCP element
-// is painted opaque in the first frame); the fade runs from the first
-// pathname change on and stays on for every later page. Pages are stubs:
-// this tests the shell in src/app/routes.jsx, not page content.
+// is painted opaque in the first frame); the entry fade runs from the first
+// pathname change on and stays on for every later page (PERF-13 / FE-17 made
+// the new route mount at once: the landing page is the wrapper without
+// .page-enter). Pages are stubs: this tests the shell in src/app/routes.jsx.
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, useNavigate } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
@@ -32,52 +33,39 @@ function renderAt(path) {
   );
   return {
     ...utils,
-    stage: () => utils.container.querySelector(".page-transition"),
+    stage: () => utils.container.querySelector("[data-route]"),
   };
 }
 
 const go = (to) => act(() => navigate(to));
 
-// jsdom runs no CSS animations; React listens for the prefixed event there.
-function finishAnimation(element) {
-  for (const type of ["animationend", "webkitAnimationEnd"]) {
-    fireEvent(element, new Event(type, { bubbles: true }));
-  }
-}
-
-describe("page transition on the first load (PERF-07)", () => {
+describe("page change on the first load (PERF-07)", () => {
   it.each(["/", "/about"])(
     "%s: the landing page is shown without the entry animation",
     (path) => {
       const { stage } = renderAt(path);
 
-      expect(stage()).toHaveClass("page-transition", "fadeIn", "is-initial");
-      expect(stage()).not.toHaveClass("fadeOut");
+      expect(stage()).toHaveAttribute("data-route", path);
+      expect(stage()).not.toHaveClass("page-enter");
     },
   );
 
   it("a hash change on the landing page keeps it still", async () => {
     const { stage } = renderAt("/");
+    const landing = stage();
 
     await go("#details");
 
-    expect(stage()).toHaveClass("fadeIn", "is-initial");
+    expect(stage()).toBe(landing);
+    expect(stage()).not.toHaveClass("page-enter");
   });
 
-  it("the first navigation fades the landing page out and the next page in", async () => {
+  it("the first navigation shows the next page at once, with the entry fade", async () => {
     const { stage } = renderAt("/");
 
     await go("/about");
-    expect(stage()).toHaveClass("fadeOut");
-    expect(stage()).not.toHaveClass("is-initial");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Home page",
-    );
 
-    await act(async () => finishAnimation(stage()));
-
-    expect(stage()).toHaveClass("fadeIn");
-    expect(stage()).not.toHaveClass("is-initial");
+    expect(stage()).toHaveClass("page-enter");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "About page",
     );
@@ -87,27 +75,29 @@ describe("page transition on the first load (PERF-07)", () => {
     const { stage } = renderAt("/");
 
     await go("/about");
-    await act(async () => finishAnimation(stage()));
     await go("/");
-    expect(stage()).toHaveClass("fadeOut");
-    await act(async () => finishAnimation(stage()));
 
-    expect(stage()).toHaveClass("fadeIn");
-    expect(stage()).not.toHaveClass("is-initial");
+    expect(stage()).toHaveAttribute("data-route", "/");
+    expect(stage()).toHaveClass("page-enter");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "Home page",
     );
   });
 
-  it("an animation end that bubbles up from the page does not end the fade", async () => {
+  it("nothing waits for an animation event", async () => {
     const { stage } = renderAt("/");
 
     await go("/about");
-    await act(async () =>
-      finishAnimation(screen.getByRole("heading", { level: 1 })),
-    );
+    for (const type of ["animationend", "webkitAnimationEnd"]) {
+      fireEvent(
+        screen.getByRole("heading", { level: 1 }),
+        new Event(type, { bubbles: true }),
+      );
+    }
 
-    expect(stage()).toHaveClass("fadeOut");
-    expect(stage()).not.toHaveClass("is-initial");
+    expect(stage()).toHaveAttribute("data-route", "/about");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "About page",
+    );
   });
 });

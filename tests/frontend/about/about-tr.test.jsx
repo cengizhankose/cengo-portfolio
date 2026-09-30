@@ -105,7 +105,7 @@ describe("/tr/about", () => {
     const awards = container.querySelectorAll(".proof-awards li");
     expect(awards).toHaveLength(4);
     expect(awards[1].textContent).toBe(
-      "AlgoHack Istanbul (Algorand Foundation × Rise In) · 2025 · Open Innovation Track birinciliği · Farmin",
+      "AlgoHack Istanbul (Algorand Foundation × Rise In) · 2025 · Open Innovation Track birinciliği · Farmin (yeni sekmede açılır)",
     );
     expect(container.querySelector("#awards").textContent).not.toMatch(
       /1st place|2nd place|3rd place/,

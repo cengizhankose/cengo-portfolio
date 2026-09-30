@@ -4,7 +4,8 @@
 // the computed criteria were measured in a real browser, see the package
 // report): DSG-11 / FE-18 mobile 4:5 photo box and desktop full height,
 // PERF-07 no opacity gate or transition on the photo, placeholder colour
-// on the box, and no entry animation on the first page (App.css).
+// on the box, and no entry animation on the first page (App.css: only
+// .page-enter animates, routes.jsx leaves it off the landing page).
 import { describe, expect, it } from "vitest";
 import { allSelectors, declared, read } from "./support.js";
 
@@ -88,21 +89,15 @@ describe("photo box (DSG-11, FE-18, PERF-07)", () => {
 });
 
 describe("first page after a full load is not faded in (PERF-07 step 3)", () => {
-  it("App.css switches the entry animation off for .is-initial", () => {
-    expect(declared(APP, ".page-transition.is-initial")).toEqual({
-      animation: "none",
+  it("only .page-enter animates; routes.jsx leaves it off the landing page", () => {
+    expect(declared(APP, ".page-enter")).toMatchObject({
+      animation: "pageEnter 150ms ease-out both",
     });
+    expect(APP).not.toMatch(/is-initial|page-transition/);
   });
 
-  it("the .is-initial rule comes after the fadeIn rule, so it wins at equal specificity", () => {
-    expect(APP.indexOf(".page-transition.is-initial {")).toBeGreaterThan(
-      APP.indexOf(".page-transition.fadeIn {"),
-    );
-  });
-
-  it("later pages keep the 400ms fade (FE-17 / PERF-13 rewrite it later)", () => {
-    expect(declared(APP, ".page-transition.fadeIn")).toMatchObject({
-      animation: "fadeIn 400ms ease-out",
-    });
+  it("the entry fade is 150ms at most and there is no exit fade (PERF-13 / FE-17)", () => {
+    expect(APP).not.toMatch(/fadeOut|400ms/);
+    expect(declared(APP, ".page-enter").animation).toMatch(/\b150ms\b/);
   });
 });

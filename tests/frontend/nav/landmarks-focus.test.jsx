@@ -3,7 +3,7 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { finishPageTransition, renderSite, routerState } from "./support/site";
+import { renderSite, routerState } from "./support/site";
 
 vi.mock("../../../src/pages/home", async () => ({
   Home: (await import("./support/pages.jsx")).Home,
@@ -79,6 +79,7 @@ describe("skip link", () => {
   it("is the first Tab stop and moves focus to <main> without a navigation", async () => {
     const user = userEvent.setup();
     const { pageStage } = renderSite("/about");
+    const page = pageStage();
 
     await user.tab();
     expect(document.activeElement.textContent.trim()).toBe("Skip to content");
@@ -88,8 +89,8 @@ describe("skip link", () => {
 
     expect(document.activeElement.id).toBe("main");
     expect(routerState()).toEqual({ pathname: "/about", hash: "" });
-    expect(pageStage()).not.toHaveClass("fadeOut");
-    expect(pageStage()).toHaveClass("fadeIn");
+    expect(pageStage()).toBe(page);
+    expect(pageStage()).not.toHaveClass("page-enter");
   });
 });
 
@@ -109,16 +110,10 @@ describe("page transition and focus (FE-10)", () => {
     screen.getByRole("link", { name: "About" }).focus();
     await user.keyboard("{Enter}");
 
+    // The new page is rendered in the same commit as the navigation
+    // (PERF-13, FE-17): nothing to wait for.
     expect(routerState().pathname).toBe("/about");
-    // The old page is still fading out.
-    expect(pageStage()).toHaveClass("fadeOut");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Home page",
-    );
-
-    finishPageTransition(pageStage());
-
-    expect(pageStage()).toHaveClass("fadeIn");
+    expect(pageStage()).toHaveClass("page-enter");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "About page",
     );
@@ -127,7 +122,7 @@ describe("page transition and focus (FE-10)", () => {
 
   it("focuses <main> without scrolling (preventScroll)", async () => {
     const user = userEvent.setup();
-    const { pageStage } = renderSite("/");
+    renderSite("/");
     const main = document.getElementById("main");
     const focus = vi.spyOn(main, "focus");
 
@@ -137,15 +132,15 @@ describe("page transition and focus (FE-10)", () => {
         hidden: true,
       }),
     );
-    finishPageTransition(pageStage());
 
     expect(focus).toHaveBeenCalledWith({ preventScroll: true });
     expect(document.activeElement).toBe(main);
   });
 
-  it("renders a hash change in place: no fade-out, no focus move", async () => {
+  it("renders a hash change in place: same page node, no entry fade, no focus move", async () => {
     const user = userEvent.setup();
     const { pageStage } = renderSite("/blog");
+    const page = pageStage();
     const probe = screen.getByRole("button", {
       name: "probe: change hash",
       hidden: true,
@@ -154,26 +149,8 @@ describe("page transition and focus (FE-10)", () => {
     await user.click(probe);
 
     expect(routerState()).toEqual({ pathname: "/blog", hash: "#details" });
-    expect(pageStage()).toHaveClass("fadeIn");
-    expect(pageStage()).not.toHaveClass("fadeOut");
+    expect(pageStage()).toBe(page);
+    expect(pageStage()).not.toHaveClass("page-enter");
     expect(document.activeElement).not.toBe(document.getElementById("main"));
-  });
-
-  it("ignores animation ends that bubble up from the page content", async () => {
-    const user = userEvent.setup();
-    const { pageStage } = renderSite("/");
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "probe: go to contact",
-        hidden: true,
-      }),
-    );
-    finishPageTransition(screen.getByRole("heading", { level: 1 }));
-
-    expect(pageStage()).toHaveClass("fadeOut");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Home page",
-    );
   });
 });

@@ -152,10 +152,17 @@ describe("AwardLine and DotLine", () => {
         }}
       />,
     );
-    expect(linked.container.textContent).toBe("Event · 2026 · 1st place · P");
+    // An http(s) evidence link opens in a new tab (ExternalLink, MKT-23).
+    expect(linked.container.textContent).toBe(
+      "Event · 2026 · 1st place · P (opens in a new tab)",
+    );
     expect(linked.container.querySelector("a")).toHaveAttribute(
       "href",
       "https://example.com/x",
+    );
+    expect(linked.container.querySelector("a")).toHaveAttribute(
+      "target",
+      "_blank",
     );
     linked.unmount();
 

@@ -73,6 +73,7 @@ const submitButton = () => document.querySelector("button[type=submit]");
 async function fillForm(user) {
   await user.type(screen.getByLabelText("Name"), TYPED.name);
   await user.type(screen.getByLabelText("Email"), TYPED.email);
+  await user.selectOptions(screen.getByLabelText("Project type"), "web");
   await user.type(screen.getByLabelText("Message"), TYPED.message);
 }
 
@@ -91,10 +92,10 @@ describe("site data blocked (real @emailjs/browser)", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "Contact me",
     );
-    for (const label of ["Name", "Email", "Message"]) {
+    for (const label of ["Name", "Email", "Project type", "Message"]) {
       expect(screen.getByLabelText(label)).toBeInstanceOf(HTMLElement);
     }
-    expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Send details" })).toBeEnabled();
   });
 
   it("keeps the typed text and shows the error with the mailto: link", async () => {
@@ -130,7 +131,7 @@ describe("site data blocked (real @emailjs/browser)", () => {
     await screen.findByRole("alert");
 
     expect(submitButton()).toBeEnabled();
-    expect(submitButton()).toHaveTextContent("Send message");
+    expect(submitButton()).toHaveTextContent("Send details");
     await user.click(submitButton());
 
     await waitFor(() => expect(consoleError).toHaveBeenCalledTimes(2));

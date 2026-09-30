@@ -73,20 +73,27 @@ describe("social channel list (icons.js)", () => {
   });
 });
 
+// W7-DSG-social-links (SEO-24/DSG-12/MKT-23): every social link is named
+// "<channel> profile (opens in a new tab)" (social.profile); the full checks
+// live in tests/frontend/social/.
+const PROFILE_NAMES = K11_LABELS.map(
+  (label) => `${label} profile (opens in a new tab)`,
+);
+
 describe("side strip (Socialicons)", () => {
   it("names each icon link by its channel, in K-11 order", () => {
     render(<Socialicons />);
 
     const links = screen.getAllByRole("link");
     expect(links.map((link) => link.getAttribute("aria-label"))).toEqual(
-      K11_LABELS,
+      PROFILE_NAMES,
     );
     expect(links.map((link) => link.textContent)).toEqual(
       K11_LABELS.map(() => ""),
     );
     const expected = getSocialLinks(socialprofils);
     links.forEach((link, index) => {
-      expect(link).toHaveAccessibleName(K11_LABELS[index]);
+      expect(link).toHaveAccessibleName(PROFILE_NAMES[index]);
       expect(link).toHaveAttribute("href", expected[index].url);
       expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
     });
@@ -104,7 +111,9 @@ describe("menu footer (Headermain)", () => {
     const footer = document.querySelector(".menu_footer");
     const links = within(footer).getAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual(K11_LABELS);
-    links.forEach((link) => expect(link).not.toHaveAttribute("aria-label"));
+    links.forEach((link, index) =>
+      expect(link).toHaveAttribute("aria-label", PROFILE_NAMES[index]),
+    );
     expect(document.body.innerHTML).not.toMatch(/facebook/i);
   });
 });

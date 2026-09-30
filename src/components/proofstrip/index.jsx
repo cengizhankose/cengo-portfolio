@@ -2,6 +2,7 @@ import "./style.css";
 import { Fragment, useId } from "react";
 import { Link } from "react-router-dom";
 import { useContent, useLocalePath, useT } from "../../i18n";
+import ExternalLink from "../ExternalLink.jsx";
 
 // The ProofStrip (MKT-04): who the work was done for, the four first places
 // and, once they exist, named references. Used by the About page (variant
@@ -26,7 +27,8 @@ export const isCompleteTestimonial = (item) =>
 
 // Parts joined by a middle dot, optionally one link around the whole line.
 // The dots are decoration for the eye: screen readers get the parts as
-// separate runs of text.
+// separate runs of text. The evidence links point to other sites, so they
+// open in a new tab (ExternalLink, MKT-23).
 export function DotLine({ parts, href }) {
   const line = parts.map((part, index) => (
     <Fragment key={`${index}:${part}`}>
@@ -34,7 +36,12 @@ export function DotLine({ parts, href }) {
       {part}
     </Fragment>
   ));
-  return href ? <a href={href}>{line}</a> : <span>{line}</span>;
+  if (!href) return <span>{line}</span>;
+  return /^https?:\/\//i.test(href) ? (
+    <ExternalLink href={href}>{line}</ExternalLink>
+  ) : (
+    <a href={href}>{line}</a>
+  );
 }
 
 // "event · year · place · project", linked when the record has public

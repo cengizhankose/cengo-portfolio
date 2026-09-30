@@ -122,9 +122,11 @@ describe.each([
         span.style.getPropertyValue("--i"),
       ]),
     ).toEqual(hero.phrases.map((phrase, index) => [phrase, String(index)]));
+    // W7-MKT-hero-contact-conversion (MKT-02): the hidden text is the whole
+    // sentence (phrasesText), which ends on the last phrase.
     expect(
       document.querySelector(".intro__tagline .visually-hidden").textContent,
-    ).toBe(hero.phrases.at(-1));
+    ).toBe(hero.phrasesText);
     // What assistive technology gets from the hero, in order.
     const h1 = screen.getByRole("heading", { level: 1 });
     expect(h1.compareDocumentPosition(rotator)).toBe(

@@ -92,7 +92,11 @@ describe("icon-only controls have names (FE-02)", () => {
       screen.getByRole("button", { name: "Dark theme" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Menu" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "GitHub" })).toBeInTheDocument();
+    // W7-DSG-social-links: social links are named "<channel> profile (opens
+    // in a new tab)" (SEO-24/DSG-12/MKT-23).
+    expect(
+      screen.getByRole("link", { name: "GitHub profile (opens in a new tab)" }),
+    ).toBeInTheDocument();
   });
 
   it("leaves no unnamed button or link in the header", () => {

@@ -2,7 +2,7 @@
  * Post routes checked against the database (SEO-08, SEO-11 Adım A server
  * half). mountSite gets the real query module on PGlite (production schema,
  * published filter) plus a throwing stub:
- *   published, own language  -> 200 shell
+ *   published, own language  -> 200 page (head tags + article, SEO-01)
  *   other language           -> 301 to that language's path (T-12)
  *   missing or draft slug    -> 404 + noindex, title in the URL's language
  *   lookup error             -> 503 + Retry-After, no noindex
@@ -90,7 +90,9 @@ describe("published posts in their own language -> 200", () => {
     expect(res.headers.get("x-robots-tag")).toBeNull();
     const html = await res.text();
     expect(html).not.toContain("noindex");
-    expect(html).toContain('<div id="root"></div>');
+    // SEO-01: the article is in the raw HTML, so #root is no longer empty.
+    expect(html).not.toContain('<div id="root"></div>');
+    expect(html).toContain('<h1 class="blog-post-title-full">');
   });
 
   test("HEAD and If-None-Match work on a checked post", async () => {

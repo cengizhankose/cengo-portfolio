@@ -25,7 +25,8 @@
 // PERF-03 (T-06 Aşama 2) replaces this file with a real server render of the
 // same components.
 import { getContent, shared } from "../content/index.js";
-import { translate } from "../i18n/translate.js";
+import { interpolate, translate } from "../i18n/translate.js";
+import { heroStatusLine } from "../pages/home/heroStatus.js";
 import { formatDate, toDate, toIsoDate } from "../lib/format.js";
 import {
   groupPostsForLocale,
@@ -180,10 +181,14 @@ function homePage(route: SnapshotRoute, live: Live): Safe {
   const rotator = phrases.map(
     (phrase, index) => markup`<span style="--i: ${index}">${phrase}</span>`,
   );
-  const rings = markup`<div class="ring one"></div><div class="ring two"></div><div class="ring three"></div>`;
+  const rings = markup`<span class="ring one" aria-hidden="true"></span><span class="ring two" aria-hidden="true"></span><span class="ring three" aria-hidden="true"></span>`;
   const roleLang = hero.roleLang === route.locale ? null : hero.roleLang;
 
-  const text = markup`<div class="text h-100 d-lg-flex justify-content-center"><div class="align-self-center "><div class="intro mx-auto"><h1 class="intro__name">${hero.name} <span class="intro__role"${attr("lang", roleLang)}>${hero.role}</span></h1><p class="intro__tagline"><span class="rotator" aria-hidden="true">${rotator}</span><span class="visually-hidden">${phrases.at(-1)}</span></p><p class="intro__lead">${hero.lead}</p><div class="intro_btn-action pb-5"><a href="${localePath(ui, "/about")}" class="text_2"><div id="button_p" class="ac_btn btn ">${t("cta.aboutMe")}${rings}</div></a><a href="${localePath(ui, "/contact")}"><div id="button_h" class="ac_btn btn">${t("cta.contactMe")}${rings}</div></a></div></div></div></div>`;
+  // Mirrors src/pages/home/index.jsx after W7-MKT (MKT-02/16/19) and DSG-28:
+  // lead, status line, one-shot tagline, proof line, one button + one text link.
+  const status = heroStatusLine(hero) as { status: string; text: string };
+  const { contact } = getContent(route.locale) as Row;
+  const text = markup`<div class="text h-100 d-lg-flex justify-content-center"><div class="align-self-center "><div class="intro mx-auto"><h1 class="intro__name">${hero.name} <span class="intro__role"${attr("lang", roleLang)}>${hero.role}</span></h1><p class="intro__lead">${hero.lead}</p><p class="intro__status" data-status="${status.status}">${status.text}</p><p class="intro__tagline"><span class="rotator" aria-hidden="true">${rotator}</span><span class="visually-hidden">${hero.phrasesText ?? phrases.at(-1)}</span></p><p class="intro__proof">${hero.proofLine}</p><div class="intro__cta pb-5"><div class="intro_btn-action"><a href="${localePath(ui, "/contact")}" id="button_h" class="ac_btn btn">${t("cta.primary")}${rings}</a><a href="${localePath(ui, "/portfolio")}" class="intro__textlink">${t("cta.secondary")} <span aria-hidden="true">→</span></a></div><p class="intro__note">${t("cta.note", { time: contact.responseTime })}</p></div></div></div></div>`;
   const photo = markup`<div class="h_bg-image position-relative"><picture><source type="image/avif" srcset="${heroSrcSet("avif")}" sizes="${sizes}"><source type="image/webp" srcset="${heroSrcSet("webp")}" sizes="${sizes}"><img src="${heroSrc(HERO_IMAGE.fallbackWidth, "jpg")}" srcset="${heroSrcSet("jpg")}" sizes="${sizes}" width="${HERO_IMAGE.width}" height="${HERO_IMAGE.height}" alt="${t("home.photoAlt")}" fetchpriority="high" loading="eager"></picture></div>`;
   return markup`<section id="home" class="home"><div class="intro_sec d-block d-lg-flex align-items-center ">${text}${photo}</div></section>`;
 }
@@ -309,7 +314,7 @@ function contactPage(route: SnapshotRoute, live: Live): Safe {
   const t = translator(ui);
   const { contact } = getContent(route.locale) as Row;
   const email = (shared as Row).email as string;
-  return markup`<div class="container"><div class="mb-5 mt-3 row"><div class="col-lg-8"><h1 class="display-4 mb-4">${t("contact.title")}</h1><hr class="t_border my-4 ms-0 text-start"></div></div><div class="sec_sp row"><div class="mb-5 col-lg-5"><h2 class="h3 color_sec py-4">${t("contact.getInTouch")}</h2><address><strong>${t("contact.emailLabel")}</strong> <a href="mailto:${email}">${email}</a></address><p>${contact.description}</p></div></div></div>`;
+  return markup`<div class="container"><div class="mb-5 mt-3 row"><div class="col-lg-8"><h1 class="display-4 mb-4">${t("contact.title")}</h1><hr class="t_border my-4 ms-0 text-start"></div></div><div class="sec_sp row"><div class="mb-5 col-lg-5"><h2 class="h3 color_sec py-4">${t("contact.reachMe")}</h2><address><strong>${t("contact.emailLabel")}</strong> <a href="mailto:${email}">${email}</a></address><p>${interpolate(contact.description as string, { time: contact.responseTime as string })}</p></div></div></div>`;
 }
 
 // Portfolio (src/pages/portfolio/index.jsx): noindex while it has no cases (T-10).
@@ -405,7 +410,7 @@ function postPage(route: SnapshotRoute, post: Row, live: Live): Safe {
     ? markup`<p class="blog-post-date">${translate(lang, "post.published")} <time datetime="${published}">${formatDate(publishedValue, lang)}</time>${editedPart}</p>`
     : "";
   const body = raw(renderMarkdown(post.content));
-  return markup`<div class="blog-post-container" lang="${ui}"><a href="${blogPath}" class="blog-back"><span aria-hidden="true">←</span> ${t("post.backToBlog")}</a><article class="blog-post" lang="${lang}">${cover}<h1 class="blog-post-title-full">${post.title}</h1>${date}<div class="blog-content markdown-body">${body}</div></article></div>`;
+  return markup`<div class="blog-post-container" lang="${ui}"><a href="${blogPath}" class="blog-back"><span aria-hidden="true">←</span> ${t("post.backToBlog")}</a><article class="blog-post" lang="${lang}">${cover}<h1 class="blog-post-title-full">${post.title}</h1>${date}<div class="blog-content markdown-body" data-analytics-location="blog_body">${body}</div></article></div>`;
 }
 
 // ---------------------------------------------------------------- public API

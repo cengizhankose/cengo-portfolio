@@ -55,6 +55,7 @@ const submitButton = () => document.querySelector("button[type=submit]");
 async function fillForm(user) {
   await user.type(screen.getByLabelText("Name"), TYPED.name);
   await user.type(screen.getByLabelText("Email"), TYPED.email);
+  await user.selectOptions(screen.getByLabelText("Project type"), "web");
   await user.type(screen.getByLabelText("Message"), TYPED.message);
 }
 
@@ -76,14 +77,14 @@ const controlledWarnings = () =>
     .filter((text) => /uncontrolled|controlled input/i.test(text));
 
 describe("labels (DSG-04, FE-15)", () => {
-  it("binds a visible label to each of the three fields", () => {
+  it("binds a visible label to each of the four fields", () => {
     renderContact();
 
-    for (const label of ["Name", "Email", "Message"]) {
+    for (const label of ["Name", "Email", "Project type", "Message"]) {
       expect(screen.getByLabelText(label)).toBeInstanceOf(HTMLElement);
     }
     const labels = [...document.querySelectorAll(".contact__form label")];
-    expect(labels.filter((label) => label.control)).toHaveLength(3);
+    expect(labels.filter((label) => label.control)).toHaveLength(4);
     expect(
       FIELD_IDS.every((id) => document.getElementById(id).labels.length === 1),
     ).toBe(true);
@@ -110,7 +111,7 @@ describe("labels (DSG-04, FE-15)", () => {
     renderContact();
 
     expect(
-      screen.getByRole("button", { name: "Send message" }),
+      screen.getByRole("button", { name: "Send details" }),
     ).toHaveAttribute("type", "submit");
   });
 });
@@ -261,7 +262,7 @@ describe("successful send (MKT-11, DSG-05, FE-15)", () => {
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveClass("alert-success");
     expect(alert).toHaveTextContent(
-      "Message sent. I’ll reply to your email shortly.",
+      "Got it. I’ll reply to your email within 2 business days. Meanwhile, have a look at my latest post.",
     );
     expect(alert.textContent).not.toContain("!");
     expect(values()).toEqual(["", "", ""]);
@@ -300,6 +301,9 @@ describe("successful send (MKT-11, DSG-05, FE-15)", () => {
         user_name: TYPED.name,
         to_name: email,
         message: TYPED.message,
+        project_type: "web",
+        project_type_label: "Web app",
+        locale: "en",
       },
       SEND_OPTIONS,
     );
@@ -333,7 +337,7 @@ describe("while sending (DSG-05, MKT-11)", () => {
 
     expect(submitButton()).not.toBeDisabled();
     expect(submitButton()).toHaveAttribute("aria-busy", "false");
-    expect(submitButton()).toHaveTextContent("Send message");
+    expect(submitButton()).toHaveTextContent("Send details");
   });
 
   it("ignores a second submit fired before React re-renders", async () => {

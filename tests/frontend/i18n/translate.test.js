@@ -118,7 +118,7 @@ describe("defineDictionary (namespaced files -> flat keys)", () => {
     expect(en["social.label"]).toBe("Social links");
     expect(en["social.follow"]).toBe("Follow Me");
     expect(en["contact.success"]).toBe(
-      "Message sent. I’ll reply to your email shortly.",
+      "Got it. I’ll reply to your email within {time}. Meanwhile, have a look at {latestPost}.",
     );
     // TR values from the W2/W3 handoffs.
     const tr = DICTIONARIES.tr;
@@ -127,7 +127,8 @@ describe("defineDictionary (namespaced files -> flat keys)", () => {
     expect(tr["nav.menu"]).toBe("Menü");
     expect(tr["a11y.darkTheme"]).toBe("Koyu tema");
     expect(tr["social.label"]).toBe("Sosyal bağlantılar");
-    expect(tr["contact.honeypot"]).toBe("Bu alanı boş bırakın");
+    // W7-MKT-hero-contact-conversion: sen form, like the rest of the TR copy.
+    expect(tr["contact.honeypot"]).toBe("Bu alanı boş bırak");
   });
 });
 
@@ -147,7 +148,8 @@ describe("getContent(locale) (FE-14 step 6)", () => {
       "Delivery and quality",
     ]);
     expect(en.services).toHaveLength(4);
-    expect(en.contact.description).toMatch(/^Feel free to contact me/);
+    // W7-MKT-hero-contact-conversion (MKT-10): the reply promise and steps.
+    expect(en.contact.description).toMatch(/^I reply to your email within/);
   });
 
   it("TR falls back to EN field by field while TR is incomplete", () => {

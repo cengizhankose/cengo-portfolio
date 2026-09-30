@@ -115,9 +115,12 @@ describe("ProofStrip on the page (MKT-04)", () => {
     expect(
       [...awards].map((li) => li.querySelector("a").getAttribute("href")),
     ).toEqual(en.proof.awards.map((award) => award.url));
+    // The evidence links open in a new tab (ExternalLink, MKT-23): the
+    // hidden note ends the text.
     expect(awards[0].textContent).toBe(
-      "ConvoAI World Istanbul (Agora Voice AI Hackathon) · 2026 · 1st place · SalesGym",
+      "ConvoAI World Istanbul (Agora Voice AI Hackathon) · 2026 · 1st place · SalesGym (opens in a new tab)",
     );
+    expect(awards[0].querySelector("a")).toHaveAttribute("target", "_blank");
     expect(
       [...container.querySelectorAll(".proof-companies li")].map(
         (li) => li.textContent,

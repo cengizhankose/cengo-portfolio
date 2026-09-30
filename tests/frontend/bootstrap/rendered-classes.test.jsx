@@ -87,8 +87,9 @@ function collect(where) {
 async function fillAndSend(user) {
   await user.type(screen.getByLabelText("Name"), "Jane Doe");
   await user.type(screen.getByLabelText("Email"), "jane@example.com");
+  await user.selectOptions(screen.getByLabelText("Project type"), "web");
   await user.type(screen.getByLabelText("Message"), "Hi");
-  await user.click(screen.getByRole("button", { name: "Send message" }));
+  await user.click(screen.getByRole("button", { name: "Send details" }));
   return screen.findByRole("alert");
 }
 

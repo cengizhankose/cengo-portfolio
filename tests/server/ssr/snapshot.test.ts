@@ -1,3 +1,4 @@
+import { interpolate, translate } from "../../../src/i18n/translate.js";
 /**
  * renderSnapshot / renderNotFoundSnapshot (SEO-01 step 6): the readable
  * content written into <div id="root">. Text is escaped, the body of a post is
@@ -379,7 +380,12 @@ describe("static pages", () => {
     expect(html).toContain(
       '<a href="mailto:hello@cengizhankose.com">hello@cengizhankose.com</a>',
     );
-    expect(html).toContain((getContent("en") as any).contact.description);
+    const contact = (getContent("en") as any).contact;
+    // W7-MKT: the description carries the reply promise through {time}.
+    expect(html).toContain(
+      interpolate(contact.description, { time: contact.responseTime }),
+    );
+    expect(html).not.toContain("{time}");
     expect(html).not.toContain("<form");
   });
 
@@ -433,9 +439,15 @@ describe("TR pages (once LIVE.static opens 'tr')", () => {
 
   test("the text is Turkish", () => {
     expect(snap("/tr/about", "tr", {}, ALL_LIVE)).toContain("Hakkımda");
-    expect(snap("/tr/contact", "tr", {}, ALL_LIVE)).toContain("İletişime geç");
+    expect(snap("/tr/contact", "tr", {}, ALL_LIVE)).toContain("Doğrudan ulaş");
     const home = snap("/tr", "tr", {}, ALL_LIVE);
-    expect(home).toContain('<div id="button_p" class="ac_btn btn ">Hakkımda');
+    // W7-MKT (MKT-19) + DSG-28: one primary button (the link itself) + one text link.
+    expect(home).toContain(
+      `id="button_h" class="ac_btn btn">${translate("tr", "cta.primary")}`,
+    );
+    expect(home).toContain(
+      `class="intro__textlink">${translate("tr", "cta.secondary")}`,
+    );
     // The role keeps its own language on the TR page (WCAG 3.1.2).
     expect(home).toContain('<span class="intro__role" lang="en">');
   });

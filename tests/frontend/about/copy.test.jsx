@@ -64,13 +64,16 @@ describe("Bootstrap 4 leftovers and undefined classes (FE-28, DSG-34, SEO-20)", 
 
   it("keeps About-header only as the defined scope of the DSG-01 table rule", () => {
     // FE-28 removed it where it styled nothing (portfolio); on About it is
-    // the selector of the table rule in about/style.css (DSG-01).
+    // the selector of the table rule in about/style.css (DSG-01). The server
+    // snapshot of the About page (SEO-01, src/seo/snapshot.ts) mirrors the
+    // page's markup, so it carries the same class.
     const files = new Set(
       grep(/\bAbout-header\b/).map((hit) => hit.split(":")[0]),
     );
     expect([...files]).toEqual([
       "src/pages/about/index.jsx",
       "src/pages/about/style.css",
+      "src/seo/snapshot.ts",
     ]);
   });
 
