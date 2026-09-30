@@ -30,51 +30,14 @@
   transition: 0.3s ease;
   margin-bottom: 1rem;
 }
+/* Skill names are list items now (SEO-13, FE-27), not <h3>s: no margin
+   reset (the item keeps its 1rem gap) and the old heading line height. */
 .progress-title {
   font-size: 16px;
   font-weight: 700;
-  margin: 0;
+  line-height: 1.2;
   font-family: "Raleway";
   padding: 10px;
-}
-
-.progress {
-  height: 5px;
-  background: var(--secondary);
-  border-radius: 0;
-  box-shadow: none;
-  margin-bottom: 30px;
-  overflow: visible;
-}
-
-.progress .progress-bar {
-  position: relative;
-  background: var(--text-color);
-  animation: animate-positive 2s;
-  overflow: visible;
-  opacity: 0.9;
-}
-
-.progress .progress-value {
-  position: absolute;
-  top: -30px;
-  right: 8px;
-  font-size: 17px;
-  font-weight: bold;
-  font-style: italic;
-  color: var(--text-color);
-}
-
-@-webkit-keyframes animate-positive {
-  0% {
-    width: 0%;
-  }
-}
-
-@keyframes animate-positive {
-  0% {
-    width: 0%;
-  }
 }
 
 .section-title {

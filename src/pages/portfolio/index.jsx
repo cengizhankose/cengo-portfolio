@@ -10,11 +10,11 @@ export const Portfolio = () => {
   usePageMeta(getPageMeta(route, route.locale));
 
   return (
-    <Container className="About-header">
+    <Container>
       <Row className="mb-5 mt-3">
         <Col lg="8">
           <h1 className="display-4 mb-4"> Portfolio </h1>{" "}
-          <hr className="t_border my-4 ml-0 text-left" />
+          <hr className="t_border my-4 ms-0 text-start" />
           <h2 className="display-4 mt-4"> 🚧 Under Construction 🚧 </h2>{" "}
         </Col>
       </Row>

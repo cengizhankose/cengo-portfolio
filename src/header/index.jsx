@@ -160,7 +160,9 @@ const Headermain = () => {
                 </li>
               ))}
             </ul>
-            <p className="copyright m-0">copyright __ {logotext}</p>
+            <p className="copyright m-0">
+              © {new Date().getFullYear()} Cengizhan Köse
+            </p>
           </div>
         </div>
       </header>
