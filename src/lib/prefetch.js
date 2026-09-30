@@ -11,11 +11,13 @@
 // a link to a closed language or a 404 never costs a request. Nothing runs
 // on a Save-Data connection.
 //
-// Extension point: W6-PERF-code-split adds the page chunk preload to
-// prefetchRoute() below (loadBlogHome / loadBlogPost from
-// src/pages/blog/loaders.js), next to the data keys.
+// The page chunk is preloaded next to the data (PERF-04/FE-05): BlogHome for
+// the list, BlogPost (with the markdown chain) for a post, through the same
+// loaders the lazy routes use (src/pages/blog/loaders.js), so a hover and the
+// click after it share one request per chunk.
 import { matchRoute } from "../seo/routes.js";
 import { prefetchKey } from "../hooks/usePosts.js";
+import { loadBlogHome, loadBlogPost } from "../pages/blog/loaders.js";
 import { blogIndexKeys, postKey } from "./swr.js";
 
 export const PREFETCH_SELECTOR = "a[href*='/blog']";
@@ -29,9 +31,29 @@ export function keysForRoute(route) {
   return [];
 }
 
-// Starts everything the page at `route` needs. `swr` is { cache, mutate,
-// fallback } from the app's <SWRConfig> (useSWRConfig()).
+// chunkLoaderForRoute(matchRoute('/blog/x')) -> loadBlogPost
+export function chunkLoaderForRoute(route) {
+  if (route?.type === "post") return loadBlogPost;
+  if (route?.type === "static" && route.path === "/blog") return loadBlogHome;
+  return null;
+}
+
+// Starts the page chunk of `route`. A failed preload is ignored: the page
+// asks for its chunk again when it renders (and lazyPage handles that).
+export function prefetchChunk(route) {
+  const load = chunkLoaderForRoute(route);
+  if (!load) return;
+  try {
+    Promise.resolve(load()).catch(() => {});
+  } catch {
+    // A loader that throws synchronously is treated like a failed preload.
+  }
+}
+
+// Starts everything the page at `route` needs: its chunk and its data. `swr`
+// is { cache, mutate, fallback } from the app's <SWRConfig> (useSWRConfig()).
 export function prefetchRoute(route, swr) {
+  prefetchChunk(route);
   for (const key of keysForRoute(route)) prefetchKey(key, swr);
 }
 
