@@ -2,7 +2,6 @@
 // only; W5-FE-blog-data-layer (FE-03/FE-12, error state + swr) owns and
 // updates this file.
 import { render, screen, waitFor } from "@testing-library/react";
-import { HelmetProvider } from "react-helmet-async";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import BlogHome from "../../../src/pages/blog/BlogHome";
@@ -35,11 +34,9 @@ function jsonResponse(body, status = 200) {
 
 function renderBlogHome() {
   return render(
-    <HelmetProvider>
-      <MemoryRouter initialEntries={["/blog"]}>
-        <BlogHome />
-      </MemoryRouter>
-    </HelmetProvider>,
+    <MemoryRouter initialEntries={["/blog"]}>
+      <BlogHome />
+    </MemoryRouter>,
   );
 }
 

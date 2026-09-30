@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { getPageMeta } from "../../seo/pages.js";
+import { matchRoute } from "../../seo/routes.js";
+import { usePageMeta } from "../../seo/usePageMeta.js";
 import "./style.css";
 
 const formatDate = (dateString) => {
@@ -21,6 +23,8 @@ const formatDate = (dateString) => {
 const BlogHome = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const route = matchRoute(useLocation().pathname);
+  usePageMeta(getPageMeta(route, route.locale));
 
   useEffect(() => {
     const apiUrl = import.meta.env.DEV
@@ -42,10 +46,6 @@ const BlogHome = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Blog | Cengizhan Köse</title>
-        <meta name="description" content="Thoughts, tutorials, and insights" />
-      </Helmet>
       <div className="blog-container">
         <h1 className="blog-title">Blog</h1>
         {posts.length === 0 ? (

@@ -1,12 +1,11 @@
+import { SOCIAL_PROFILES } from "./seo/site.js";
+
+// Page titles and descriptions are not here: they come from src/seo/pages.js
+// (T-03, SEO-09, MKT-21).
 const logotext = "CENGO";
-const meta = {
-  title: "Cengizhan KÖSE",
-  description:
-    "I’m Cengizhan KÖSE Mobile Developer _ Full stack developer,currently working in Turkey",
-};
 
 const introdata = {
-  title: "I’m Cengizhan KÖSE",
+  title: "I’m Cengizhan Köse",
   animated: {
     first: "I love coding and designing",
     second: "I have some startup projects",
@@ -187,17 +186,18 @@ const contactConfig = {
   YOUR_USER_ID: "aPMkFJ3oavgGNOmn3",
 };
 
-const socialprofils = {
-  github: "https://github.com/cengizhankose",
-  linkedin: "https://www.linkedin.com/in/cengizhankose",
-  twitter: "https://twitter.com/cengzhnkse",
-  youtube: "https://www.youtube.com/channel/UCJoBOMar4ZAN-5fnpIO8cnQ",
-  twitch: "https://www.twitch.tv/cengizhankose",
-  facebook: "https://www.facebook.com/cengizhan.kose1/",
-  instagram: "https://www.instagram.com/cengizhankse/",
-};
+// { id: url } in K-11 order, derived from the single list in src/seo/site.js
+// (no Facebook). `twitter` is a non-enumerable alias of `x` for components
+// that still read the old key; it never shows up when iterating.
+const socialprofils = Object.fromEntries(
+  SOCIAL_PROFILES.map(({ id, url }) => [id, url]),
+);
+Object.defineProperty(socialprofils, "twitter", {
+  value: socialprofils.x,
+  enumerable: false,
+});
+
 export {
-  meta,
   dataabout,
   dataportfolio,
   worktimeline,
