@@ -160,13 +160,20 @@ describe("blog post meta (MKT-21 step 4, SEO-10, SEO-09)", () => {
     ).toBe("Short one | Cengizhan Köse");
   });
 
-  test("the brand suffix is dropped when it would pass 60 characters", () => {
+  test("the brand suffix is always kept (DSG-33 table, FE-25 pattern)", () => {
     const long = "x".repeat(50);
-    expect(buildTitle(long).length).toBeGreaterThan(TITLE_MAX_LENGTH);
-    expect(postTitle({ title: long })).toBe(long);
-    const fits = "y".repeat(60 - " | Cengizhan Köse".length);
-    expect(postTitle({ title: fits })).toBe(`${fits} | Cengizhan Köse`);
-    expect(postTitle({ title: fits }).length).toBe(TITLE_MAX_LENGTH);
+    expect(postTitle({ title: long })).toBe(`${long} | Cengizhan Köse`);
+    expect(postTitle({ title: "   " })).toBe(SITE_NAME);
+    expect(postTitle(null)).toBe(SITE_NAME);
+  });
+
+  test("a 41-character seoTitle fits the 60-character limit with the suffix", () => {
+    // SEO-10's draft seoTitle length for the live post.
+    const seoTitle = "z".repeat(41);
+    expect(postTitle({ title: "x".repeat(98), seoTitle }).length).toBe(58);
+    expect(postTitle({ seoTitle }).length).toBeLessThanOrEqual(
+      TITLE_MAX_LENGTH,
+    );
   });
 
   test("the description falls back to the title when there is no excerpt", () => {

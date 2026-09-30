@@ -10,7 +10,7 @@
 // { en: { title, description, robots? }, tr: { ... } } so later waves can edit
 // one route without touching this builder. canonical (SEO-04), og (SEO-06),
 // jsonLd (SEO-07) and alternates (SEO-11) are added here by later packages.
-import { buildTitle, DEFAULT_LOCALE, LOCALES, SITE_NAME } from "./site.js";
+import { buildTitle, DEFAULT_LOCALE, LOCALES } from "./site.js";
 import { matchRoute, STATIC_PATHS } from "./routes.js";
 import home from "./pages/home.js";
 import about from "./pages/about.js";
@@ -47,7 +47,8 @@ export const pages = Object.freeze({
   postNotFound: post,
 });
 
-// SEO-10: longer titles are cut off in search results.
+// SEO-10: longer titles are cut off in search results. Every static title
+// stays within it (tests/server/seo/meta.test.ts).
 export const TITLE_MAX_LENGTH = 60;
 
 function clean(value) {
@@ -68,14 +69,11 @@ function fromEntry(entry, lang) {
   };
 }
 
-// SEO-10 / T-07: "<seoTitle ?? title> | Cengizhan Köse" in the post's own
-// language. When the brand suffix pushes it past 60 characters the suffix is
-// dropped and the post title is used alone.
+// DSG-33 / MKT-21 / T-07: "<seoTitle ?? title> | Cengizhan Köse" in the
+// post's own language. Keeping titles within TITLE_MAX_LENGTH is the job of
+// the post's seoTitle (SEO-10, W3); the suffix is never dropped here.
 export function postTitle(postData) {
-  const topic = clean(postData?.seoTitle) || clean(postData?.title);
-  if (!topic) return SITE_NAME;
-  const full = buildTitle(topic);
-  return full.length > TITLE_MAX_LENGTH ? topic : full;
+  return buildTitle(clean(postData?.seoTitle) || clean(postData?.title));
 }
 
 // SEO-09 / MKT-21: the post's excerpt, or its title when there is none.
