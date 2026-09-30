@@ -102,9 +102,31 @@ function flush() {
   }
 }
 
+function watchTracker(script) {
+  script.addEventListener("load", () => {
+    state = "ready";
+    flush();
+  });
+  script.addEventListener("error", () => {
+    state = "failed";
+    queue = [];
+  });
+}
+
 function injectTracker(doc, config) {
   const existing = doc.getElementById(TRACKER_ELEMENT_ID);
-  if (existing) return existing;
+  if (existing) {
+    // A tag that is already in the document (printed by the server, or left
+    // by an earlier init): either it has loaded already and window.umami is
+    // there, or it is still loading and we wait for it like our own tag.
+    if (typeof getWindow()?.umami?.track === "function") {
+      state = "ready";
+      flush();
+    } else {
+      watchTracker(existing);
+    }
+    return existing;
+  }
 
   const script = doc.createElement("script");
   script.id = TRACKER_ELEMENT_ID;
@@ -116,14 +138,7 @@ function injectTracker(doc, config) {
   if (config.respectDoNotTrack) {
     script.setAttribute("data-do-not-track", "true");
   }
-  script.addEventListener("load", () => {
-    state = "ready";
-    flush();
-  });
-  script.addEventListener("error", () => {
-    state = "failed";
-    queue = [];
-  });
+  watchTracker(script);
   doc.head.appendChild(script);
   return script;
 }
@@ -167,9 +182,12 @@ export function initAnalytics({
     // ANL-09: outbound clicks, only once tracking is on. Clicks before the
     // tracker has loaded wait in the queue like any other event.
     initOutboundTracking({ send: track, doc: win.document });
-    // ANL-06 / PERF-23: web-vitals stays out of the entry chunk.
+    // ANL-06 / PERF-23: web-vitals stays out of the entry chunk. The landing
+    // pathname is read now, not when the chunk arrives: a SPA navigation in
+    // between must not tag the landing page with the next page's type.
+    const landingPathname = win.location.pathname;
     import("../webVitals.js")
-      .then((module) => module.initWebVitals())
+      .then((module) => module.initWebVitals({ pathname: landingPathname }))
       .catch(() => {});
     return true;
   } catch {
@@ -228,16 +246,18 @@ export function track(name, props = {}) {
  * referrer (ANL-03); later ones send the bare path and the previous path as
  * referrer, as Umami's auto-tracking would.
  */
-export function trackPageview({
-  path,
-  search,
-  pageType,
-  postSlug,
-  uiLocale,
-  contentLanguage,
-  title,
-} = {}) {
+export function trackPageview(context = {}) {
   try {
+    // trackPageview("/about") is the same as trackPageview({ path: "/about" }).
+    const {
+      path,
+      search,
+      pageType,
+      postSlug,
+      uiLocale,
+      contentLanguage,
+      title,
+    } = typeof context === "string" ? { path: context } : (context ?? {});
     const win = getWindow();
     const pathname = cleanPath(path ?? win?.location.pathname ?? "/");
     setPageContext({
