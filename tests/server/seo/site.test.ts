@@ -1,11 +1,12 @@
 /**
- * src/seo/site.js contract (T-03, K-03, K-11, T-12) and the socialprofils
- * object that src/content_option.js derives from it.
+ * src/seo/site.js contract (T-03, K-03, K-11, T-12) and the shared content
+ * data (src/content, FE-14) that sits next to it.
  */
 import { describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import * as contentOption from "../../../src/content_option.js";
+import * as shared from "../../../src/content/shared.js";
+import en from "../../../src/content/en.js";
 import {
   AUTHOR,
   DEFAULT_LOCALE,
@@ -107,26 +108,17 @@ describe("SOCIAL_PROFILES (K-11)", () => {
   });
 });
 
-describe("content_option.js (MKT-21 step 6, DSG-33 step 1)", () => {
-  const { socialprofils } = contentOption as Record<string, any>;
-
-  test("socialprofils is derived from SOCIAL_PROFILES in K-11 order", () => {
-    expect(Object.keys(socialprofils)).toEqual(K11);
-    for (const { id, url } of SOCIAL_PROFILES) {
-      expect(socialprofils[id]).toBe(url);
-    }
-    expect(socialprofils).not.toHaveProperty("facebook");
+describe("shared content (FE-14; MKT-21 step 6, DSG-33 step 1)", () => {
+  test("no page meta in the content modules and the name is spelled Köse", () => {
+    expect(shared).not.toHaveProperty("meta");
+    expect(en).not.toHaveProperty("meta");
+    expect((en as any).hero.title).toContain("Cengizhan Köse");
+    expect(shared.logotext).toBe("CENGO");
   });
 
-  test("twitter stays readable as a non-enumerable alias of x", () => {
-    expect(socialprofils.twitter).toBe("https://x.com/cengzhnkse");
-    expect(Object.keys(socialprofils)).not.toContain("twitter");
-    expect(Object.entries(socialprofils)).toHaveLength(6);
-  });
-
-  test("the page meta export is gone and the name is spelled Köse", () => {
-    expect(contentOption).not.toHaveProperty("meta");
-    expect((contentOption as any).introdata.title).toContain("Cengizhan Köse");
+  test("no second social profile list next to SOCIAL_PROFILES", () => {
+    expect(shared).not.toHaveProperty("socialprofils");
+    expect(en).not.toHaveProperty("social");
   });
 });
 

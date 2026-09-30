@@ -21,7 +21,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@emailjs/browser", () => ({ default: { send: vi.fn() } }));
 
 import emailjs from "@emailjs/browser";
-import { contactConfig } from "../../../src/content_option";
+import { email, emailjs as ids } from "../../../src/content/shared.js";
 import { ContactUs } from "../../../src/pages/contact";
 
 const TYPED = { name: "Jane Doe", email: "jane@example.com", message: "Hi" };
@@ -29,7 +29,7 @@ const HONEYPOT = "subject";
 const FIELD_IDS = ["name", "email", "message"];
 const RATE_LIMIT_ID = "contact-form";
 const SEND_OPTIONS = {
-  publicKey: contactConfig.YOUR_PUBLIC_KEY,
+  publicKey: ids.publicKey,
   blockHeadless: true,
   limitRate: { id: RATE_LIMIT_ID, throttle: 30000 },
 };
@@ -135,7 +135,7 @@ describe("failed send (MKT-11, DSG-05, FE-15, FE-36)", () => {
     expect(screen.queryByText(/Bad Request/)).toBeNull();
     const link = within(alert).getByRole("link", { name: /email me/i });
     expect(link.getAttribute("href")).toMatch(/^mailto:/);
-    expect(link).toHaveAttribute("href", `mailto:${contactConfig.YOUR_EMAIL}`);
+    expect(link).toHaveAttribute("href", `mailto:${email}`);
     // Readable on the alert background: Bootstrap's alert link colour.
     expect(link).toHaveClass("alert-link");
     // The raw error is only logged.
@@ -203,7 +203,7 @@ describe("failed send (MKT-11, DSG-05, FE-15, FE-36)", () => {
     expect(alert.textContent).not.toContain("Too Many Requests");
     expect(
       within(alert).getByRole("link", { name: /email me/i }),
-    ).toHaveAttribute("href", `mailto:${contactConfig.YOUR_EMAIL}`);
+    ).toHaveAttribute("href", `mailto:${email}`);
     expect(values()).toEqual([TYPED.name, TYPED.email, TYPED.message]);
   });
 
@@ -293,12 +293,12 @@ describe("successful send (MKT-11, DSG-05, FE-15)", () => {
 
     expect(emailjs.send).toHaveBeenCalledTimes(1);
     expect(emailjs.send).toHaveBeenCalledWith(
-      contactConfig.YOUR_SERVICE_ID,
-      contactConfig.YOUR_TEMPLATE_ID,
+      ids.serviceId,
+      ids.templateId,
       {
         from_name: TYPED.email,
         user_name: TYPED.name,
-        to_name: contactConfig.YOUR_EMAIL,
+        to_name: email,
         message: TYPED.message,
       },
       SEND_OPTIONS,

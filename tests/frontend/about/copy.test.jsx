@@ -46,7 +46,7 @@ describe("typos (MKT-09, DSG-23, FE-36, SEO-13, FE-27)", () => {
 
   it("capitalises the pronoun I in the page copy", () => {
     expect(
-      grep(/(^|[^A-Za-z])i (have|love|work)/, ["src/content_option.js"]),
+      grep(/(^|[^A-Za-z])i (have|love|work)/, sourceFiles("src/content")),
     ).toEqual([]);
   });
 

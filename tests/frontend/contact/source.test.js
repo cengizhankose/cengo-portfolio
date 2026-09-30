@@ -105,15 +105,19 @@ describe("contact source (MKT-11, MKT-09, FE-36, W1 lint handoff)", () => {
   });
 
   it("keeps the status messages free of exclamation marks and typos", async () => {
-    const { contactConfig } = await import("../../../src/content_option.js");
-    const texts = Object.values(contactConfig.messages);
-    expect(texts.length).toBeGreaterThanOrEqual(4);
-    for (const text of texts) {
-      expect(text).not.toContain("!");
-      expect(text).not.toMatch(/thankyou|messege|faild/i);
+    // FE-14: the messages live in src/i18n/{en,tr}/contact.js.
+    const { DICTIONARIES } = await import("../../../src/i18n/translate.js");
+    for (const dict of Object.values(DICTIONARIES)) {
+      const texts = ["success", "error", "rateLimited", "emailMe"].map(
+        (key) => dict[`contact.${key}`],
+      );
+      for (const text of texts) {
+        expect(text).not.toContain("!");
+        expect(text).not.toMatch(/thankyou|messege|faild/i);
+      }
+      expect(dict["contact.error"]).toContain("{emailMe}");
+      expect(dict["contact.rateLimited"]).toContain("{emailMe}");
     }
-    expect(contactConfig.messages.error).toContain("{emailMe}");
-    expect(contactConfig.messages.rateLimited).toContain("{emailMe}");
   });
 });
 
@@ -159,7 +163,7 @@ describe("lint (W3 gate: zero findings in this package's files)", () => {
       "src/pages/home/index.jsx",
       "src/pages/portfolio/index.jsx",
       "src/header/index.jsx",
-      "src/content_option.js",
+      "src/content/shared.js",
     ]);
 
     const findings = results.flatMap(({ filePath, messages }) =>

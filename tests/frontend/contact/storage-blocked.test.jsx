@@ -43,7 +43,7 @@ const storage = vi.hoisted(() => {
   return { block, restore };
 });
 
-import { contactConfig } from "../../../src/content_option";
+import { email } from "../../../src/content/shared.js";
 import { ContactUs } from "../../../src/pages/contact";
 
 const TYPED = { name: "Jane Doe", email: "jane@example.com", message: "Hi" };
@@ -112,7 +112,7 @@ describe("site data blocked (real @emailjs/browser)", () => {
     expect(alert.textContent).not.toMatch(/SecurityError|localStorage/);
     expect(
       within(alert).getByRole("link", { name: /email me/i }),
-    ).toHaveAttribute("href", `mailto:${contactConfig.YOUR_EMAIL}`);
+    ).toHaveAttribute("href", `mailto:${email}`);
     expect(values()).toEqual([TYPED.name, TYPED.email, TYPED.message]);
     expect(document.activeElement).toBe(alert);
     // The load error is logged, not shown.

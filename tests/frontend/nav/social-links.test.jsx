@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import { socialprofils } from "../../../src/content_option";
+import { SOCIAL_PROFILE_URLS as socialprofils } from "../../../src/components/socialicons";
 import { Socialicons } from "../../../src/components/socialicons";
 import {
   getSocialLinks,

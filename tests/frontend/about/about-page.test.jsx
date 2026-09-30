@@ -5,8 +5,10 @@ import { render, screen } from "@testing-library/react";
 import axe from "axe-core";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import { services, skills } from "../../../src/content_option";
+import { getContent } from "../../../src/content/index.js";
 import { About } from "../../../src/pages/about";
+
+const { services, skills } = getContent("en");
 
 function renderAbout() {
   return render(

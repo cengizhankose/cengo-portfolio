@@ -7,10 +7,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AppRoutes from "../../../src/app/routes";
 import { NotFound } from "../../../src/pages/notfound";
-import {
-  NOT_FOUND_COPY,
-  notFoundCopy,
-} from "../../../src/pages/notfound/copy.js";
+import { DICTIONARIES, translate } from "../../../src/i18n/translate.js";
 import { pages } from "../../../src/seo/pages.js";
 
 function renderAt(path) {
@@ -109,20 +106,21 @@ describe("unknown paths (FE-16 criteria 1-3)", () => {
 
 describe("NotFound copy", () => {
   it("has the same keys in both languages and matches the meta titles", () => {
-    const shape = (copy) =>
-      JSON.stringify(copy, (key, value) =>
-        typeof value === "string" ? "" : value,
-      );
-    expect(shape(NOT_FOUND_COPY.tr)).toBe(shape(NOT_FOUND_COPY.en));
+    // FE-14: the strings live in src/i18n/{en,tr}/notFound.js.
+    const keys = (lang) =>
+      Object.keys(DICTIONARIES[lang])
+        .filter((key) => key.startsWith("notFound."))
+        .sort();
+    expect(keys("tr")).toEqual(keys("en"));
     for (const locale of ["en", "tr"]) {
-      expect(`${notFoundCopy(locale).title} | Cengizhan Köse`).toBe(
-        pages.notFound[locale].title,
-      );
-      expect(`${notFoundCopy(locale, "post").title} | Cengizhan Köse`).toBe(
-        pages.postNotFound[locale].title,
-      );
+      expect(
+        `${translate(locale, "notFound.page.title")} | Cengizhan Köse`,
+      ).toBe(pages.notFound[locale].title);
+      expect(
+        `${translate(locale, "notFound.post.title")} | Cengizhan Köse`,
+      ).toBe(pages.postNotFound[locale].title);
     }
-    expect(notFoundCopy("de").title).toBe("Page not found");
+    expect(translate("de", "notFound.page.title")).toBe("Page not found");
   });
 
   it("variant='post' on a TR post URL: TR heading, links to the live blog", async () => {

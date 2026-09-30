@@ -1,9 +1,9 @@
 // Social channels shown on the site (K-11), in display order, with the icon
 // and the accessible name of each link (FE-02).
 //
-// The URLs are not kept here: they come from the `socialprofils` map in
-// content_option.js (derived from SOCIAL_PROFILES in src/seo/site.js once
-// SEO-25 lands). Labels are brand names, identical in EN and TR.
+// The URLs are not kept here: callers pass the { id: url } map built from
+// SOCIAL_PROFILES in src/seo/site.js (SOCIAL_PROFILE_URLS in ./index.jsx).
+// Labels are brand names, identical in EN and TR.
 import {
   FaGithub,
   FaInstagram,

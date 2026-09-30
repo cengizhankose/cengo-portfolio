@@ -195,16 +195,35 @@ describe("slug validation", () => {
   });
 });
 
-describe("routes.jsx agrees with the table (SEO-02 step 7)", () => {
-  const source = readFileSync(join(ROOT, "src/app/routes.jsx"), "utf8");
-  // Both <Route path="/x"> and route-table objects ({ path: "/x" }).
-  const paths = [...source.matchAll(/\bpath\s*[=:]\s*["']([^"']+)["']/g)]
-    .map((m) => m[1])
-    .filter((path) => path !== "*");
+describe("the client page table agrees with the route table (SEO-02 step 7)", () => {
+  // FE-14 (W4): the page table is src/app/pageRoutes.jsx (PAGE_ROUTES, one
+  // language-independent path per page) mapped over LOCALES with the
+  // LOCALE_PREFIX of each language; routes.jsx keeps the shell and the "*"
+  // fallback.
+  const table = readFileSync(join(ROOT, "src/app/pageRoutes.jsx"), "utf8");
+  const shell = readFileSync(join(ROOT, "src/app/routes.jsx"), "utf8");
+  const block = table.slice(
+    table.indexOf("PAGE_ROUTES = Object.freeze(["),
+    table.indexOf("]);", table.indexOf("PAGE_ROUTES = Object.freeze([")),
+  );
+  const pagePaths = [...block.matchAll(/\bpath:\s*["']([^"']+)["']/g)].map(
+    (m) => m[1],
+  );
+  const withPrefix = (prefix: string, path: string) =>
+    path === "/" ? prefix || "/" : `${prefix}${path}`;
+  const paths = LOCALES.flatMap((locale) =>
+    pagePaths.map((path) => withPrefix(prefixes[locale], path)),
+  );
   const concrete = paths.map((p) => p.replace(/:[A-Za-z]+/g, "sample"));
 
+  test("the table is mapped over every language", () => {
+    expect(pagePaths.length).toBeGreaterThan(0);
+    expect(table).toMatch(/LOCALES\.flatMap\(/);
+    expect(table).toMatch(/localePath\(locale, path\)/);
+    expect(shell).toMatch(/\{pageRoutes\(\)\}/);
+  });
+
   test("every client path is known to matchRoute with every language open", () => {
-    expect(paths.length).toBeGreaterThan(0);
     for (const [index, url] of concrete.entries()) {
       expect(matchRoute(url, ALL_LIVE).type, paths[index]).not.toBe("notfound");
     }
@@ -220,8 +239,9 @@ describe("routes.jsx agrees with the table (SEO-02 step 7)", () => {
       const prefix = prefixes[locale];
       if (live.static.includes(locale)) {
         for (const path of STATIC_PATHS) {
-          const url = path === "/" ? prefix || "/" : `${prefix}${path}`;
-          expect(concrete, url).toContain(url);
+          expect(concrete, withPrefix(prefix, path)).toContain(
+            withPrefix(prefix, path),
+          );
         }
       }
       if (live.post.includes(locale)) {
@@ -231,7 +251,7 @@ describe("routes.jsx agrees with the table (SEO-02 step 7)", () => {
   });
 
   test("unknown paths render NotFound, not Home (FE-16)", () => {
-    expect(source).toMatch(/<Route path="\*" element={<NotFound \/>} \/>/);
-    expect(source).not.toMatch(/path="\*" element={<Home/);
+    expect(shell).toMatch(/<Route path="\*" element={<NotFound \/>} \/>/);
+    expect(shell).not.toMatch(/path="\*" element={<Home/);
   });
 });

@@ -13,7 +13,7 @@ vi.mock("@emailjs/browser", () => {
   );
 });
 
-import { contactConfig } from "../../../src/content_option";
+import { email } from "../../../src/content/shared.js";
 import { ContactUs } from "../../../src/pages/contact";
 
 const TYPED = { name: "Jane Doe", email: "jane@example.com", message: "Hi" };
@@ -49,7 +49,7 @@ describe("SDK chunk not loaded", () => {
     expect(alert.textContent).not.toMatch(/Failed to fetch|TypeError/);
     expect(
       within(alert).getByRole("link", { name: /email me/i }),
-    ).toHaveAttribute("href", `mailto:${contactConfig.YOUR_EMAIL}`);
+    ).toHaveAttribute("href", `mailto:${email}`);
     expect(values()).toEqual([TYPED.name, TYPED.email, TYPED.message]);
     expect(document.activeElement).toBe(alert);
     expect(

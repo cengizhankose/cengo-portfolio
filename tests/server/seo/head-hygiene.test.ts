@@ -103,7 +103,9 @@ describe("every page component writes its meta (FE-25 risk guard)", () => {
     (file) => {
       const source = read(join(ROOT, file));
       expect(source).toMatch(/usePageMeta\(\s*getPageMeta\(/);
-      expect(source).toMatch(/matchRoute\(/);
+      // FE-14: pages read the route through useRoute() (src/i18n), which is
+      // matchRoute(pathname) memoised per pathname.
+      expect(source).toMatch(/\b(useRoute\(\)|matchRoute\()/);
     },
   );
 
