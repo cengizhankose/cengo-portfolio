@@ -206,6 +206,14 @@ describe("index.html head structure", () => {
     expect(bgColor(":root")).toBe(THEME_COLORS.dark);
     expect(bgColor('[data-theme="light"]')).toBe(THEME_COLORS.light);
   });
+
+  it("agrees with the manifest's default (dark) theme_color", () => {
+    const manifest = JSON.parse(
+      readFileSync(join(ROOT, "public", "manifest.json"), "utf8"),
+    );
+    expect(manifest.theme_color).toBe(THEME_COLORS.dark);
+    expect(manifest.background_color).toBe(THEME_COLORS.dark);
+  });
 });
 
 function block(selector) {
