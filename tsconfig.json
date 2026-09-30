@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["bun"],
+    "allowJs": true,
+    "checkJs": false
+  },
+  "include": [
+    "server.ts",
+    "src/api/**/*.ts",
+    "src/server/**/*.ts",
+    "src/seo/**/*.ts",
+    "src/db/**/*.ts",
+    "scripts/**/*.ts",
+    "tests/server/**/*.ts",
+    "drizzle.config.ts"
+  ]
+}
