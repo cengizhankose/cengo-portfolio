@@ -3,7 +3,7 @@
 // state only follows a successful empty answer; a missing post is not an
 // error. `track` is mocked; swr's real retry policy runs (fake timers) to
 // show that retries do not send a second event.
-import { act, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { track } from "../../../src/lib/analytics";
@@ -25,7 +25,7 @@ beforeEach(() => {
 });
 
 describe("list endpoint (ANL-15 criteria 1-3)", () => {
-  it("500: error text + 'Try again', no 'No posts yet', one event despite retries", async () => {
+  it("500 on both lists: error text + 'Try again', no 'No posts yet', exactly one event despite retries", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
       const fetchMock = vi.fn(async () =>
@@ -45,24 +45,34 @@ describe("list endpoint (ANL-15 criteria 1-3)", () => {
       for (let i = 0; i < RETRY_LIMIT + 1; i++) {
         await act(async () => vi.advanceTimersByTime(RETRY_DELAY_MS + 10));
       }
-      const ownListCalls = fetchMock.mock.calls.filter(
-        ([url]) => url === "/api/posts?lang=en",
+      const listCalls = (url) =>
+        fetchMock.mock.calls.filter(([called]) => called === url);
+      // Both lists of the view failed and were retried to the limit ...
+      expect(listCalls("/api/posts?lang=en")).toHaveLength(1 + RETRY_LIMIT);
+      expect(listCalls("/api/posts?lang=tr&missingIn=en")).toHaveLength(
+        1 + RETRY_LIMIT,
       );
-      expect(ownListCalls).toHaveLength(1 + RETRY_LIMIT);
 
-      // Each list key reports once: the page language's list and the
-      // other-language group both failed.
+      // ... and the view reported the outage once (ANL-15 criterion 1).
       expect(errorEvents()).toEqual([
-        [
-          "error_occurred",
-          { scope: "blog_api", endpoint: "list", status: "500" },
-        ],
         [
           "error_occurred",
           { scope: "blog_api", endpoint: "list", status: "500" },
         ],
       ]);
       expect(screen.getByText("Posts couldn't be loaded")).toBeInTheDocument();
+
+      // A "Try again" that fails again is the same view: no second event.
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+      });
+      for (let i = 0; i < RETRY_LIMIT + 1; i++) {
+        await act(async () => vi.advanceTimersByTime(RETRY_DELAY_MS + 10));
+      }
+      expect(listCalls("/api/posts?lang=en").length).toBeGreaterThan(
+        1 + RETRY_LIMIT,
+      );
+      expect(errorEvents()).toHaveLength(1);
     } finally {
       vi.useRealTimers();
     }
@@ -85,6 +95,26 @@ describe("list endpoint (ANL-15 criteria 1-3)", () => {
       endpoint: "list",
       status: "500",
     });
+  });
+
+  it("only the other-language list fails: exactly one event, status '503'", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url) =>
+        url === "/api/posts?lang=tr&missingIn=en"
+          ? json({ error: "Unavailable" }, 503)
+          : json([POST_EN]),
+      ),
+    );
+    renderBlog("/blog");
+    await waitFor(() => expect(errorEvents()).toHaveLength(1));
+    expect(errorEvents()[0][1]).toEqual({
+      scope: "blog_api",
+      endpoint: "list",
+      status: "503",
+    });
+    await act(async () => {});
+    expect(errorEvents()).toHaveLength(1);
   });
 
   it("fetch rejected: status 'network'", async () => {
@@ -148,8 +178,9 @@ describe("list endpoint (ANL-15 criteria 1-3)", () => {
     expect(
       await screen.findByRole("link", { name: "Hello world" }),
     ).toBeInTheDocument();
-    // The failure was reported once per key; the successful retry adds none.
-    expect(errorEvents()).toHaveLength(2);
+    // Both lists failed: one event for the view; the successful retry adds
+    // none.
+    expect(errorEvents()).toHaveLength(1);
   });
 });
 

@@ -38,25 +38,29 @@ export function blogStatus({ data, error }, { notFound = false } = {}) {
 }
 
 // error_occurred { scope: 'blog_api', endpoint, status } (ANL-15), once per
-// key while the page is on screen: swr's retries, and a "Try again" that
-// fails again, do not send it twice. A missing post (404) is not an error:
-// it is a not-found page (ANL-05/07 page_view).
-function useErrorReport(key, error, endpoint) {
+// view while the page is on screen: swr's retries, and a "Try again" that
+// fails again, do not send it twice. `viewKey` names the view: a post's swr
+// key, or both list keys of a blog index (one /blog view is one event, however
+// many of its lists fail). A missing post (404) is not an error: it is a
+// not-found page (ANL-05/07 page_view).
+function useErrorReport(viewKey, error, endpoint) {
   const reported = useRef(new Set());
   useEffect(() => {
-    if (!key || !error) return;
+    if (!viewKey || !error) return;
     if (endpoint === "post" && error.status === 404) return;
-    if (reported.current.has(key)) return;
-    reported.current.add(key);
+    if (reported.current.has(viewKey)) return;
+    reported.current.add(viewKey);
     track("error_occurred", {
       scope: "blog_api",
       endpoint,
       status: errorStatus(error),
     });
-  }, [key, error, endpoint]);
+  }, [viewKey, error, endpoint]);
 }
 
-function useBlogSWR(key, endpoint) {
+// useSWR for one blog key with the blog fetcher; the caller reports errors
+// (useErrorReport), so a view with several keys can report once.
+function useBlogSWR(key) {
   const { fallback } = useSWRConfig();
   // PERF-14 / T-06: a key the server already sent (SWRConfig fallback) is
   // shown as it is and not fetched again on mount.
@@ -65,14 +69,15 @@ function useBlogSWR(key, endpoint) {
     shouldRetryOnError: shouldRetry,
     ...(prefilled ? { revalidateOnMount: false } : null),
   });
-  useErrorReport(key, response.error, endpoint);
   return response;
 }
 
 // usePosts('en') -> { posts, error, status, mutate } for /api/posts?lang=en.
 export function usePosts(locale) {
-  const response = useBlogSWR(postsKey(locale), "list");
+  const key = postsKey(locale);
+  const response = useBlogSWR(key);
   const { data, error } = response;
+  useErrorReport(key, error, "list");
   return {
     posts: data,
     error,
@@ -105,12 +110,16 @@ function mergePosts(lists) {
 // refetches only what failed.
 export function useBlogIndex(locale) {
   const [ownKey, otherKey = null] = blogIndexKeys(locale);
-  const own = useBlogSWR(ownKey, "list");
-  const other = useBlogSWR(otherKey, "list");
+  const own = useBlogSWR(ownKey);
+  const other = useBlogSWR(otherKey);
 
   const ownReady = hasData(own);
   const otherReady = otherKey === null || hasData(other);
   const error = own.error ?? other.error;
+  // ANL-15 criterion 1: one list event per /blog view. When the API is down
+  // both lists fail with the same status; counting them apart would make a
+  // full outage weigh twice a partial one.
+  useErrorReport([ownKey, otherKey].filter(Boolean).join("|"), error, "list");
 
   let status = "loading";
   if (ownReady && otherReady) status = "success";
@@ -134,8 +143,10 @@ export function useBlogIndex(locale) {
 // usePost('hello') -> { post, error, status, mutate }; status 'notfound' on
 // an API 404 (noindex NotFound page), 'error' on anything else.
 export function usePost(slug) {
-  const response = useBlogSWR(postKey(slug), "post");
+  const key = postKey(slug);
+  const response = useBlogSWR(key);
   const { data, error } = response;
+  useErrorReport(key, error, "post");
   return {
     post: data,
     error,
