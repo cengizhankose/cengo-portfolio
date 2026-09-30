@@ -74,9 +74,9 @@ describe("Bootstrap 4 leftovers and undefined classes (FE-28, DSG-34, SEO-20)", 
     ]);
   });
 
-  it('uses lg="5" for the Services title column', () => {
+  it('uses lg="5" for the seven section title columns, Services included', () => {
     const about = read("src/pages/about/index.jsx");
-    expect(about.match(/<Col lg="5">/g)).toHaveLength(4);
+    expect(about.match(/<Col lg="5">/g)).toHaveLength(7);
     expect(about).not.toMatch(/<Col lang=/);
   });
 });

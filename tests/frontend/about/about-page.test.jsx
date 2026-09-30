@@ -1,6 +1,8 @@
 // About page semantics: SEO-13 (heading outline, skills as a list), FE-27
 // (stable structure, fixed headings), SEO-20 / DSG-34 (no lang="5", Services
 // in the same 5/7 grid) and the corrected section titles (MKT-09, DSG-23).
+// W6-MKT-about-positioning (MKT-05, MKT-15, MKT-04, SEO-18) grew the outline
+// to eight sections and turned the skills into five groups of chips.
 import { render, screen } from "@testing-library/react";
 import axe from "axe-core";
 import { MemoryRouter } from "react-router-dom";
@@ -26,20 +28,27 @@ const headingTags = () =>
 // BCP 47 language tags the site uses (T-12).
 const VALID_LANGS = new Set(["en", "tr"]);
 
-describe("About heading outline (SEO-13, FE-27)", () => {
-  it("renders h1, four section h2s and one h3 per service, without skipping a level", () => {
+describe("About heading outline (SEO-13, FE-27, MKT-15)", () => {
+  it("renders one h1, an h2 per section and h3s below them, without skipping a level", () => {
     renderAbout();
 
     expect(headingTags()).toEqual([
       "h1",
-      "h2",
-      "h2",
-      "h2",
-      "h2",
+      "h2", // story
+      "h2", // proof
+      "h3", // worked with
+      "h3", // hackathon wins (references stay hidden: none exist)
+      "h2", // work timeline
+      "h3", // additional ventures
+      "h2", // skills
+      "h2", // services
       ...services.map(() => "h3"),
+      "h2", // hackathons and awards
+      "h2", // talks and workshops
+      "h2", // call to action
     ]);
     expect(document.querySelectorAll("h1")).toHaveLength(1);
-    expect(document.querySelectorAll("h2")).toHaveLength(4);
+    expect(document.querySelectorAll("h2")).toHaveLength(8);
   });
 
   it("names the sections without typos, in sentence case", () => {
@@ -47,7 +56,16 @@ describe("About heading outline (SEO-13, FE-27)", () => {
 
     expect(
       screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
-    ).toEqual(["A bit about myself", "Work timeline", "Skills", "Services"]);
+    ).toEqual([
+      "A bit about myself",
+      "Where I’ve worked and what I’ve won",
+      "Work timeline",
+      "Skills",
+      "Services",
+      "Hackathons and awards",
+      "Talks and workshops",
+      "Let’s work together",
+    ]);
     expect(document.body.textContent).not.toMatch(/Timline|abit about|my self/);
   });
 
@@ -57,26 +75,39 @@ describe("About heading outline (SEO-13, FE-27)", () => {
     for (const heading of document.querySelectorAll("h2")) {
       expect(heading).toHaveClass("h3", "color_sec");
     }
-    for (const heading of document.querySelectorAll("h3")) {
+    for (const heading of document.querySelectorAll(".service_ h3")) {
       expect(heading).toHaveClass("h5", "service__title");
     }
   });
 
-  it("lists the skills as five list items, none of them a heading", () => {
+  it("lists the skills as five named groups of chips, none of them a heading", () => {
     renderAbout();
 
-    const items = document.querySelectorAll(".skills-list li");
-    expect(items).toHaveLength(5);
-    expect(items).toHaveLength(skills.length);
-    expect([...items].map((li) => li.textContent)).toEqual(
-      skills.map((skill) => skill.name),
-    );
+    const groups = document.querySelectorAll(".skill-groups > li");
+    expect(groups).toHaveLength(5);
+    expect(groups).toHaveLength(skills.length);
     expect(
-      document.querySelectorAll(
-        "h1.progress-title, h2.progress-title, h3.progress-title, h4.progress-title, h5.progress-title, h6.progress-title",
+      [...groups].map(
+        (li) => li.querySelector(".skill-group__name").textContent,
       ),
+    ).toEqual(skills.map((group) => group.name));
+    expect(
+      [...document.querySelectorAll(".skill-chip")].map((li) => li.textContent),
+    ).toEqual(skills.flatMap((group) => group.items));
+    // Each chip list is named by its group label.
+    for (const list of document.querySelectorAll(".skill-group__items")) {
+      const label = document.getElementById(
+        list.getAttribute("aria-labelledby"),
+      );
+      expect(label).toBe(list.previousElementSibling);
+    }
+    expect(
+      document.querySelectorAll(".skill-groups :is(h1, h2, h3, h4, h5, h6)"),
     ).toHaveLength(0);
-    expect(screen.getAllByRole("list")).toHaveLength(1);
+    // No percentage bars any more (MKT-05 step 3).
+    expect(
+      document.querySelectorAll(".progress-item, [role=progressbar]"),
+    ).toHaveLength(0);
   });
 });
 
@@ -90,10 +121,10 @@ describe("About grid and attributes (SEO-20, DSG-34, FE-28)", () => {
     }
   });
 
-  it("puts all four section titles, Services included, in a col-lg-5 column", () => {
+  it("puts all seven section titles, Services included, in a col-lg-5 column", () => {
     renderAbout();
 
-    expect(document.querySelectorAll(".sec_sp > .col-lg-5")).toHaveLength(4);
+    expect(document.querySelectorAll(".sec_sp > .col-lg-5")).toHaveLength(7);
     const services = screen.getByRole("heading", {
       level: 2,
       name: "Services",
@@ -123,6 +154,11 @@ describe("About grid and attributes (SEO-20, DSG-34, FE-28)", () => {
           "listitem",
           "valid-lang",
           "th-has-data-cells",
+          "td-has-header",
+          "td-headers-attr",
+          "scope-attr-valid",
+          "aria-valid-attr-value",
+          "link-name",
         ],
       },
       resultTypes: ["violations"],
