@@ -73,7 +73,8 @@
   padding: 1.25rem;
 }
 
-/* One-line badge above the title (DSG-08): monochrome, no fill. */
+/* Badge above the title (DSG-08): monochrome, no fill. One line where it
+   fits; in a narrow card it wraps inside a softly rounded box. */
 .project-card__award {
   display: inline-flex;
   align-items: center;
@@ -82,7 +83,7 @@
   margin: 0 0 0.75rem;
   padding: 0.125rem 0.625rem;
   border: 1px solid var(--border-color);
-  border-radius: 999px;
+  border-radius: 0.75rem;
   color: var(--text-color);
   font:
     600 0.8125rem/1.5 Raleway,

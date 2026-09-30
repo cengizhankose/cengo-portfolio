@@ -66,7 +66,7 @@ describe("portfolio stylesheet (DSG-08 step 9, DSG-25)", () => {
 
   it("draws the badge monochrome from the theme tokens", () => {
     const badge = declared(css, ".project-card__award");
-    expect(badge["border-radius"]).toBe("999px");
+    expect(badge["border-radius"]).toBe("0.75rem");
     expect(badge.border).toBe("1px solid var(--border-color)");
     expect(badge.color).toBe("var(--text-color)");
   });
