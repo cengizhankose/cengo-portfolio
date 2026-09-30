@@ -25,7 +25,7 @@ import {
   LIST_DEFAULT_LIMIT,
   type ListCursor,
 } from "../post-input";
-import { posts, type PostLang } from "../schema";
+import { posts, type PostDiagrams, type PostLang } from "../schema";
 
 // Any drizzle Postgres database (postgres-js in the app, PGlite in tests).
 export type PostsDb = PgDatabase<PgQueryResultHKT, any>;
@@ -39,8 +39,17 @@ export interface PostTranslation {
   slug: string;
 }
 
-/** Single-post payload: the row plus its published translations (hreflang, language switch). */
-export type PostWithTranslations = Post & { translations: PostTranslation[] };
+/**
+ * Single-post payload: the row plus its published translations (hreflang,
+ * language switch). `diagrams` (PERF-05) is an object, `{}` for a post that has
+ * none (the column is null until a post is published again with the CLI); the
+ * key is optional in the type only so that fixtures written before the column
+ * existed still type-check. Lists never carry it (PERF-15: cards only).
+ */
+export type PostWithTranslations = Omit<Post, "diagrams"> & {
+  diagrams?: PostDiagrams;
+  translations: PostTranslation[];
+};
 
 /** Result of looking a slug up under a locale route prefix (T-12). */
 export type LocaleResolution =
@@ -201,7 +210,7 @@ export function createPostQueries(db: PostsDb) {
           translationKey: post.translationKey,
         })
       : [];
-    return { ...post, translations };
+    return { ...post, diagrams: post.diagrams ?? {}, translations };
   };
 
   return {
