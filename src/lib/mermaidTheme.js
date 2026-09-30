@@ -153,6 +153,9 @@ export function themeVariables(tokens) {
     darkMode: luminance(bg) < 0.5,
     background: bg,
     fontFamily: FONT_FAMILY,
+    // The site is flat: Mermaid's default grey drop shadow shows up as a glow
+    // on the dark theme.
+    dropShadow: "none",
     textColor: text,
     lineColor: muted,
     // Flowchart nodes, clusters, edge labels.

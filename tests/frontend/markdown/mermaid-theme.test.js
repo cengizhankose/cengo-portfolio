@@ -104,7 +104,7 @@ describe("themeVariables", () => {
     (_t, tokens) => {
       const variables = themeVariables(tokens);
       for (const [name, value] of Object.entries(variables)) {
-        if (name === "darkMode" || name === "fontFamily") continue;
+        if (["darkMode", "fontFamily", "dropShadow"].includes(name)) continue;
         expect(value, name).toMatch(/^#[0-9a-f]{6}$/);
       }
     },
@@ -151,6 +151,12 @@ describe("themeVariables", () => {
       expect(contrast(v.nodeBorder, tokens.bg)).toBeGreaterThanOrEqual(3);
     },
   );
+
+  it("draws flat nodes: no drop shadow (the site has none)", () => {
+    for (const tokens of Object.values(THEME_TOKENS)) {
+      expect(themeVariables(tokens).dropShadow).toBe("none");
+    }
+  });
 
   it("gives the label its exact page colour: black on white, white on black", () => {
     expect(themeVariables(THEME_TOKENS.light).nodeTextColor).toBe("#000000");

@@ -1,5 +1,7 @@
 // SEC-03 / T-05 stage B groundwork: sanitizeSvg(svg), DOMPurify's SVG profile
 // for pre-rendered Mermaid diagrams (PERF-05 stores and prints them).
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
 import {
@@ -21,6 +23,15 @@ const DIAGRAM =
   '<g><defs><marker id="mermaid-x-1_arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath"/></marker><linearGradient id="grad"><stop offset="0" stop-color="#fff"/></linearGradient></defs>' +
   '<g class="nodes"><g class="node default" transform="translate(40, 20)"><rect class="basic label-container" x="-30" y="-15" width="60" height="30"/><g class="label" transform="translate(-10, -8)"><text y="0" dy="1em" text-anchor="middle"><tspan>A</tspan></text></g></g></g>' +
   '<path d="M70,20L100,20" class="flowchart-link" marker-end="url(#mermaid-x-1_arrow)"/></g></svg>';
+
+// Real Mermaid 12 output for the same flowchart, drawn in Chrome with the
+// site's dark tokens (src/lib/mermaidTheme.js): once with htmlLabels: false
+// (what the publish script will use, PERF-05) and once with the default HTML
+// labels (what <Mermaid> draws in the browser today).
+const fixture = (name) =>
+  readFileSync(join(import.meta.dirname, "fixtures", name), "utf8");
+const SVG_LABELS = fixture("mermaid-flowchart-svg-labels.svg");
+const HTML_LABELS = fixture("mermaid-flowchart-html-labels.svg");
 
 const lower = (text) => text.toLowerCase();
 
@@ -69,6 +80,59 @@ describe("sanitizeSvg keeps what a diagram needs", () => {
   it("keeps the scoped <style> block, including a same-document url(#id)", () => {
     expect(output).toContain("#mermaid-x-1 .node rect{fill:#1f1f1f");
     expect(output).toContain("url(#grad)");
+  });
+});
+
+describe("sanitizeSvg on real Mermaid output", () => {
+  it("leaves a diagram with SVG labels (htmlLabels: false) as it was", () => {
+    const output = sanitizeSvg(SVG_LABELS);
+    const root = new JSDOM(output).window.document.querySelector("svg");
+    const original = new JSDOM(SVG_LABELS).window.document.querySelector("svg");
+    const texts = (svg) =>
+      [...svg.querySelectorAll("text")].map((node) => node.textContent.trim());
+    expect(texts(root).filter(Boolean)).toEqual([
+      "yes",
+      "Hook",
+      "Spool",
+      "Worker",
+      "Extraction",
+    ]);
+    expect(texts(root)).toEqual(texts(original));
+    for (const selector of [
+      "style",
+      "marker",
+      "g.node",
+      "path.flowchart-link",
+      "g.edgeLabel",
+    ]) {
+      expect(root.querySelectorAll(selector).length, selector).toBe(
+        original.querySelectorAll(selector).length,
+      );
+      expect(root.querySelectorAll(selector).length, selector).toBeGreaterThan(
+        0,
+      );
+    }
+    for (const attribute of [
+      "id",
+      "viewBox",
+      "width",
+      "height",
+      "role",
+      "aria-roledescription",
+    ]) {
+      expect(root.getAttribute(attribute), attribute).toBe(
+        original.getAttribute(attribute),
+      );
+    }
+    // The whole markup, character for character (style block included).
+    expect(output.length).toBe(SVG_LABELS.length);
+  });
+
+  it("loses the labels of a diagram with HTML labels: the publish script must use htmlLabels: false", () => {
+    expect(HTML_LABELS).toMatch(/foreignObject/);
+    const output = sanitizeSvg(HTML_LABELS);
+    expect(lower(output)).not.toContain("foreignobject");
+    expect(output).not.toContain("Hook");
   });
 });
 
