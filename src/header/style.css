@@ -8,10 +8,8 @@
   color: var(--text-color);
 }
 
-.menu__button:focus,
 .menu__button:hover {
   color: var(--text-color);
-  box-shadow: unset;
 }
 
 .menu__button svg {
@@ -37,6 +35,34 @@
 
 .nav_ac:hover {
   color: var(--text-color-2);
+}
+
+/* Header controls are native buttons (FE-02/DSG-02): no browser chrome, a
+   pointer cursor, and a visible keyboard focus ring. The offset is inset so
+   the fixed page frame (.br-top, z-index 999999) cannot cover the ring. */
+button.nav_ac {
+  cursor: pointer;
+}
+
+.nav_ac:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: -4px;
+}
+
+/* Same ring for the links inside the open menu (sections + social). */
+.site__navigation a:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 4px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+}
+
+.theme-toggle svg {
+  width: 1.5em;
+  height: 1.5em;
 }
 
 .br-top,
@@ -141,11 +167,21 @@
   background-color: var(--primary-color);
   will-change: transform;
   transform: translateY(-100%);
-  transition: 0.5s ease all;
+  /* Closing: the panel keeps its (inherited) visibility until the slide-up
+     ends. */
+  transition:
+    transform 0.5s ease,
+    visibility 0s linear 0.5s;
 }
 
 .menu__opend .bg__menu {
   transform: translateY(0);
+  /* Opening: visible at once, so the first link can take focus as soon as
+     the menu opens (FE-11). A 0.5s visibility transition here kept the links
+     hidden, and unfocusable, at the start of the slide-down. */
+  transition:
+    transform 0.5s ease,
+    visibility 0s;
 }
 
 .menu__wrapper {
@@ -198,4 +234,8 @@
 .menu_footer a {
   color: var(--text-color-2);
   margin-right: 10px;
+}
+
+.menu_footer__social {
+  row-gap: 4px;
 }
