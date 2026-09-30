@@ -1,60 +1,22 @@
 import "./style.css";
-import {
-  FaGithub,
-  FaTwitter,
-  FaLinkedin,
-  FaYoutube,
-  FaTwitch,
-  FaInstagram,
-} from "react-icons/fa";
 import { socialprofils } from "../../content_option";
+import { getSocialLinks } from "./icons";
 
-export const Socialicons = (params) => {
+// Icon-only profile links (FE-02): each link is named by its channel label,
+// the icon itself is decorative.
+export const Socialicons = () => {
+  const links = getSocialLinks(socialprofils);
+
   return (
     <div className="stick_follow_icon">
       <ul>
-        {socialprofils.twitter && (
-          <li>
-            <a href={socialprofils.twitter}>
-              <FaTwitter />
+        {links.map(({ id, label, url, Icon }) => (
+          <li key={id}>
+            <a href={url} aria-label={label}>
+              <Icon aria-hidden="true" focusable="false" />
             </a>
           </li>
-        )}
-        {socialprofils.github && (
-          <li>
-            <a href={socialprofils.github}>
-              <FaGithub />
-            </a>
-          </li>
-        )}
-        {socialprofils.instagram && (
-          <li>
-            <a href={socialprofils.instagram}>
-              <FaInstagram />
-            </a>
-          </li>
-        )}
-        {socialprofils.linkedin && (
-          <li>
-            <a href={socialprofils.linkedin}>
-              <FaLinkedin />
-            </a>
-          </li>
-        )}
-        {socialprofils.youtube && (
-          <li>
-            <a href={socialprofils.youtube}>
-              <FaYoutube />
-            </a>
-          </li>
-        )}
-        {socialprofils.twitch && (
-          <li>
-            <a href={socialprofils.twitch}>
-              <FaTwitch />
-            </a>
-          </li>
-        )}
+        ))}
       </ul>
       <p>Follow Me</p>
     </div>
