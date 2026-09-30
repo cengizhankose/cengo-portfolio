@@ -6,6 +6,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { CONTENT, getContent } from "../../../src/content/index.js";
 import {
   CONTENT_LANGUAGES,
   EVENT_NAMES,
@@ -218,5 +219,125 @@ describe("operations and UTM sections (ANL-01, ANL-03, ANL-16)", () => {
     expect(section("İç trafik")).toContain(
       "https://www.cengizhankose.com/?analytics=off",
     );
+  });
+});
+
+describe("content ids match in both languages (ANL-19 step 5d)", () => {
+  // The merged content (missing TR items fall back to EN, FE-14) must carry
+  // the same ids; a TR list that already exists must agree on its own.
+  const ids = (locale, name) => getContent(locale)[name].map((item) => item.id);
+  const rawIds = (name) => CONTENT.tr[name].map((item) => item.id);
+  const rawAgrees = (name) => {
+    const raw = rawIds(name);
+    return raw.length === 0 ? true : raw.join() === ids("en", name).join();
+  };
+
+  it("services have unique ids, identical in en and tr", () => {
+    const en = ids("en", "services");
+    expect(en.length).toBeGreaterThan(0);
+    expect(new Set(en).size).toBe(en.length);
+    for (const id of en) expect(id).toMatch(/^[a-z][a-z0-9_]*$/);
+    expect(ids("tr", "services")).toEqual(en);
+    expect(rawAgrees("services")).toBe(true);
+  });
+
+  it("portfolio projects have unique ids from PROJECT_IDS, identical in en and tr", () => {
+    const en = ids("en", "projects");
+    expect(new Set(en).size).toBe(en.length);
+    for (const id of en) expect(PROJECT_IDS).toContain(id);
+    expect(ids("tr", "projects")).toEqual(en);
+    expect(rawAgrees("projects")).toBe(true);
+  });
+});
+
+describe("documented status follows the code (ANL-18, W7 handoffs)", () => {
+  const eventsFile = "src/lib/analytics/events.js";
+
+  it("every event the plan marks Uygulandı has a sender in src", () => {
+    const implemented = EVENT_NAMES.filter((name) => {
+      const status = rowByEvent[name][5];
+      return /Uygulandı/.test(status) && !/Kısmen/.test(status);
+    });
+    expect(implemented).toContain("locale_switched");
+    const missing = implemented.filter(
+      (name) =>
+        !SOURCES.some(
+          ({ path, text }) =>
+            path !== eventsFile &&
+            (text.includes(`"${name}"`) || text.includes(`'${name}'`)),
+        ),
+    );
+    expect(missing).toEqual([]);
+  });
+
+  it("locale_switched is documented with its three properties and targets", () => {
+    const [, trigger, props, , , status] = rowByEvent.locale_switched;
+    expect(trigger).toContain("src/components/langswitch/index.jsx");
+    expect(status).toMatch(/^\*\*Uygulandı\*\*/);
+    for (const token of [
+      "from_locale",
+      "to_locale",
+      "target",
+      "translation",
+      "blog_index",
+    ]) {
+      expect(ticked(props)).toContain(token);
+    }
+  });
+
+  it("the language switcher is the only sender of locale_switched", () => {
+    const senders = SOURCES.filter(
+      ({ path, text }) =>
+        path !== eventsFile && /["']locale_switched["']/.test(text),
+    ).map(({ path }) => path);
+    expect(senders).toEqual(["src/components/langswitch/index.jsx"]);
+  });
+});
+
+describe("language segmentation and data sources (ANL-18 step 5, ANL-14)", () => {
+  it("lists the allowed values of the two language properties and the targets", () => {
+    const text = section("Panolar");
+    for (const value of [
+      "`en`, `tr`",
+      "`en`, `tr`, `unknown`",
+      "`translation`, `blog_index`",
+    ]) {
+      expect(text).toContain(value);
+    }
+  });
+
+  it("the weekly summary has an en and a tr column for each ANL-18 metric", () => {
+    const text = section("Panolar");
+    const header = text.split("\n").find((line) => /^\| Metrik \|/.test(line));
+    expect(header).toMatch(/`en`/);
+    expect(header).toMatch(/`tr`/);
+    for (const metric of [
+      "Oturum",
+      "giriş sayfası",
+      "Nitelikli temas",
+      "Form hata oranı",
+      "okuma derinliği",
+    ]) {
+      expect(text).toContain(metric);
+    }
+  });
+
+  it("points at the weekly SQL file, which exists and is read-only", () => {
+    expect(section("Panolar")).toContain("weekly-by-locale.sql");
+    const sql = readFileSync(
+      join(ROOT, "claudedocs/analytics/weekly-by-locale.sql"),
+      "utf8",
+    );
+    expect(sql).toMatch(/data_key = 'ui_locale'/);
+    expect(sql).toMatch(/url_path LIKE '\/tr\/%'/);
+  });
+
+  it("documents the Search Console / Bing data source and its weekly use", () => {
+    const text = section("Veri kaynakları");
+    expect(text).toContain("Search Console ve Bing");
+    expect(text).toContain("https://www.cengizhankose.com/sitemap.xml");
+    expect(text).toContain("google-site-verification");
+    expect(text).toMatch(/\/tr\//);
+    expect(text).toMatch(/Bing Webmaster Tools/);
   });
 });
