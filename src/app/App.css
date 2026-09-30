@@ -16,6 +16,14 @@
   animation: fadeIn 400ms ease-out;
 }
 
+/* PERF-07: the first page after a full load is shown as is, with no
+   entry animation, so its LCP element (the hero photo on /) is painted
+   opaque in the first frame. routes.jsx sets .is-initial until the first
+   pathname change. */
+.page-transition.is-initial {
+  animation: none;
+}
+
 .page-transition.fadeOut {
   opacity: 0;
   transform: translateY(-20px);

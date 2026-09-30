@@ -15,6 +15,7 @@ import { pageRoutes } from "./pageRoutes";
 function AnimatedRoutes({ focusTargetRef }) {
   const location = useLocation();
   const [displayLocation, setDisplayLocation] = useState(location);
+  const [hasNavigated, setHasNavigated] = useState(false);
 
   // Only a new pathname runs the fade: the old page fades out, and the new one
   // mounts when that animation ends. A hash or search change on the same page
@@ -25,6 +26,15 @@ function AnimatedRoutes({ focusTargetRef }) {
     setDisplayLocation(location);
   }
   const transitionStage = isLeaving ? "fadeOut" : "fadeIn";
+
+  // PERF-07: the page the visitor lands on is not faded in. Its content (the
+  // hero photo, the LCP element) is drawn opaque in the first frame; the
+  // fade starts with the first pathname change and stays for every later
+  // one. A hash or search change on the landing page keeps it still. Keep
+  // this when FE-17 / PERF-13 rewrite the transition.
+  if (isLeaving && !hasNavigated) {
+    setHasNavigated(true);
+  }
 
   // FE-10: once the new page is on screen, move focus to <main> so keyboard
   // and screen reader users continue from the top of the new content. The
@@ -40,7 +50,7 @@ function AnimatedRoutes({ focusTargetRef }) {
 
   return (
     <div
-      className={`page-transition ${transitionStage}`}
+      className={`page-transition ${transitionStage}${hasNavigated ? "" : " is-initial"}`}
       onAnimationEnd={(event) => {
         // Ignore animations that bubble up from the page content.
         if (event.target !== event.currentTarget) return;
