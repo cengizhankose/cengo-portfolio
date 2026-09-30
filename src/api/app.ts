@@ -59,9 +59,6 @@ export interface CreateAppOptions {
   rateLimitStore?: TokenBucketStore;
 }
 
-/** Idle-bucket sweep of the rate limiter, besides the one done on every request. */
-const RATE_LIMIT_SWEEP_MS = 60_000;
-
 export function createApp({
   queries,
   serveSpa = false,
@@ -99,8 +96,8 @@ export function createApp({
   //    and unknown /api paths count too; /health and /ready are outside it.
   const limits = rateLimitSettingsFromEnv(env);
   if (limits.enabled) {
+    // No timer: the store sweeps idle buckets itself on every request.
     const store = rateLimitStore ?? readBucketStore(limits.perMinute);
-    setInterval(() => store.sweep(), RATE_LIMIT_SWEEP_MS).unref();
     app.use("/api/*", rateLimit({ store }));
   }
 

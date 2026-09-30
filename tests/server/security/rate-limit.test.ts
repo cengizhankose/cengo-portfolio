@@ -1,7 +1,7 @@
 // /api read rate limit (SEC-10 / BE-18, T-08): 60 requests per minute per
 // client, token bucket, bounded memory, CF-Connecting-IP trusted only on the
 // Cloudflare-proxied hosts, /health and /ready exempt, 429 + T-01 envelope.
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, spyOn, test } from "bun:test";
 import { createApp, HEALTH_PATH, READY_PATH } from "../../../src/api/app";
 import {
   DEFAULT_MAX_KEYS,
@@ -421,6 +421,16 @@ describe("configuration (RL_READ_PER_MIN, RATE_LIMIT_DISABLED)", () => {
     });
     expect(last.headers.get("ratelimit-limit")).toBe("5");
     expect(last.headers.get("retry-after")).toBe("12");
+  });
+
+  test("createApp starts no timer (the store sweeps on each request)", () => {
+    const spy = spyOn(globalThis, "setInterval");
+    try {
+      createApp({ queries: fakeQueries(), env: {} });
+      expect(spy).not.toHaveBeenCalled();
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   test("RATE_LIMIT_DISABLED=1 turns the limiter off (BE-18 rollback)", async () => {

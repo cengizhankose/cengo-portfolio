@@ -6,8 +6,9 @@
 //
 // - Memory is bounded: at most `maxKeys` (10 000) buckets. Buckets are kept in
 //   least-recently-used order, so idle ones (untouched for 10 min) are swept
-//   from the front in amortised O(1); if the map is still full the least
-//   recently used bucket is dropped.
+//   from the front in amortised O(1) on every take(); if the map is still full
+//   the least recently used bucket is dropped. No timer: with no traffic the
+//   map simply stays at its bounded size.
 // - One process only (Out Plane runs 1 instance). With more instances each
 //   keeps its own counters and the effective limit multiplies: move the
 //   buckets to a shared store (Redis/Postgres) before scaling out.
