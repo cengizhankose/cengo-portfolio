@@ -1,7 +1,7 @@
 // Post-deploy check of the server-written SEO layer (SEO-01 step 12).
 //
 //   bun run scripts/seo-smoke.ts https://www.cengizhankose.com
-//   bun run scripts/seo-smoke.ts http://127.0.0.1:3000 --post my-slug --min-words 1500
+//   bun run scripts/seo-smoke.ts https://www.cengizhankose.com --post <slug> --min-words 1500
 //
 // It fetches the pages the way a crawler does (no JavaScript) and checks the
 // raw HTML, exactly what `curl | grep -c` would count:
@@ -22,6 +22,7 @@
 // `runSmoke` takes the fetch function, so tests run it against an in-process
 // app with no port (tests/server/ssr/smoke.test.ts).
 const SITE_PATHS = ["/", "/about", "/portfolio", "/contact", "/blog"] as const;
+const DEFAULT_MIN_WORDS = 100;
 const FAKE_PATH = "/seo-smoke-not-a-page-7f3";
 
 export interface SmokeOptions {
@@ -29,7 +30,11 @@ export interface SmokeOptions {
   fetch?: (url: string, init?: RequestInit) => Promise<Response>;
   /** Check this post as well (its language is read from the API). */
   post?: string;
-  /** Fewest words the snapshot of a post must hold (default 100). */
+  /**
+   * Fewest words the snapshot of a post must hold (default 100). With `post`
+   * given it is the threshold of that post; the newest post of each language
+   * the script finds on its own still only has to hold DEFAULT_MIN_WORDS.
+   */
   minWords?: number;
   /** Per-request timeout in ms (default 15 000). */
   timeoutMs?: number;
@@ -121,7 +126,7 @@ export async function runSmoke(
   {
     fetch: fetchImpl = (url, init) => fetch(url, init),
     post,
-    minWords = 100,
+    minWords = DEFAULT_MIN_WORDS,
     timeoutMs = 15_000,
   }: SmokeOptions = {},
 ): Promise<SmokeResult> {
@@ -291,10 +296,12 @@ export async function runSmoke(
     const page = pages.get(postPath(p));
     if (page?.status === 200) {
       const words = wordsOf(rootHtml(page.html));
+      const need =
+        post === undefined || p.slug === post ? minWords : DEFAULT_MIN_WORDS;
       check(
-        words >= minWords,
+        words >= need,
         `${postPath(p)} #root holds the article (${words} words)`,
-        `need ${minWords}`,
+        `need ${need}`,
       );
       check(
         count(rootHtml(page.html), /<h[23]\b/gi) >= 1,

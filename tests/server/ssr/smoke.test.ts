@@ -112,16 +112,22 @@ describe("runSmoke against the app", () => {
   });
 
   test("--post names one more post to check", async () => {
+    // Long enough to meet the default threshold every found post must meet.
+    const content = `${Array.from({ length: 150 }, (_, i) => `word${i}`).join(" ")}\n\n## Section\n\nText.`;
     const extra = makePost({
       id: 7,
       slug: "second-post",
       title: "Second post",
       translationKey: null,
       translations: [],
+      content,
     });
     const app = createApp({
       queries: fakeQueries({
-        posts: [makePost({ translationKey: null, translations: [] }), extra],
+        posts: [
+          makePost({ translationKey: null, translations: [], content }),
+          extra,
+        ],
       }),
       serveSpa: true,
       distDir: FIXTURE_DIST,
@@ -158,6 +164,39 @@ describe("runSmoke against the app", () => {
     expect(failures).toContain(
       "/blog/hello-world <-> /tr/blog/merhaba-dunya hreflang is reciprocal",
     );
+  });
+
+  test("--min-words is the threshold of the --post post; the other posts keep the default", async () => {
+    const long = makePost({
+      id: 8,
+      slug: "long-post",
+      title: "Long post",
+      translationKey: null,
+      translations: [],
+      content: `${Array.from({ length: 300 }, (_, i) => `word${i}`).join(" ")}\n\n## Section\n\nText.`,
+    });
+    const app = createApp({
+      queries: fakeQueries({
+        posts: [makePost({ translationKey: null, translations: [] }), long],
+      }),
+      serveSpa: true,
+      distDir: FIXTURE_DIST,
+      env: { RATE_LIMIT_DISABLED: "1" },
+    });
+    // hello-world has fewer than 100 words: it would fail a 250-word threshold, but only
+    // the named post has to meet it.
+    const named = await runSmoke(BASE, {
+      fetch: viaApp(app),
+      post: "long-post",
+      minWords: 250,
+    });
+    const failing = named.lines.filter((line) => line.startsWith("FAIL"));
+    expect(failing).toHaveLength(1);
+    expect(failing[0]).toMatch(
+      /^FAIL \/blog\/hello-world #root holds the article \(\d+ words\) \(need 100\)$/,
+    );
+    const all = await runSmoke(BASE, { fetch: viaApp(app), minWords: 5 });
+    expect(all.failures).toEqual([]);
   });
 
   test("a snapshot shorter than --min-words fails", async () => {
