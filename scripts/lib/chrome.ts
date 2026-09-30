@@ -79,6 +79,8 @@ export interface OpenOptions {
   executable?: string;
   /** How long Chrome gets to start and to load the page. */
   timeoutMs?: number;
+  /** Extra command-line switches (e.g. --window-size=375,812), after the defaults. */
+  args?: string[];
 }
 
 interface Pending {
@@ -150,6 +152,7 @@ export async function openChromePage(
       "--force-color-profile=srgb",
       // Nothing but loopback (the harness server) is reachable from the page.
       "--proxy-server=127.0.0.1:9",
+      ...(options.args ?? []),
       "about:blank",
     ],
     { stdout: "ignore", stderr: "pipe", stdin: "ignore" },
