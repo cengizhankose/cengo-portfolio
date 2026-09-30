@@ -21,6 +21,30 @@ export const scssOptions = {
   silenceDeprecations: ["import", "global-builtin", "color-functions"],
 };
 
+// PERF-10 / FE-32: long-lived vendor chunks by package, decided per module id
+// (the object form only caught the package entry files: `react-dom/client`,
+// 553 kB of source, stayed in the entry chunk and the `vendor` chunk was
+// empty). The React runtime changes only with a dependency bump, so its chunk
+// keeps its hash, and its cache entry, across app releases.
+// Nothing else is listed on purpose: the markdown chain (react-markdown,
+// remark, rehype, parse5, ...) and mermaid belong to the lazy blog chunks
+// (PERF-04) and Rollup keeps them there; Bootstrap's JS is not imported at all
+// (PERF-09 reads only its SCSS), so only react-bootstrap needs a rule.
+const NODE_MODULES = /[\\/]node_modules[\\/]/;
+const REACT_RUNTIME =
+  /[\\/]node_modules[\\/](?:react|react-dom|scheduler)[\\/]/;
+const REACT_ROUTER =
+  /[\\/]node_modules[\\/](?:react-router|react-router-dom)[\\/]/;
+const REACT_BOOTSTRAP = /[\\/]node_modules[\\/]react-bootstrap[\\/]/;
+
+export function manualChunks(id) {
+  if (!NODE_MODULES.test(id)) return undefined;
+  if (REACT_RUNTIME.test(id)) return "vendor";
+  if (REACT_ROUTER.test(id)) return "router";
+  if (REACT_BOOTSTRAP.test(id)) return "bootstrap";
+  return undefined;
+}
+
 export default defineConfig({
   plugins: [react()],
   base: "/",
@@ -34,11 +58,7 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ["react", "react-dom"],
-          bootstrap: ["react-bootstrap", "bootstrap"],
-          router: ["react-router-dom"],
-        },
+        manualChunks,
         entryFileNames: "assets/[name]-[hash].js",
         chunkFileNames: "assets/[name]-[hash].js",
         assetFileNames: "assets/[name]-[hash].[ext]",
@@ -64,11 +84,6 @@ export default defineConfig({
       },
     },
   },
-  resolve: {
-    alias: {
-      "@": "/src",
-    },
-  },
   preview: {
     port: 4173,
     host,
@@ -77,7 +92,10 @@ export default defineConfig({
   // Server/API tests live in tests/server/** and run under `bun test`.
   test: {
     environment: "jsdom",
-    setupFiles: ["tests/frontend/setup.js"],
+    setupFiles: [
+      "tests/frontend/setup.js",
+      "tests/frontend/split/setup-async-timeout.js",
+    ],
     include: ["tests/frontend/**/*.test.{js,jsx}"],
     restoreMocks: true,
     unstubGlobals: true,
