@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import "../styles/bootstrap-subset.scss";
-import { BrowserRouter as Router, useLocation } from "react-router-dom";
+import { BrowserRouter as Router } from "react-router-dom";
 import AppRoutes from "./routes";
 import Headermain from "../header";
 import { useMediaQuery } from "../lib/useMediaQuery";
@@ -27,21 +27,13 @@ function CursorGate() {
   );
 }
 
-function ScrollToTop({ children }) {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return children;
-}
-
 export default function App() {
   return (
     <Router basename={import.meta.env.BASE_URL}>
-      <ScrollToTop>
-        <Headermain />
-        <AppRoutes />
-      </ScrollToTop>
+      {/* Scroll to top, focus and the page view on a page change all live in
+          the route shell (routes.jsx): one place, one commit. */}
+      <Headermain />
+      <AppRoutes />
       <CursorGate />
     </Router>
   );
