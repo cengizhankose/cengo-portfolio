@@ -21,6 +21,7 @@ import { HERO_IMAGE, LOCALES, SOCIAL_PROFILES } from "../../../src/seo/site.js";
 import {
   AUTHOR,
   blogPostingSchema,
+  EN_ONLY,
   getMeta as getPageMeta,
   homeJsonLd,
   isoDate,
@@ -270,7 +271,7 @@ describe("the home graph (SEO-07 hedef durum)", () => {
 describe("BlogPosting (SEO-07 step 3)", () => {
   const route = matchRoute("/tr/blog/atlas-steward");
   const node = (over: Record<string, unknown> = {}, locale = "tr") =>
-    graphOf(getPageMeta(route, locale, { post: post(over) }))[0];
+    graphOf(getPageMeta(route, locale, { post: post(over) }, EN_ONLY))[0];
 
   test("a post page has a single-node graph: a BlogPosting", () => {
     const meta = getPageMeta(route, "tr", { post: post() });

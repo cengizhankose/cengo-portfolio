@@ -30,3 +30,12 @@ export const serializeJsonLd = jsonld.serializeJsonLd as Loose;
 export const ogImage = ogImageByLocale as Record<string, { alt: string }>;
 export const OG_LOCALE = site.OG_LOCALE as Record<string, string>;
 export const AUTHOR = site.AUTHOR as any;
+
+// The route table as it is today (only EN static pages open, both post
+// languages live). Tests whose expectation depends on that state pass it
+// explicitly, so flipping LIVE.static for the TR launch (SEO-11 Adım B, W11)
+// does not silently change what they check.
+export const EN_ONLY = Object.freeze({
+  static: ["en"],
+  post: ["en", "tr"],
+});

@@ -14,6 +14,7 @@ import { LOCALES, SITE_URL } from "../../../src/seo/site.js";
 import {
   alternatesFor,
   canonicalUrl,
+  EN_ONLY,
   getMeta as getPageMeta,
   localePath,
   routePathname,
@@ -197,7 +198,7 @@ describe("getPageMeta canonical on static pages (SEO-04 step 2)", () => {
 
   test("a language that is not open yet has no page, so no canonical (route not live)", () => {
     // /tr/about is a 404 until LIVE.static gains 'tr' (SEO-11 Adım B).
-    expect(getPageMeta("/tr/about", "tr").canonical).toBeNull();
+    expect(getPageMeta("/tr/about", "tr", {}, EN_ONLY).canonical).toBeNull();
     // After the flip the same call gives the TR page its own URL.
     expect(getPageMeta("/tr/about", "tr", {}, ALL_LIVE).canonical).toBe(
       `${HOST}/tr/about`,

@@ -18,6 +18,7 @@ import {
 } from "../../../src/seo/site.js";
 import {
   canonicalUrl,
+  EN_ONLY,
   getMeta as getPageMeta,
   ogImage,
   OG_LOCALE,
@@ -144,7 +145,7 @@ describe("Open Graph on static pages (SEO-06 hedef durum)", () => {
     for (const locale of LOCALES) {
       for (const path of INDEXABLE_PATHS) {
         expect(
-          getPageMeta(matchRoute(path), locale).og.localeAlternate,
+          getPageMeta(matchRoute(path), locale, {}, EN_ONLY).og.localeAlternate,
         ).toEqual([]);
       }
     }
@@ -238,32 +239,44 @@ describe("Open Graph on posts (SEO-06 step 2 and step 4)", () => {
   });
 
   test("article times are ISO; published falls back to createdAt; modified to published", () => {
-    const full = getPageMeta(route, "tr", { post: post() });
+    const full = getPageMeta(route, "tr", { post: post() }, EN_ONLY);
     expect(full.og.article).toEqual({
       publishedTime: "2026-07-02T09:30:00.000Z",
       modifiedTime: "2026-07-05T12:00:00.000Z",
       author: `${HOST}/about`,
     });
 
-    const older = getPageMeta(route, "tr", {
-      post: post({ publishedAt: null, updatedAt: null }),
-    });
+    const older = getPageMeta(
+      route,
+      "tr",
+      { post: post({ publishedAt: null, updatedAt: null }) },
+      EN_ONLY,
+    );
     expect(older.og.article).toEqual({
       publishedTime: "2026-07-01T08:00:00.000Z",
       modifiedTime: "2026-07-01T08:00:00.000Z",
       author: `${HOST}/about`,
     });
 
-    const undated = getPageMeta(route, "tr", {
-      post: post({ createdAt: undefined, publishedAt: null, updatedAt: null }),
-    });
+    const undated = getPageMeta(
+      route,
+      "tr",
+      {
+        post: post({
+          createdAt: undefined,
+          publishedAt: null,
+          updatedAt: null,
+        }),
+      },
+      EN_ONLY,
+    );
     expect(undated.og.article).toEqual({ author: `${HOST}/about` });
   });
 
   test("article:author is the About page of the post's language (EN until TR opens)", () => {
-    expect(getPageMeta(route, "tr", { post: post() }).og.article.author).toBe(
-      `${HOST}/about`,
-    );
+    expect(
+      getPageMeta(route, "tr", { post: post() }, EN_ONLY).og.article.author,
+    ).toBe(`${HOST}/about`);
     expect(
       getPageMeta(route, "tr", { post: post() }, ALL_LIVE).og.article.author,
     ).toBe(`${HOST}/tr/about`);
@@ -314,7 +327,7 @@ describe("Open Graph on posts (SEO-06 step 2 and step 4)", () => {
 
 describe("socialTags (the list printed into the head)", () => {
   test("a static page: the og, image and Twitter tags in a fixed order", () => {
-    const tags = tagsOf(getPageMeta(matchRoute("/about"), "en"));
+    const tags = tagsOf(getPageMeta(matchRoute("/about"), "en", {}, EN_ONLY));
     expect(tags.map((tag) => tag.key)).toEqual([
       "og:type",
       "og:site_name",

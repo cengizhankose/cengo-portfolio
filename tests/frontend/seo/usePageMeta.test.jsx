@@ -404,11 +404,22 @@ describe("JSON-LD block (SEO-07 step 5)", () => {
 });
 
 describe("usePageMeta with the full getPageMeta output (SEO-04/06/07)", () => {
-  const homeMeta = () => getPageMeta(matchRoute("/"), "en");
-  const aboutMeta = () => getPageMeta(matchRoute("/about"), "en");
-  const portfolioMeta = () => getPageMeta(matchRoute("/portfolio"), "en");
+  // The route table as it is today: only the EN static pages are open, so the
+  // static pages have no counterpart (no og:locale:alternate) and the post's
+  // author page is the English About. Explicit, so the TR launch flip
+  // (SEO-11 Adım B) does not change what these tests check.
+  const EN_ONLY = { static: ["en"], post: ["en", "tr"] };
+  const homeMeta = () => getPageMeta(matchRoute("/"), "en", {}, EN_ONLY);
+  const aboutMeta = () => getPageMeta(matchRoute("/about"), "en", {}, EN_ONLY);
+  const portfolioMeta = () =>
+    getPageMeta(matchRoute("/portfolio"), "en", {}, EN_ONLY);
   const postMeta = () =>
-    getPageMeta(matchRoute("/tr/blog/atlas-steward"), "tr", { post: TR_POST });
+    getPageMeta(
+      matchRoute("/tr/blog/atlas-steward"),
+      "tr",
+      { post: TR_POST },
+      EN_ONLY,
+    );
 
   it("writes canonical, the og/twitter set and the ld+json of the home page", () => {
     render(<Probe meta={homeMeta()} />);

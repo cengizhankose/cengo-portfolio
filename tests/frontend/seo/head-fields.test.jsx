@@ -113,7 +113,6 @@ describe("head fields of the static pages (SEO-04, SEO-06, SEO-07)", () => {
     expect(value("twitter:card")).toBe("summary_large_image");
     expect(value("twitter:site")).toBe("@cengzhnkse");
     expect(value("twitter:creator")).toBe("@cengzhnkse");
-    expect(metaAll("og:locale:alternate")).toHaveLength(0);
 
     expect(ldScripts()).toHaveLength(1);
     const graph = JSON.parse(ldScripts()[0].textContent)["@graph"];
