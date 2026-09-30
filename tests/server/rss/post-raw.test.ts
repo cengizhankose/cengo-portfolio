@@ -163,6 +163,10 @@ describe("feed autodiscovery (MKT-07 criterion 5)", () => {
     async (path) => {
       const { doc, html } = await page(path);
       expect(html.match(/application\/rss\+xml/g)).toHaveLength(2);
+      // `curl | grep -c` counts lines: each link is on a line of its own.
+      expect(
+        html.split("\n").filter((line) => line.includes("application/rss+xml")),
+      ).toHaveLength(2);
       const links = [
         ...doc.querySelectorAll(
           'link[rel="alternate"][type="application/rss+xml"]',

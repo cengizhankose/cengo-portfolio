@@ -103,11 +103,15 @@ export function preloadFor(
 // them as printed.
 const FEED_LABEL: Record<string, string> = { en: "Blog (EN)", tr: "Blog (TR)" };
 
-/** The feed links of the head, one per language, as tags. */
+/**
+ * The feed links of the head, one per language, as tags. Each sits on a line of
+ * its own, so `curl -s $SITE/ | grep -c 'application/rss+xml'` counts the two
+ * feeds (the rest of the injected head is one line).
+ */
 export function feedLinkTags(): string[] {
   return LOCALES.map(
     (locale) =>
-      `<link rel="alternate" type="application/rss+xml" title="${escapeHtml(`${FEED_LABEL[locale] ?? locale} | ${SITE_NAME}`)}" href="${escapeHtml(canonicalUrl(FEED_PATH, locale))}"${MARK}>`,
+      `\n<link rel="alternate" type="application/rss+xml" title="${escapeHtml(`${FEED_LABEL[locale] ?? locale} | ${SITE_NAME}`)}" href="${escapeHtml(canonicalUrl(FEED_PATH, locale))}"${MARK}>\n`,
   );
 }
 
