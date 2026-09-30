@@ -10,7 +10,18 @@ import {
   sep,
 } from "node:path";
 import { errorFields, log } from "../api/log";
+import { toCard } from "../api/routes/posts";
+import { LIST_DEFAULT_LIMIT } from "../db/post-input";
 import type { PostQueries } from "../db/queries/posts";
+import { blogIndexLists } from "../lib/swrFallback.js";
+import { postKey } from "../lib/swr.js";
+import { preloadFor, renderHeadTags } from "../seo/head";
+import {
+  injectIntoShell,
+  injectShellMeta,
+  readShell,
+  type ShellMeta,
+} from "../seo/inject";
 import {
   displayLocale,
   getPageMeta,
@@ -18,8 +29,18 @@ import {
   routePathname,
 } from "../seo/pages.js";
 import { LIVE, matchRoute } from "../seo/routes.js";
+import { renderNotFoundSnapshot, renderSnapshot } from "../seo/snapshot";
 import { contentTypeFor } from "./mime";
 import { safeResolve } from "./safe-path";
+
+// The 404 shell's small head rewrite moved to src/seo/inject.ts with SEO-01;
+// re-exported here for the callers that import it from this module.
+export { injectShellMeta };
+export type { ShellMeta };
+
+/** The queries the site needs: the post lookup, and the list for the /blog snapshot. */
+export type SiteQueries = Pick<PostQueries, "getPostForLocale"> &
+  Partial<Pick<PostQueries, "listPublishedPosts">>;
 
 export interface MountSiteOptions {
   /** Directory holding the Vite build output (index.html, assets/, copied public/ files). */
@@ -30,7 +51,19 @@ export interface MountSiteOptions {
    * 301 to its own path, a database error 503. Pass createApp's `queries`.
    * Without it post URLs get the shell unchecked (tests, tools).
    */
-  queries?: Pick<PostQueries, "getPostForLocale">;
+  queries?: SiteQueries;
+  /**
+   * SEO-01: write each page's head tags, a readable snapshot and the first
+   * data into the HTML (src/seo). Default: on when `queries` is given, unless
+   * the environment variable SEO_INJECT is `off` (the kill switch:
+   * `outplane env set SEO_INJECT=off`, then deploy). Off, pages are the plain
+   * shell as before SEO-01 and only a 404 gets its title and robots tag.
+   */
+  seoInject?: boolean;
+  /** How long a slug that is not a published post is remembered, in ms (default 30 s, SEO-08 step 5). */
+  missingTtlMs?: number;
+  /** Clock in ms (tests pass a fake one). */
+  now?: () => number;
 }
 
 const IMMUTABLE = "public, max-age=31536000, immutable";
@@ -40,6 +73,10 @@ const NO_STORE = "no-store";
 const HTML_TYPE = contentTypeFor("index.html");
 /** SEO-08: how long a client should wait after a 503 from a failed post lookup. */
 const RETRY_AFTER_SECONDS = "120";
+/** SEO-08 step 5: an unknown slug is asked of the database at most once in this time. */
+const MISSING_TTL_MS = 30_000;
+/** ... and at most this many unknown slugs are remembered (oldest first out), so random URLs cannot grow the map. */
+const MISSING_MAX = 500;
 
 /** Directories whose file names carry a hash or version (`v1`): cacheable for a year. */
 const IMMUTABLE_PREFIXES = ["/assets/", "/img/", "/fonts/"];
@@ -51,13 +88,6 @@ interface HtmlDoc {
   etag: string;
 }
 
-/** What the server writes into the shell's <head> for a 404 (SEO-02 step 4). */
-export interface ShellMeta {
-  title?: string | null;
-  robots?: string | null;
-  lang?: string | null;
-}
-
 type Route = ReturnType<typeof matchRoute>;
 type Locale = Parameters<PostQueries["getPostForLocale"]>[1];
 
@@ -65,42 +95,68 @@ type Locale = Parameters<PostQueries["getPostForLocale"]>[1];
  * Serves the built site on `app` for GET/HEAD requests (T-11 static policy):
  *
  * 1. Undecodable, traversing or hidden (dot-segment) paths -> 404 `no-store`.
- * 2. HTML documents (`/`, `/x.html`, `<dir>/index.html` for `/dir` and `/dir/`)
+ * 2. HTML documents (`/x.html`, `<dir>/index.html` for `/dir` and `/dir/`)
  *    come from memory with a strong ETag and `Cache-Control: no-cache`;
  *    a matching `If-None-Match` gets `304`.
  * 3. Other existing files are streamed with `Bun.file`; hashed directories
  *    (`/assets/`, `/img/`, `/fonts/`) are `immutable`, the rest `max-age=3600`.
  * 4. A miss with a file extension or under a file-only directory
  *    (`/assets`, `/img`, `/fonts`, `/.well-known`) -> 404 `text/plain` + `no-store`.
- * 5. Everything else is a page path, answered from src/seo/routes.js
- *    (SEO-02, SEC-23, SEO-08, SEO-11):
+ * 5. Everything else is a page path (and so is `/`), answered from
+ *    src/seo/routes.js (SEO-02, SEC-23, SEO-08, SEO-11):
  *    - another spelling of a known route (trailing slash, upper case) -> 301
  *      to its one canonical path, query string kept;
- *    - a live static route -> the shell, 200 (`X-Robots-Tag` when the page is
- *      noindex, T-10 portfolio);
+ *    - a live static route -> 200 (`X-Robots-Tag` when the page is noindex,
+ *      T-10 portfolio);
  *    - a post route -> checked with `queries`: published in this language
  *      200, in the other language 301 to that language's path, missing or
  *      draft 404 + noindex, lookup error 503 + `Retry-After`;
- *    - anything else (including a language that is not live yet) -> the
- *      shell with 404, `<meta name="robots" content="noindex">`, the
- *      "Page not found" title and `X-Robots-Tag: noindex`.
- *    No redirect is ever based on Accept-Language or IP (T-12).
+ *    - anything else (including a language that is not live yet) -> 404 with
+ *      `noindex` in the page and in `X-Robots-Tag`.
+ *    The language of a page comes from its URL prefix alone, never from a
+ *    request header or the client's address (T-12).
+ *
+ * What a 200 or 404 page contains depends on `seoInject` (SEO-01, T-06
+ * Aşama 1). On: src/seo builds the page from the same data the app shows and
+ * writes it into the shell: the <head> tags of getPageMeta() (title,
+ * description, robots, canonical, hreflang, Open Graph, Twitter, JSON-LD, the
+ * hero preload on the home page), `<html lang>`, a readable snapshot of the
+ * content in <div id="root"> and, for the blog, the first data as a JSON block
+ * the app's swr reads. Off: the plain shell, as before SEO-01.
  *
  * Register API routes before calling this: it answers every GET/HEAD path.
  */
 export function mountSite(
   app: Hono<any, any, any>,
-  { distDir, queries }: MountSiteOptions,
+  {
+    distDir,
+    queries,
+    seoInject,
+    missingTtlMs = MISSING_TTL_MS,
+    now = Date.now,
+  }: MountSiteOptions,
 ): void {
   const distRoot = resolve(distDir);
   const htmlByTarget = indexHtmlFiles(distRoot);
   const shellFile = join(distRoot, "index.html");
   const docs = new Map<string, Promise<HtmlDoc>>();
   const shellVariants = new Map<string, Promise<HtmlDoc>>();
+  const staticPages = new Map<string, HtmlDoc>();
+  const notFoundPages = new Map<string, HtmlDoc>();
+  const missingSlugs = new Map<string, number>();
 
   if (!htmlByTarget.has(shellFile)) {
     console.warn(`[static] ${shellFile} not found; SPA routes will answer 500`);
   }
+
+  // SEO-01: on by default wherever the site has its queries (production); a
+  // shell the injection cannot rewrite stops the process here, at startup,
+  // rather than serving pages without SEO.
+  const seo =
+    (seoInject ??
+      (queries !== undefined && seoEnabled(process.env.SEO_INJECT))) &&
+    htmlByTarget.has(shellFile);
+  const shellText = seo ? readShell(shellFile) : "";
 
   const loadDoc = (file: string): Promise<HtmlDoc> => {
     let doc = docs.get(file);
@@ -112,8 +168,9 @@ export function mountSite(
     return doc;
   };
 
-  // The shell with a 404's title/robots/lang. The meta comes from the page
-  // registry, never from the request, so the cache holds a handful of entries.
+  // The shell with a 404's title/robots/lang (injection off). The meta comes
+  // from the page registry, never from the request, so the cache holds a
+  // handful of entries.
   const loadShellVariant = (meta: ShellMeta): Promise<HtmlDoc> => {
     const key = JSON.stringify([meta.title, meta.robots, meta.lang]);
     let doc = shellVariants.get(key);
@@ -134,13 +191,14 @@ export function mountSite(
   // dist/ does not change while the process runs: read every HTML document once, up front.
   for (const file of new Set(htmlByTarget.values())) void loadDoc(file);
 
-  const sendHtml = async (
+  // A finished document with its validators: a matching If-None-Match gets
+  // 304 (only ever for a 200).
+  const respond = (
     c: Context,
-    file: string,
+    { body, etag }: HtmlDoc,
     status: 200 | 404,
     headers: Record<string, string> = {},
   ) => {
-    const { body, etag } = await loadDoc(file);
     if (status === 200 && etagMatches(c.req.header("If-None-Match"), etag)) {
       return c.body(null, 304, {
         ETag: etag,
@@ -157,6 +215,13 @@ export function mountSite(
     });
   };
 
+  const sendHtml = async (
+    c: Context,
+    file: string,
+    status: 200 | 404,
+    headers: Record<string, string> = {},
+  ) => respond(c, await loadDoc(file), status, headers);
+
   const shellMissing = (c: Context) =>
     c.text("Site shell missing", 500, { "Cache-Control": NO_STORE });
 
@@ -169,23 +234,47 @@ export function mountSite(
     return sendHtml(c, shellFile, status, headers);
   };
 
-  // 404 page path (SEO-02, SEC-23, SEO-08): the shell, with the not-found
-  // title and noindex in <head> and in X-Robots-Tag. The SPA renders NotFound.
+  // Text to the bytes a response carries, with its ETag.
+  const toDoc = (text: string): HtmlDoc =>
+    toHtmlDoc(new TextEncoder().encode(text) as Uint8Array<ArrayBuffer>);
+
+  // The 404 page (SEC-23, SEO-02, SEO-08): title and robots in <head> and in
+  // X-Robots-Tag; with injection on, also the description, `<html lang>` in the
+  // language of the 404 and its text in <div id="root"> (the app renders the
+  // same NotFound page).
   const renderNotFound = async (c: Context, route: Route, post = false) => {
     if (!htmlByTarget.has(shellFile)) return shellMissing(c);
     const locale = post ? route.locale : displayLocale(route);
     const meta = getPageMeta(route, locale, { notFound: true });
-    const { body } = await loadShellVariant(meta);
-    return c.body(body, 404, {
+    let doc: HtmlDoc;
+    if (seo) {
+      const key = `${post ? "post" : "page"}:${locale}`;
+      let page = notFoundPages.get(key);
+      if (!page) {
+        page = toDoc(
+          injectIntoShell(shellText, {
+            lang: meta.lang,
+            headTags: renderHeadTags(meta),
+            bodyHtml: renderNotFoundSnapshot(route, { post }),
+          }),
+        );
+        notFoundPages.set(key, page);
+      }
+      doc = page;
+    } else {
+      doc = await loadShellVariant(meta);
+    }
+    return c.body(doc.body, 404, {
       "Content-Type": HTML_TYPE,
-      "Content-Length": String(body.byteLength),
+      "Content-Length": String(doc.body.byteLength),
       "Cache-Control": NO_STORE,
       "X-Robots-Tag": meta.robots ?? "noindex",
     });
   };
 
-  // SEO-08: the post lookup failed. A 503 keeps a real post in the index
-  // (a 404 would drop it); no noindex. The shell still loads for visitors.
+  // SEO-08: the lookup failed. A 503 keeps a real page in the index (a 404
+  // would drop it); no noindex. The shell still loads for visitors, so the app
+  // can try the API itself.
   const renderUnavailable = async (c: Context) => {
     if (!htmlByTarget.has(shellFile)) return shellMissing(c);
     const { body } = await loadDoc(shellFile);
@@ -197,8 +286,66 @@ export function mountSite(
     });
   };
 
+  // SEO-08 step 5: a slug the database said is not a published post is not
+  // asked again for a while, so a bot walking random /blog/<x> URLs cannot
+  // turn every request into a query. Only "missing" is kept (a database error
+  // never is); the map is bounded and its oldest entries go first.
+  const isKnownMissing = (slug: string) => {
+    const until = missingSlugs.get(slug);
+    if (until === undefined) return false;
+    if (until > now()) return true;
+    missingSlugs.delete(slug);
+    return false;
+  };
+  const rememberMissing = (slug: string) => {
+    missingSlugs.delete(slug);
+    missingSlugs.set(slug, now() + missingTtlMs);
+    while (missingSlugs.size > MISSING_MAX) {
+      const oldest = missingSlugs.keys().next().value;
+      if (oldest === undefined) break;
+      missingSlugs.delete(oldest);
+    }
+  };
+
+  // A page assembled by src/seo: head tags from getPageMeta(), the snapshot
+  // and the data block written into the shell.
+  const composePage = (
+    route: Route,
+    locale: string,
+    data: { post?: unknown } = {},
+    snapshot: { lists?: unknown[][]; post?: unknown } = {},
+    fallback: Record<string, unknown> | null = null,
+  ) => {
+    const meta = getPageMeta(route, locale, data);
+    return toDoc(
+      injectIntoShell(shellText, {
+        lang: meta.lang,
+        headTags: renderHeadTags(meta, {
+          preload: preloadFor(route, meta.lang ?? locale),
+        }),
+        bodyHtml: renderSnapshot(route, meta.lang ?? locale, snapshot as any),
+        data: fallback,
+      }),
+    );
+  };
+
+  // A published post in its own language: the article, its head tags (canonical
+  // in its language, hreflang pairs, BlogPosting) and the post itself as the
+  // swr key the page will ask for (/api/posts/<slug>).
+  const renderPublishedPost = (c: Context, route: Route, post: any) => {
+    const doc = composePage(
+      route,
+      route.locale,
+      { post },
+      { post },
+      { [postKey(route.slug)!]: post },
+    );
+    return respond(c, doc, 200);
+  };
+
   const renderPost = async (c: Context, route: Route, search: string) => {
     if (!queries || route.type !== "post") return renderShell(c, 200);
+    if (isKnownMissing(route.slug!)) return renderNotFound(c, route, true);
     let found: Awaited<ReturnType<PostQueries["getPostForLocale"]>>;
     try {
       found = await queries.getPostForLocale(
@@ -213,7 +360,11 @@ export function mountSite(
       });
       return renderUnavailable(c);
     }
-    if (found.status === "ok") return renderShell(c, 200);
+    if (found.status === "ok") {
+      return seo
+        ? renderPublishedPost(c, route, found.post)
+        : renderShell(c, 200);
+    }
     if (found.status === "moved" && LIVE.post.includes(found.locale)) {
       // SEO-11: one 301 to the post's own language path. Built from the
       // matched slug and a known prefix only: never from the request's host.
@@ -222,7 +373,57 @@ export function mountSite(
         301,
       );
     }
+    if (found.status === "missing") rememberMissing(route.slug!);
     return renderNotFound(c, route, true);
+  };
+
+  // The blog index: one list per group of the page (src/lib/swrFallback.js,
+  // T-12), newest first, cards only. The same lists go into the page as the
+  // swr data for their API keys, so the app shows them without asking again.
+  const renderBlog = async (c: Context, route: Route) => {
+    const list = queries?.listPublishedPosts;
+    if (!list) return renderShell(c, 200);
+    const lists = blogIndexLists(route.locale);
+    let rows: Awaited<ReturnType<NonNullable<typeof list>>>[];
+    try {
+      rows = await Promise.all(
+        lists.map((entry) =>
+          list({
+            lang: entry.lang as Locale,
+            missingIn: (entry as { missingIn?: Locale }).missingIn,
+            limit: LIST_DEFAULT_LIMIT,
+          }),
+        ),
+      );
+    } catch (error) {
+      log("error", "post list failed", {
+        reqId: c.get("requestId"),
+        path: new URL(c.req.url).pathname,
+        ...errorFields(error),
+      });
+      return renderUnavailable(c);
+    }
+    const cards = rows.map((posts) => posts.map(toCard));
+    const fallback = Object.fromEntries(
+      lists.map(({ key }, index) => [key, cards[index]]),
+    );
+    return respond(
+      c,
+      composePage(route, route.locale, {}, { lists: cards }, fallback),
+      200,
+    );
+  };
+
+  // A live static page. Its content never changes while the process runs, so
+  // it is built once per page and language.
+  const renderStatic = (c: Context, route: Route, robots: string | null) => {
+    const key = `${route.locale}:${route.path}`;
+    let doc = staticPages.get(key);
+    if (!doc) {
+      doc = composePage(route, route.locale);
+      staticPages.set(key, doc);
+    }
+    return respond(c, doc, 200, robots ? { "X-Robots-Tag": robots } : {});
   };
 
   const renderPage = async (c: Context, pathname: string, search: string) => {
@@ -239,6 +440,11 @@ export function mountSite(
     // Live static page. T-10: a noindex page (portfolio) says so in the
     // response header as well, so it applies before any JavaScript runs.
     const { robots } = getPageMeta(route, route.locale);
+    if (seo) {
+      return route.path === "/blog"
+        ? renderBlog(c, route)
+        : renderStatic(c, route, robots);
+    }
     return renderShell(c, 200, robots ? { "X-Robots-Tag": robots } : {});
   };
 
@@ -252,8 +458,14 @@ export function mountSite(
     const asDirectory = pathname.endsWith("/");
 
     const htmlFile = htmlByTarget.get(target);
-    if (htmlFile && (!asDirectory || htmlFile === join(target, "index.html")))
+    if (htmlFile && (!asDirectory || htmlFile === join(target, "index.html"))) {
+      // `/` is the home page, not the bare shell, once the pages are written
+      // per route (SEO-01). `/index.html` stays the shell itself.
+      if (seo && target === distRoot && htmlFile === shellFile) {
+        return renderPage(c, pathname, search);
+      }
       return sendHtml(c, htmlFile, 200);
+    }
 
     const info = asDirectory ? null : await stat(target).catch(() => null);
     if (info?.isFile()) return sendFile(c, target, sitePath, info.size);
@@ -263,6 +475,11 @@ export function mountSite(
 
     return renderPage(c, pathname, search);
   });
+}
+
+/** SEO_INJECT=off (any case, trimmed) is the kill switch; anything else leaves the layer on. */
+function seoEnabled(value: string | undefined): boolean {
+  return value?.trim().toLowerCase() !== "off";
 }
 
 /**
@@ -279,54 +496,6 @@ function knownRoute(pathname: string): Route {
   if (folded === pathname) return exact;
   const variant = matchRoute(folded);
   return variant.type === "notfound" ? exact : variant;
-}
-
-/**
- * Writes a page's <title>, meta robots and <html lang> into the shell
- * (SEO-02 step 4). Other tags are left alone; the values are escaped.
- * SEO-01 (T-06 Aşama 1) generalises this to every route.
- */
-export function injectShellMeta(html: string, meta: ShellMeta): string {
-  let out = html;
-
-  if (meta.lang) {
-    const lang = escapeHtml(meta.lang);
-    out = out.replace(/<html\b([^>]*)>/i, (_tag, attrs: string) => {
-      const rest = attrs.replace(
-        /\s+lang\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/i,
-        "",
-      );
-      return `<html${rest} lang="${lang}">`;
-    });
-  }
-
-  const additions: string[] = [];
-  if (meta.title) {
-    const title = `<title data-seo>${escapeHtml(meta.title)}</title>`;
-    const existing = /<title\b[^>]*>[\s\S]*?<\/title>/i;
-    if (existing.test(out)) out = out.replace(existing, () => title);
-    else additions.push(title);
-  }
-
-  out = out.replace(/<meta\b[^>]*\bname\s*=\s*["']?robots\b[^>]*>\s*/gi, "");
-  if (meta.robots) {
-    additions.push(
-      `<meta name="robots" content="${escapeHtml(meta.robots)}" data-seo>`,
-    );
-  }
-
-  if (additions.length > 0) {
-    out = out.replace(/<\/head>/i, () => `${additions.join("")}</head>`);
-  }
-  return out;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
 
 function toHtmlDoc(body: Uint8Array<ArrayBuffer>): HtmlDoc {
