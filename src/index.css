@@ -63,6 +63,33 @@ p {
   overflow: hidden;
 }
 
+/* Skip link (FE-10/DSG-14): first stop in the tab order, off screen until it
+   has focus. Above the page frame (z-index 999999) when shown. */
+.skip-link {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1000001;
+  padding: 8px 16px;
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-weight: 600;
+  text-decoration: none;
+  outline: 2px solid var(--text-color);
+  outline-offset: 0;
+  transform: translateY(calc(-100% - 32px));
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* <main> takes focus only programmatically (skip link, route change); it is
+   not a control, so it gets no focus ring. */
+#main:focus {
+  outline: none;
+}
+
 .text_2,
 .text_2:hover {
   color: var(--text-color-2);
