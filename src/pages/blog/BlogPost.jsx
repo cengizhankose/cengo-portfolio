@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import { useParams, Link, useLocation } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import MermaidRenderer from "./MermaidRenderer";
+import { getPageMeta } from "../../seo/pages.js";
+import { matchRoute } from "../../seo/routes.js";
+import { usePageMeta } from "../../seo/usePageMeta.js";
 import "./style.css";
+
+const POST_NOT_FOUND = "Not found";
 
 const formatDate = (dateString) => {
   if (!dateString) return "No date";
@@ -27,6 +31,13 @@ const BlogPost = () => {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const route = matchRoute(useLocation().pathname);
+  // Only an API 404 is "not found" (noindex); a network or 5xx error keeps the
+  // indexable fallback meta.
+  const notFound = error === POST_NOT_FOUND;
+  usePageMeta(
+    getPageMeta(route, route.locale, notFound ? { notFound: true } : { post }),
+  );
 
   useEffect(() => {
     const apiUrl = import.meta.env.DEV
@@ -34,7 +45,11 @@ const BlogPost = () => {
       : "";
     fetch(`${apiUrl}/api/posts/${slug}`)
       .then((res) => {
-        if (!res.ok) throw new Error("Not found");
+        if (!res.ok) {
+          throw new Error(
+            res.status === 404 ? POST_NOT_FOUND : `HTTP ${res.status}`,
+          );
+        }
         return res.json();
       })
       .then((data) => {
@@ -53,10 +68,6 @@ const BlogPost = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{post.title} | Cengizhan Köse</title>
-        <meta name="description" content={post.excerpt || post.title} />
-      </Helmet>
       <article className="blog-post-container">
         <Link to="/blog" className="blog-back">
           ← Back to Blog

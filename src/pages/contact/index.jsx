@@ -1,12 +1,16 @@
 import { useState } from "react";
 import * as emailjs from "emailjs-com";
 import "./style.css";
-import { Helmet, HelmetProvider } from "react-helmet-async";
-import { meta } from "../../content_option";
 import { Container, Row, Col, Alert } from "react-bootstrap";
+import { useLocation } from "react-router-dom";
 import { contactConfig } from "../../content_option";
+import { getPageMeta } from "../../seo/pages.js";
+import { matchRoute } from "../../seo/routes.js";
+import { usePageMeta } from "../../seo/usePageMeta.js";
 
 export const ContactUs = () => {
+  const route = matchRoute(useLocation().pathname);
+  usePageMeta(getPageMeta(route, route.locale));
   const [formData, setFormdata] = useState({
     email: "",
     name: "",
@@ -65,13 +69,8 @@ export const ContactUs = () => {
   };
 
   return (
-    <HelmetProvider>
+    <>
       <Container>
-        <Helmet>
-          <meta charSet="utf-8" />
-          <title>{meta.title} | Contact</title>
-          <meta name="description" content={meta.description} />
-        </Helmet>
         <Row className="mb-5 mt-3">
           <Col lg="8">
             <h1 className="display-4 mb-4">Contact Me</h1>
@@ -162,6 +161,6 @@ export const ContactUs = () => {
         </Row>
       </Container>
       <div className={formData.loading ? "loading-bar" : "d-none"}></div>
-    </HelmetProvider>
+    </>
   );
 };
