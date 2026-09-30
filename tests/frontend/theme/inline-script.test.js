@@ -156,10 +156,14 @@ describe("index.html head structure", () => {
     expect(head.match(/<script\b/g)).toHaveLength(1);
   });
 
-  it("runs before every stylesheet, preconnect and module script (FE-09)", () => {
+  it("runs before every stylesheet, font preload and module script (FE-09)", () => {
+    // PERF-08: the source holds no stylesheet link any more (the fonts are
+    // self-hosted, Vite adds the CSS link at build time after the head
+    // script); the two font preloads are what follows the script.
     const firstStylesheet = head.search(/<link\b[^>]*rel="stylesheet"/);
-    expect(firstStylesheet).toBeGreaterThan(scriptAt);
-    expect(head.indexOf('rel="preconnect"')).toBeGreaterThan(scriptAt);
+    if (firstStylesheet !== -1)
+      expect(firstStylesheet).toBeGreaterThan(scriptAt);
+    expect(head.indexOf('rel="preload"')).toBeGreaterThan(scriptAt);
     expect(HTML.indexOf('type="module"')).toBeGreaterThan(scriptAt);
   });
 
@@ -169,9 +173,6 @@ describe("index.html head structure", () => {
       /data-theme|stylesheet/.test(line),
     );
     expect(hits[0]).toContain('setAttribute("data-theme"');
-    expect(hits.slice(1).some((line) => line.includes("stylesheet"))).toBe(
-      true,
-    );
   });
 
   it("comes after the two theme-color metas it updates (DSG-16)", () => {

@@ -10,6 +10,7 @@ import { swrConfig } from "./lib/swr";
 import { toSWRFallback } from "./lib/swrFallback.js";
 import { readSeoData } from "./seo/readSeoData.js";
 import { matchRoute } from "./seo/routes.js";
+import "./styles/fonts.css";
 import "./index.css";
 
 // Blog data layer (T-04, FE-12): one swr cache for the whole visit, shared

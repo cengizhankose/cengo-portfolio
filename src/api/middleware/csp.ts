@@ -10,8 +10,9 @@
 //                EmailJS (contact form).
 //   style-src    'unsafe-inline' is a style relaxation, not a script one:
 //                mermaid SVGs carry <style> elements and React sets style
-//                attributes. Google Fonts CSS/fonts stay until the fonts are
-//                self-hosted (PERF-08 / ANL-17, W8), then both hosts go.
+//                attributes. No external stylesheet host.
+//   font-src     'self' only: the fonts are self-hosted (PERF-08 / ANL-17,
+//                public/fonts/v1, src/styles/fonts.css); no Google Fonts host.
 //   img-src      'self' data: https: (blog images may live on any HTTPS host).
 //   frame-ancestors 'none' (SEC-17; X-Frame-Options: DENY covers Report-Only).
 //
@@ -45,10 +46,6 @@ export const CF_BEACON_SCRIPT_ORIGIN = "https://static.cloudflareinsights.com";
 export const CF_BEACON_REPORT_ORIGIN = "https://cloudflareinsights.com";
 /** Contact form (SEC-24). */
 export const EMAILJS_ORIGIN = "https://api.emailjs.com";
-/** Google Fonts CSS, until PERF-08 self-hosts the fonts (W8). */
-export const GOOGLE_FONTS_CSS_ORIGIN = "https://fonts.googleapis.com";
-/** Google Fonts files, until PERF-08 self-hosts the fonts (W8). */
-export const GOOGLE_FONTS_FILES_ORIGIN = "https://fonts.gstatic.com";
 
 export interface CspInput {
   mode: CspMode;
@@ -66,8 +63,8 @@ export function buildCsp({ mode, scriptHashes = [] }: CspInput): CspDirectives {
       UMAMI_ORIGIN,
       CF_BEACON_SCRIPT_ORIGIN,
     ],
-    styleSrc: ["'self'", "'unsafe-inline'", GOOGLE_FONTS_CSS_ORIGIN],
-    fontSrc: ["'self'", GOOGLE_FONTS_FILES_ORIGIN],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    fontSrc: ["'self'"],
     imgSrc: ["'self'", "data:", "https:"],
     connectSrc: [
       "'self'",
