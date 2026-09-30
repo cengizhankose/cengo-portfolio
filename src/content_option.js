@@ -9,10 +9,10 @@ const introdata = {
   animated: {
     first: "I love coding and designing",
     second: "I have some startup projects",
-    third: "I develop high quality products",
+    third: "I develop high-quality products",
   },
   description:
-    "I’m a Full stack developer / Part time Entrepreneur ,currently working in Turkey",
+    "I’m a full-stack developer / part-time entrepreneur, currently working in Turkey.",
   your_img_url:
     "https://github.com/cengizhankose/cengo-portfolio/blob/main/src/assets/images/photo.JPG?raw=true",
 };
@@ -20,7 +20,7 @@ const introdata = {
 const dataabout = {
   title: "A bit about myself",
   aboutme:
-    "I’m a Full stack developer / Part time Entrepreneur ,currently working in Turkey. I love coding and designing. I won two hackathons and i have two startup projects that i work with my partners and teams and CTO of another one. I develop high quality products and i love to work with new technologies.",
+    "I’m a full-stack developer / part-time entrepreneur, currently working in Turkey. I love coding and designing. I won two hackathons and I have two startup projects that I work on with my partners and teams, and I’m the CTO of another one. I develop high-quality products and I love to work with new technologies.",
 };
 const worktimeline = [
   {
@@ -80,24 +80,24 @@ const skills = [
 
 const services = [
   {
-    title: "Cross Platform Mobile App Development",
+    title: "Cross-platform mobile app development",
     description:
-      "Beautiful and high quality mobile apps for both Android and iOS Built with React Native and Flutter",
+      "Beautiful, high-quality mobile apps for both Android and iOS, built with React Native and Flutter.",
   },
   {
     title: "Management",
     description:
-      "I can manage your projects and teams and help you to achieve your goals",
+      "I can manage your projects and teams and help you achieve your goals.",
   },
   {
-    title: "Fullstack Web Development",
+    title: "Full-stack web development",
     description:
-      "Modern and high quality websites and web apps built with React and Node.js",
+      "Modern, high-quality websites and web apps built with React and Node.js.",
   },
   {
-    title: "UI & UX Design",
+    title: "UI & UX design",
     description:
-      "Cool and modern UI/UX designs for your mobile apps and websites",
+      "Cool and modern UI/UX designs for your mobile apps and websites.",
   },
 ];
 
