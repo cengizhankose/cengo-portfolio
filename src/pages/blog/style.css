@@ -10,8 +10,30 @@
   font-family: "Marcellus", serif;
   font-size: 3rem;
   color: var(--text-color);
-  margin-bottom: 40px;
+  margin-bottom: 16px;
   text-align: center;
+}
+
+/* The one line under the blog title (MKT-20): what the blog is for. */
+.blog-tagline {
+  max-width: 40rem;
+  margin: 0 auto 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* "Follow via RSS" under the empty state (MKT-20, MKT-07). */
+.blog-empty-feed {
+  max-width: 40rem;
+  margin: 1.25rem auto 0;
+}
+
+.blog-empty-feed a {
+  color: var(--text-color);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 .blog-grid {
@@ -65,8 +87,13 @@
   display: block;
 }
 
+/* One screen high at least, like the skeleton that stands in for it, so a
+   short post does not pull the page (and the fixed social icons on a phone)
+   around (PERF-16). */
 .blog-post-container {
   max-width: 800px;
+  min-height: 100vh;
+  min-height: 100svh;
   margin: 0 auto;
   padding: 80px 20px;
 }
@@ -85,7 +112,10 @@
 }
 
 .blog-post-cover {
+  display: block;
   width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
   max-height: 400px;
   object-fit: cover;
   margin: 20px 0;
@@ -97,6 +127,20 @@
   font-size: 2.5rem;
   color: var(--text-color);
   margin: 20px 0;
+}
+
+/* Byline under the title (SEO-16, MKT-17): the human author, then the AI
+   co-author. The author link keeps the text colour and is underlined. */
+.blog-post-byline {
+  margin: 0 0 8px;
+  color: var(--text-color);
+  font-size: 1.05rem;
+}
+
+.blog-post-byline a {
+  color: var(--text-color);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 .blog-post-date {
@@ -112,17 +156,8 @@
   font-size: 1.1rem;
 }
 
-/* Loading placeholder. Error and empty states use the shared StatusState
-   (src/components/statusstate, DSG-20). */
-.blog-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 50vh;
-  font-size: 1.5rem;
-  color: var(--text-color);
-  font-family: "Marcellus", serif;
-}
+/* Error and empty states use the shared StatusState (src/components/
+   statusstate, DSG-20); the loading placeholders are the skeletons below. */
 
 /* Only the other-language group failed (T-12): its inline state takes the
    group's place under the page language's posts, with the group's spacing
@@ -131,11 +166,172 @@
   margin-top: 4rem;
 }
 
-/* A post that is still loading holds at least one screen, so the article
-   does not push the footer and the page height around when it arrives
-   (PERF-16). */
-.blog-loading--page {
-  min-height: 100vh;
+/* End of a post (MKT-07, SEO-16): author box, the AI note, follow links and
+   the contact call to action. Same voice as the rest of the blog: a 4px rule
+   on the left, theme tokens only, square corners. */
+.post-footer {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.author-box {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  padding-left: 1.25rem;
+  border-left: 4px solid var(--text-color);
+}
+
+.author-box__photo {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+}
+
+.author-box__body {
+  min-width: 0;
+}
+
+.author-box__name {
+  margin: 0;
+  font-family: "Marcellus", serif;
+  font-size: 1.4rem;
+}
+
+.author-box__role {
+  margin: 0 0 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.author-box__bio {
+  margin: 0 0 0.75rem;
+  line-height: 1.6;
+}
+
+.author-box__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.author-box__links a,
+.post-footer__follow a,
+.post-footer__cta a {
+  color: var(--text-color);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.author-box__links a:hover,
+.post-footer__follow a:hover,
+.post-footer__cta a:hover {
+  opacity: 0.8;
+}
+
+.ai-disclosure {
+  margin: 1rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.post-footer__follow {
+  margin: 1.5rem 0 0;
+}
+
+.post-footer__cta {
+  margin: 1.5rem 0 0;
+  font-family: "Marcellus", serif;
+  font-size: 1.3rem;
+}
+
+@media (max-width: 480px) {
+  .author-box {
+    flex-direction: column;
+  }
+}
+
+/* Loading skeletons (PERF-16). A post skeleton is as high as a screen and
+   uses the post container's padding, so the page below and the fixed social
+   icons stay where they are when the post arrives. Only opacity moves, and
+   not at all for reduced motion (FE-06). */
+.blog-skeleton--post {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.blog-skeleton__bar {
+  display: block;
+  height: 1rem;
+  background: var(--border-color);
+  animation: blog-skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+.blog-skeleton__back {
+  width: 8rem;
+  margin-bottom: 1rem;
+}
+
+.blog-skeleton__title {
+  width: 100%;
+  height: 2.5rem;
+}
+
+.blog-skeleton__title--short {
+  width: 60%;
+}
+
+.blog-skeleton__date {
+  width: 11rem;
+  height: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.blog-skeleton__line {
+  width: 100%;
+  height: 1.1rem;
+}
+
+.blog-skeleton__line--short {
+  width: 70%;
+}
+
+.blog-skeleton__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 20px;
+  border-left: 4px solid var(--border-color);
+}
+
+.blog-skeleton__card-title {
+  width: 55%;
+  height: 1.8rem;
+}
+
+@keyframes blog-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-skeleton__bar {
+    animation: none;
+  }
 }
 
 /* Markdown styling */

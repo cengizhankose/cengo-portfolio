@@ -6,6 +6,35 @@
 // falls back to the blog meta.
 import { buildTitle } from "../site.js";
 
+// What the end of a post shows besides its text (SEO-16, MKT-07). The React
+// components (src/pages/blog/AuthorBox.jsx, PostFooter.jsx) and the server
+// snapshot (src/seo/snapshot.ts) read these, so the raw HTML and the page
+// print the same portrait, profiles and feed.
+
+/** The portrait in the author box, 96 px square with a 2x file (public/blog). */
+export const AUTHOR_PHOTO = Object.freeze({
+  src: "/blog/author-96.webp",
+  srcSet: "/blog/author-96.webp 1x, /blog/author-192.webp 2x",
+  width: 96,
+  height: 96,
+});
+
+/** SOCIAL_PROFILES ids shown in the author box, in this order (K-11: LinkedIn, GitHub). */
+export const AUTHOR_PROFILE_IDS = Object.freeze(["linkedin", "github"]);
+
+/** The profile the "follow" line links to (MKT-07). */
+export const FOLLOW_PROFILE_ID = "linkedin";
+
+/** data-analytics-location of the end-of-post links (ANL-09): a lower-case token. */
+export const FOOTER_LOCATION = "blog_footer";
+
+/**
+ * Language-independent path of the RSS feed (MKT-07). The language prefix is
+ * added by localePath(): /rss.xml (EN) and /tr/rss.xml (TR). Unlike a page,
+ * a feed needs no open static route, so a TR post links to its own feed.
+ */
+export const FEED_PATH = "/rss.xml";
+
 export default {
   en: {
     title: buildTitle("Post not found"),

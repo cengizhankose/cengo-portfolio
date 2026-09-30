@@ -3,9 +3,11 @@
 // strict parity test is switched on (W11, MKT-14 approves the TR voice).
 export default {
   title: "Blog",
+  tagline:
+    "Web, mobil ve yapay zekâ ürünleri geliştirirken aldığım kararlar, ölçtüğüm sayılar ve bozulan şeyler.",
   empty: "Henüz yazı yok",
-  emptyText:
-    "Burada henüz yayımlanmış bir yazı yok. Yakında tekrar uğra ya da bu arada bana yaz.",
+  emptyText: "İlk yazı yolda.",
+  emptyFeed: "RSS ile takip et →",
   home: "Ana sayfa",
   contact: "İletişim",
   loadError: "Yazılar yüklenemedi",

@@ -42,8 +42,15 @@ import {
   localePath,
   staticLocale,
 } from "./pages.js";
+import {
+  AUTHOR_PHOTO,
+  AUTHOR_PROFILE_IDS,
+  FEED_PATH,
+  FOLLOW_PROFILE_ID,
+  FOOTER_LOCATION,
+} from "./pages/post.js";
 import { LIVE, matchRoute } from "./routes.js";
-import { LOCALES } from "./site.js";
+import { AUTHOR, LOCALES, SOCIAL_PROFILES } from "./site.js";
 
 // ------------------------------------------------------------- markup text
 
@@ -323,6 +330,10 @@ function portfolioPage(route: SnapshotRoute, live: Live): Safe {
   return markup`<div class="container"><div class="mb-5 mt-3 row"><div class="col-lg-8"><h1 class="display-4 mb-4">${t("portfolio.title")}</h1><hr class="t_border my-4 ms-0 text-start"><h2 class="display-4 mt-4">${t("portfolio.underConstruction")}</h2></div></div></div>`;
 }
 
+// Cover images are drawn 1200x630 and are decoration (alt ""), like BlogHome
+// and BlogPost print them (MKT-20, FE-34, DSG-29).
+const COVER_SIZE = { width: 1200, height: 630 } as const;
+
 // One card of the blog index (BlogHome's PostCard): the card speaks the post's
 // language, the date the page's; the link goes to the post's own path.
 function postCard(post: Row, locale: string, heading: "h2" | "h3", ui: string) {
@@ -332,7 +343,7 @@ function postCard(post: Row, locale: string, heading: "h2" | "h3", ui: string) {
   const date = post.publishedAt ?? post.createdAt;
   const iso = toIsoDate(date);
   const cover = isSafeImageUrl(post.coverImage)
-    ? markup`<img src="${post.coverImage}" alt="${post.title}" class="blog-cover">`
+    ? markup`<img src="${post.coverImage}" alt="" width="${COVER_SIZE.width}" height="${COVER_SIZE.height}" loading="lazy" decoding="async" class="blog-cover">`
     : "";
   const badge = foreign
     ? markup` <span class="lang-badge" aria-hidden="true">${lang.toUpperCase()}</span><span class="visually-hidden"${attr("lang", locale)}> ${t("blog.inOtherLanguage")}</span>`
@@ -362,7 +373,7 @@ function blogPage(route: SnapshotRoute, data: SnapshotData, live: Live): Safe {
   const empty = own.length === 0 && other.length === 0;
 
   const emptyState = empty
-    ? markup`<div class="status-state status-state--inline blog-empty"><h2 class="status-state__title">${t("blog.empty")}</h2><p class="status-state__text">${t("blog.emptyText")}</p><div class="status-state__actions"><ul class="status-state__links"><li><a href="${localePath(ui, "/")}">${t("blog.home")}</a></li><li><a href="${localePath(ui, "/contact")}">${t("blog.contact")}</a></li></ul></div></div>`
+    ? markup`<div class="status-state status-state--inline blog-empty"><h2 class="status-state__title">${t("blog.empty")}</h2><p class="status-state__text">${t("blog.emptyText")}</p><div class="status-state__actions"><ul class="status-state__links"><li><a href="${localePath(ui, "/")}">${t("blog.home")}</a></li><li><a href="${localePath(ui, "/contact")}">${t("blog.contact")}</a></li></ul></div></div><p class="blog-empty-feed"><a href="${localePath(locale, FEED_PATH)}">${t("blog.emptyFeed")}</a></p>`
     : "";
   const ownGrid =
     own.length > 0
@@ -372,7 +383,7 @@ function blogPage(route: SnapshotRoute, data: SnapshotData, live: Live): Safe {
     other.length > 0
       ? markup`<section class="blog-other" aria-labelledby="other-lang"><h2 id="other-lang" class="blog-other__title">${t("blog.otherLanguage")}</h2><div class="blog-grid">${other.map((post: Row) => postCard(post, locale, "h3", ui))}</div></section>`
       : "";
-  return markup`<div class="blog-container"><h1 class="blog-title">${t("blog.title")}</h1>${emptyState}${ownGrid}${otherGroup}</div>`;
+  return markup`<div class="blog-container"><h1 class="blog-title">${t("blog.title")}</h1><p class="blog-tagline">${t("blog.tagline")}</p>${emptyState}${ownGrid}${otherGroup}</div>`;
 }
 
 // "Edited" only when the post changed on a later day than it was published
@@ -382,6 +393,40 @@ function editedDate(post: Row, published: unknown): string {
   const base = toDate(published);
   if (!updated || !base || updated <= base) return "";
   return formatDate(updated) === formatDate(base) ? "" : toIsoDate(updated);
+}
+
+// The author box at the end of a post (src/pages/blog/AuthorBox.jsx): the
+// portrait, name, role, bio, the About link and the profiles, in the post's
+// language. External links open in a new tab and say so, like ExternalLink.
+function authorBox(lang: string, live: Live) {
+  const t = translator(lang);
+  const { bio } = (getContent(lang) as Row).author as Row;
+  const profiles = AUTHOR_PROFILE_IDS.map((id) =>
+    SOCIAL_PROFILES.find((profile) => profile.id === id),
+  ).filter((profile) => profile !== undefined);
+  const links = profiles.map(
+    ({ label, url }) => markup`<li>${externalLink(url, label, lang)}</li>`,
+  );
+  const { src, srcSet, width, height } = AUTHOR_PHOTO;
+  return markup`<aside class="author-box" aria-label="${t("post.aboutAuthor")}"><img class="author-box__photo" src="${src}" srcset="${srcSet}" width="${width}" height="${height}" alt="${t("post.authorPhotoAlt")}" loading="lazy" decoding="async"><div class="author-box__body"><p class="author-box__name">${AUTHOR.name}</p><p class="author-box__role">${(AUTHOR.jobTitles as Record<string, string>)[lang]}</p><p class="author-box__bio">${bio}</p><ul class="author-box__links"><li><a href="${localePath(staticLocale(lang, live), "/about")}">${t("post.readStory")}</a></li>${links}</ul></div></aside>`;
+}
+
+// A link to one of the owner's profiles (src/components/ExternalLink.jsx, `me`):
+// new tab, rel me noopener noreferrer, and the hidden "(opens in a new tab)".
+function externalLink(url: string, text: string, lang: string) {
+  const t = translator(lang);
+  return markup`<a href="${url}" target="_blank" rel="me noopener noreferrer">${text}<span class="visually-hidden"> ${t("social.newTab")}</span></a>`;
+}
+
+// The end of a post (src/pages/blog/PostFooter.jsx): author box, the one AI
+// note, the follow line (the language's RSS feed, LinkedIn) and the contact link.
+function postFooter(lang: string, live: Live) {
+  const t = translator(lang);
+  const follow = SOCIAL_PROFILES.find(({ id }) => id === FOLLOW_PROFILE_ID);
+  const linkedin = follow
+    ? markup`<span aria-hidden="true"> · </span>${externalLink(follow.url, t("post.footer.linkedin"), lang)}`
+    : "";
+  return markup`<footer class="post-footer" aria-label="${t("post.footer.label")}" data-analytics-location="${FOOTER_LOCATION}">${authorBox(lang, live)}<p class="ai-disclosure">${t("post.aiDisclosure")}</p><p class="post-footer__follow">${t("post.footer.follow")} <a href="${localePath(lang, FEED_PATH)}">${t("post.footer.rss")}</a>${linkedin}</p><p class="post-footer__cta"><a href="${localePath(staticLocale(lang, live), "/contact")}">${t("post.footer.cta")}</a></p></footer>`;
 }
 
 // A post page (src/pages/blog/BlogPost.jsx, the success state): the interface
@@ -401,7 +446,7 @@ function postPage(route: SnapshotRoute, post: Row, live: Live): Safe {
   const published = toIsoDate(publishedValue);
   const edited = editedDate(post, publishedValue);
   const cover = isSafeImageUrl(post.coverImage)
-    ? markup`<img src="${post.coverImage}" alt="${post.title}" class="blog-post-cover">`
+    ? markup`<img src="${post.coverImage}" alt="" width="${COVER_SIZE.width}" height="${COVER_SIZE.height}" decoding="async" class="blog-post-cover">`
     : "";
   const editedPart = edited
     ? markup` · ${translate(lang, "post.edited")} <time datetime="${edited}">${formatDate(edited, lang)}</time>`
@@ -409,8 +454,9 @@ function postPage(route: SnapshotRoute, post: Row, live: Live): Safe {
   const date = published
     ? markup`<p class="blog-post-date">${translate(lang, "post.published")} <time datetime="${published}">${formatDate(publishedValue, lang)}</time>${editedPart}</p>`
     : "";
+  const byline = markup`<p class="blog-post-byline">${translate(lang, "post.byline.by")} <a href="${localePath(staticLocale(lang, live), "/about")}" rel="author">${AUTHOR.name}</a> ${translate(lang, "post.byline.with")}</p>`;
   const body = raw(renderMarkdown(post.content));
-  return markup`<div class="blog-post-container" lang="${ui}"><a href="${blogPath}" class="blog-back"><span aria-hidden="true">←</span> ${t("post.backToBlog")}</a><article class="blog-post" lang="${lang}">${cover}<h1 class="blog-post-title-full">${post.title}</h1>${date}<div class="blog-content markdown-body" data-analytics-location="blog_body">${body}</div></article></div>`;
+  return markup`<div class="blog-post-container" lang="${ui}"><a href="${blogPath}" class="blog-back"><span aria-hidden="true">←</span> ${t("post.backToBlog")}</a><article class="blog-post" lang="${lang}">${cover}<h1 class="blog-post-title-full">${post.title}</h1>${byline}${date}<div class="blog-post-body"><div class="blog-content markdown-body" data-analytics-location="blog_body">${body}</div></div>${postFooter(lang, live)}</article></div>`;
 }
 
 // ---------------------------------------------------------------- public API
