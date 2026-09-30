@@ -25,6 +25,12 @@
 // PERF-03 (T-06 Aşama 2) replaces this file with a real server render of the
 // same components.
 import { getContent, shared } from "../content/index.js";
+import {
+  FEATURED_REPOS,
+  HACKATHON_ARCHIVE,
+  INTRO_REEL,
+  publishedProjects,
+} from "../content/projects.js";
 import { interpolate, translate } from "../i18n/translate.js";
 import { heroStatusLine } from "../pages/home/heroStatus.js";
 import { formatDate, toDate, toIsoDate } from "../lib/format.js";
@@ -34,6 +40,11 @@ import {
   postLanguage,
 } from "../lib/postGroups.js";
 import { HERO_IMAGE, heroSrc, heroSrcSet } from "../pages/home/heroImage.js";
+import {
+  PROJECT_IMAGE,
+  projectSrc,
+  projectSrcSet,
+} from "../pages/portfolio/projectImage.js";
 import { escapeHtml } from "./head";
 import { renderMarkdown } from "./markdown";
 import {
@@ -302,6 +313,20 @@ function aboutPage(route: SnapshotRoute, live: Live): Safe {
   const title = markup`<div class="mb-5 mt-3 row"><div class="col-lg-8"><h1 class="display-4 mb-4">${t("about.title")}</h1><hr class="t_border my-4 ms-0 text-start"></div></div>`;
   const cta = markup`<section class="about-cta" aria-labelledby="about-cta"><h2 class="h3 color_sec" id="about-cta">${t("about.cta.title")}</h2><p>${t("about.cta.text")}</p><a href="${localePath(ui, "/contact")}" class="about-cta__button">${t("about.cta.button")}</a></section>`;
 
+  // The intro reel (MKT-18) between the awards and the talks, only while the
+  // owner's files are published (INTRO_REEL.published); TR falls back to the
+  // EN captions file like the page does.
+  const captions = INTRO_REEL.captions[route.locale as "en" | "tr"];
+  const reel = INTRO_REEL.published
+    ? [
+        aboutRow(
+          t("portfolio.reel.title"),
+          markup`<video class="about-reel" controls="" preload="none" playsinline="" poster="${INTRO_REEL.poster}" width="${INTRO_REEL.width}" height="${INTRO_REEL.height}" aria-label="${t("portfolio.reel.label")}"><source src="${INTRO_REEL.src}" type="video/mp4"><track kind="captions" src="${captions ?? INTRO_REEL.captions.en}" srclang="${captions ? route.locale : "en"}" label="${captions ? route.locale.toUpperCase() : "EN"}" default="">${t("portfolio.reel.fallback")}</video>`,
+          { id: "reel", anchor: true },
+        ),
+      ]
+    : [];
+
   const rows = [
     aboutRow(t("about.intro"), story, { flex: true }),
     aboutRow(t("about.proof"), proofStrip(content, ui)),
@@ -309,6 +334,7 @@ function aboutPage(route: SnapshotRoute, live: Live): Safe {
     aboutRow(t("about.skills"), skillList),
     aboutRow(t("about.services"), markup`${offers}`),
     aboutRow(t("about.awards"), archiveList, { id: "awards", anchor: true }),
+    ...reel,
     aboutRow(t("about.talks"), talkList, { id: "talks", anchor: true }),
   ];
   return markup`<div class="container About-header">${title}${rows}${cta}</div>`;
@@ -324,10 +350,103 @@ function contactPage(route: SnapshotRoute, live: Live): Safe {
   return markup`<div class="container"><div class="mb-5 mt-3 row"><div class="col-lg-8"><h1 class="display-4 mb-4">${t("contact.title")}</h1><hr class="t_border my-4 ms-0 text-start"></div></div><div class="sec_sp row"><div class="mb-5 col-lg-5"><h2 class="h3 color_sec py-4">${t("contact.reachMe")}</h2><address><strong>${t("contact.emailLabel")}</strong> <a href="mailto:${email}">${email}</a></address><p>${interpolate(contact.description as string, { time: contact.responseTime as string })}</p></div></div></div>`;
 }
 
-// Portfolio (src/pages/portfolio/index.jsx): noindex while it has no cases (T-10).
+// A link to another site (src/components/ExternalLink.jsx): new tab, noopener
+// noreferrer (plus me on the owner's own profiles) and a hidden new-tab note in
+// the language of the link text.
+function externalLink(
+  ui: string,
+  href: string,
+  label: Safe | string,
+  {
+    me = false,
+    className,
+    hreflang,
+    track,
+    location,
+  }: {
+    me?: boolean;
+    className?: string;
+    hreflang?: string;
+    track?: string;
+    location?: string;
+  } = {},
+) {
+  const rel = me ? "me noopener noreferrer" : "noopener noreferrer";
+  const note = translate(ui, "social.newTab");
+  return markup`<a${attr("class", className)}${attr("data-analytics-location", location)}${attr("data-track", track)} href="${href}"${attr("hreflang", hreflang)} target="_blank" rel="${rel}">${label}<span class="visually-hidden"> ${note}</span></a>`;
+}
+
+const ARROW = markup`<span aria-hidden="true"> →</span>`;
+
+// react-icons' FaTrophy as the page renders it (the badge's decoration); the
+// parity test in tests/server/ssr/snapshot.test.ts compares it with the
+// component's own output.
+const TROPHY = raw(
+  '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 576 512" aria-hidden="true" focusable="false" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M552 64H448V24c0-13.3-10.7-24-24-24H152c-13.3 0-24 10.7-24 24v40H24C10.7 64 0 74.7 0 88v56c0 35.7 22.5 72.4 61.9 100.7 31.5 22.7 69.8 37.1 110 41.7C203.3 338.5 240 360 240 360v72h-48c-35.3 0-64 20.7-64 56v12c0 6.6 5.4 12 12 12h296c6.6 0 12-5.4 12-12v-12c0-35.3-28.7-56-64-56h-48v-72s36.7-21.5 68.1-73.6c40.3-4.6 78.6-19 110-41.7 39.3-28.3 61.9-65 61.9-100.7V88c0-13.3-10.7-24-24-24zM99.3 192.8C74.9 175.2 64 155.6 64 144v-16h64.2c1 32.6 5.8 61.2 12.8 86.2-15.1-5.2-29.2-12.4-41.7-21.4zM512 144c0 16.1-17.7 36.1-35.3 48.8-12.5 9-26.7 16.2-41.8 21.4 7-25 11.8-53.6 12.8-86.2H512v16z"></path></svg>',
+);
+
+// One case (src/pages/portfolio/ProjectCard.jsx): image when the record has
+// one, badge, h2, problem / role / result, stack tags, links.
+function projectCard(project: Row, text: Row, ui: string) {
+  const t = translator(ui);
+  const image = project.image as { name: string } | null;
+  const picture =
+    image && text.imageAlt
+      ? markup`<picture class="project-card__media"><source type="image/avif" srcset="${projectSrcSet(image.name, "avif")}" sizes="${PROJECT_IMAGE.sizes}"><source type="image/webp" srcset="${projectSrcSet(image.name, "webp")}" sizes="${PROJECT_IMAGE.sizes}"><img src="${projectSrc(image.name, PROJECT_IMAGE.fallbackWidth, "webp")}" srcset="${projectSrcSet(image.name, "webp")}" sizes="${PROJECT_IMAGE.sizes}" width="${PROJECT_IMAGE.width}" height="${PROJECT_IMAGE.height}" alt="${text.imageAlt}" loading="lazy" decoding="async"></picture>`
+      : "";
+  const badge = text.awardLabel
+    ? markup`<p class="project-card__award">${TROPHY} ${text.awardLabel}</p>`
+    : "";
+  const facts = ["problem", "role", "result"].map(
+    (key) =>
+      markup`<div class="project-card__fact"><dt>${t(`portfolio.${key}`)}</dt><dd>${text[key]}</dd></div>`,
+  );
+  const tags = (project.stack as string[])
+    .slice(0, 5)
+    .map((tag) => markup`<li>${tag}</li>`);
+  const links = (project.links as Row[]).map(
+    (link) =>
+      markup`<li>${externalLink(ui, link.href, markup`${text.cta[link.type]}${ARROW}`, { hreflang: link.hreflang, track: "project" })}</li>`,
+  );
+  return markup`<article class="project-card" data-project-id="${project.id}" aria-labelledby="project-${project.id}">${picture}<div class="project-card__body">${badge}<h2 class="project-card__title h4" id="project-${project.id}">${text.title}</h2><dl class="project-card__facts">${facts}</dl><ul class="project-card__tags list-unstyled" aria-label="${t("portfolio.stack")}">${tags}</ul><ul class="project-card__links list-unstyled">${links}</ul></div></article>`;
+}
+
+// Portfolio (src/pages/portfolio/index.jsx): the published cases, the archive
+// teaser, the selected repos and the closing link; a short note while no case
+// is publishable (T-10 interim state).
 function portfolioPage(route: SnapshotRoute, live: Live): Safe {
-  const t = translator(staticLocale(route.locale, live));
-  return markup`<div class="container"><div class="mb-5 mt-3 row"><div class="col-lg-8"><h1 class="display-4 mb-4">${t("portfolio.title")}</h1><hr class="t_border my-4 ms-0 text-start"><h2 class="display-4 mt-4">${t("portfolio.underConstruction")}</h2></div></div></div>`;
+  const ui = staticLocale(route.locale, live);
+  const t = translator(ui);
+  const { projects, featuredRepos, awards } = getContent(route.locale) as Row;
+  const github = SOCIAL_PROFILES.find((profile) => profile.id === "github")!;
+
+  const cases = (publishedProjects() as Row[]).flatMap((project) => {
+    const text = (projects as Row[]).find((entry) => entry.id === project.id);
+    return text ? [{ project, text }] : [];
+  });
+  const repos = (FEATURED_REPOS as Row[]).flatMap((repo) => {
+    const text = (featuredRepos as Row[]).find((entry) => entry.id === repo.id);
+    return text ? [{ repo, text }] : [];
+  });
+
+  const lead =
+    cases.length > 0
+      ? markup`<p class="portfolio__lead">${t("portfolio.lead")}</p>`
+      : "";
+  const head = markup`<div class="mb-5 mt-3 row"><div class="col-lg-8"><h1 class="display-4 mb-4">${t("portfolio.title")}</h1><hr class="t_border my-4 ms-0 text-start">${lead}</div></div>`;
+
+  const body =
+    cases.length === 0
+      ? markup`<div class="sec_sp row"><div class="col-lg-8"><p class="portfolio__lead">${t("portfolio.empty")}</p><ul class="portfolio__empty-links list-unstyled"><li><a href="${localePath(ui, "/blog")}">${t("portfolio.emptyBlog")}</a></li><li>${externalLink(ui, github.url, t("portfolio.emptyGithub"), { me: true })}</li></ul></div></div>`
+      : markup`<ul class="project-grid list-unstyled">${cases.map(({ project, text }) => markup`<li>${projectCard(project, text, ui)}</li>`)}</ul><section class="portfolio-archive" aria-labelledby="portfolio-archive-title"><h2 class="h4" id="portfolio-archive-title">${t("portfolio.archive.title", { count: (awards as Row[]).length })}</h2><p>${t("portfolio.archive.text")}</p><a data-track="project" href="${localePath(ui, HACKATHON_ARCHIVE.path)}#${HACKATHON_ARCHIVE.hash}">${t("portfolio.archive.cta")}${ARROW}</a></section>`;
+
+  const repoSection =
+    repos.length > 0
+      ? markup`<section class="portfolio-repos" aria-labelledby="portfolio-repos"><h2 class="h3 color_sec py-4" id="portfolio-repos">${t("portfolio.repos.title")}</h2><ul class="repo-list list-unstyled">${repos.map(({ repo, text }) => markup`<li class="repo-list__item">${externalLink(ui, repo.href, text.name, { className: "repo-list__name", track: "project" })}<p class="repo-list__what">${text.what}</p>${text.learned ? markup`<p class="repo-list__learned"><span class="repo-list__learned-label">${t("portfolio.repos.learned")}</span> ${text.learned}</p>` : ""}</li>`)}</ul><p class="repo-list__all">${externalLink(ui, github.url, markup`${t("portfolio.repos.all")}${ARROW}`, { me: true, location: "portfolio" })}</p></section>`
+      : "";
+  const cta = markup`<section class="portfolio-cta"><p>${t("portfolio.contact.text")}</p><a class="portfolio-cta__link" href="${localePath(ui, "/contact")}">${t("portfolio.contact.cta")}${ARROW}</a></section>`;
+
+  return markup`<div class="portfolio container">${head}${body}${repoSection}${cta}</div>`;
 }
 
 // Cover images are drawn 1200x630 and are decoration (alt ""), like BlogHome
@@ -405,15 +524,16 @@ function authorBox(lang: string, live: Live) {
     SOCIAL_PROFILES.find((profile) => profile.id === id),
   ).filter((profile) => profile !== undefined);
   const links = profiles.map(
-    ({ label, url }) => markup`<li>${externalLink(url, label, lang)}</li>`,
+    ({ label, url }) => markup`<li>${profileLink(url, label, lang)}</li>`,
   );
   const { src, srcSet, width, height } = AUTHOR_PHOTO;
   return markup`<aside class="author-box" aria-label="${t("post.aboutAuthor")}"><img class="author-box__photo" src="${src}" srcset="${srcSet}" width="${width}" height="${height}" alt="${t("post.authorPhotoAlt")}" loading="lazy" decoding="async"><div class="author-box__body"><p class="author-box__name">${AUTHOR.name}</p><p class="author-box__role">${(AUTHOR.jobTitles as Record<string, string>)[lang]}</p><p class="author-box__bio">${bio}</p><ul class="author-box__links"><li><a href="${localePath(staticLocale(lang, live), "/about")}">${t("post.readStory")}</a></li>${links}</ul></div></aside>`;
 }
 
-// A link to one of the owner's profiles (src/components/ExternalLink.jsx, `me`):
+// A link to one of the owner's profiles (src/components/ExternalLink.jsx, `me`;
+// named profileLink so it does not clash with the W8-MKT externalLink helper):
 // new tab, rel me noopener noreferrer, and the hidden "(opens in a new tab)".
-function externalLink(url: string, text: string, lang: string) {
+function profileLink(url: string, text: string, lang: string) {
   const t = translator(lang);
   return markup`<a href="${url}" target="_blank" rel="me noopener noreferrer">${text}<span class="visually-hidden"> ${t("social.newTab")}</span></a>`;
 }
@@ -424,7 +544,7 @@ function postFooter(lang: string, live: Live) {
   const t = translator(lang);
   const follow = SOCIAL_PROFILES.find(({ id }) => id === FOLLOW_PROFILE_ID);
   const linkedin = follow
-    ? markup`<span aria-hidden="true"> · </span>${externalLink(follow.url, t("post.footer.linkedin"), lang)}`
+    ? markup`<span aria-hidden="true"> · </span>${profileLink(follow.url, t("post.footer.linkedin"), lang)}`
     : "";
   return markup`<footer class="post-footer" aria-label="${t("post.footer.label")}" data-analytics-location="${FOOTER_LOCATION}">${authorBox(lang, live)}<p class="ai-disclosure">${t("post.aiDisclosure")}</p><p class="post-footer__follow">${t("post.footer.follow")} <a href="${localePath(lang, FEED_PATH)}">${t("post.footer.rss")}</a>${linkedin}</p><p class="post-footer__cta"><a href="${localePath(staticLocale(lang, live), "/contact")}">${t("post.footer.cta")}</a></p></footer>`;
 }

@@ -140,21 +140,21 @@ describe("known routes -> 200 shell (SEO-02, FE-16)", () => {
   });
 
   test("indexable pages carry no X-Robots-Tag", async () => {
-    for (const path of ["/", "/about", "/contact", "/blog"]) {
+    for (const path of ["/", "/about", "/contact", "/blog", "/portfolio"]) {
       expect((await get(path)).headers.get("x-robots-tag")).toBeNull();
     }
   });
 
-  test("/portfolio: 200 with X-Robots-Tag 'noindex, follow' (T-10, SEO-14 hook)", async () => {
+  test("/portfolio: 200 without X-Robots-Tag since W8 (T-10 exit, SEO-14 hook), 304 on revalidation", async () => {
     const res = await get("/portfolio");
     expect(res.status).toBe(200);
-    expect(res.headers.get("x-robots-tag")).toBe("noindex, follow");
+    expect(res.headers.get("x-robots-tag")).toBeNull();
     const etag = res.headers.get("etag")!;
     const revalidated = await get("/portfolio", {
       headers: { "If-None-Match": etag },
     });
     expect(revalidated.status).toBe(304);
-    expect(revalidated.headers.get("x-robots-tag")).toBe("noindex, follow");
+    expect(revalidated.headers.get("x-robots-tag")).toBeNull();
   });
 
   test("routes registered before mountSite keep priority", async () => {

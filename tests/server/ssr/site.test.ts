@@ -212,18 +212,19 @@ describe("static pages", () => {
     expect(count(html, /fetchpriority="high"/g)).toBe(2); // the hint and the <img>
   });
 
-  test("/portfolio is noindex in the page and in X-Robots-Tag, without canonical or card", async () => {
+  test("/portfolio is indexable since W8 (T-10 exit): no X-Robots-Tag, canonical and card", async () => {
     const { res, html } = await pageOf(site, "/portfolio");
-    expect(res.headers.get("x-robots-tag")).toBe("noindex, follow");
-    expect(html).toContain(
-      '<meta name="robots" content="noindex, follow" data-seo>',
-    );
-    expect(html).not.toContain('rel="canonical"');
-    expect(html).not.toContain("og:title");
+    expect(res.headers.get("x-robots-tag")).toBeNull();
+    expect(html).not.toContain('name="robots"');
+    expect(html).toContain('rel="canonical"');
+    expect(html).toContain("og:title");
+    // The snapshot holds the cases, not the old stub.
+    expect(html).toContain('data-project-id="salesgym"');
+    expect(html).not.toContain("Under Construction");
   });
 
   test("indexable pages send no X-Robots-Tag and no robots meta", async () => {
-    for (const path of ["/", "/about", "/contact", "/blog"]) {
+    for (const path of ["/", "/about", "/contact", "/blog", "/portfolio"]) {
       const { res, html } = await pageOf(site, path);
       expect(res.headers.get("x-robots-tag"), path).toBeNull();
       expect(html, path).not.toContain('name="robots"');

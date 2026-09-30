@@ -27,7 +27,8 @@ import {
 
 const ROOT = join(import.meta.dir, "..", "..", "..");
 const HOST = "https://www.cengizhankose.com";
-const INDEXABLE_PATHS = STATIC_PATHS.filter((path) => path !== "/portfolio");
+// Every static page is indexable since W8 (T-10 exit).
+const INDEXABLE_PATHS = [...STATIC_PATHS];
 
 type Tag = { attribute: string; key: string; content: string };
 const tagsOf = (meta: unknown) => socialTags(meta) as Tag[];
@@ -178,9 +179,8 @@ describe("Open Graph on static pages (SEO-06 hedef durum)", () => {
     expect(tr.og.locale).toBe("tr_TR");
   });
 
-  test("noindex, 404 and loading pages print no share card", () => {
+  test("404 and loading pages print no share card", () => {
     const empty = { canonical: null, og: null, twitter: null, jsonLd: null };
-    expect(getPageMeta(matchRoute("/portfolio"), "en")).toMatchObject(empty);
     expect(getPageMeta(matchRoute("/nope"), "en")).toMatchObject(empty);
     expect(
       getPageMeta(matchRoute("/about"), "en", { notFound: true }),
@@ -419,9 +419,8 @@ describe("socialTags (the list printed into the head)", () => {
     }
   });
 
-  test("no share card, no tags (404, noindex, loading, partial input)", () => {
+  test("no share card, no tags (404, loading, partial input)", () => {
     expect(tagsOf(getPageMeta(matchRoute("/nope"), "en"))).toEqual([]);
-    expect(tagsOf(getPageMeta(matchRoute("/portfolio"), "en"))).toEqual([]);
     expect(tagsOf(null)).toEqual([]);
     expect(tagsOf({})).toEqual([]);
     expect(tagsOf({ title: "x" })).toEqual([]);

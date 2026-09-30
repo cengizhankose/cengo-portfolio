@@ -98,12 +98,22 @@ describe("page meta across routes (FE-25)", () => {
     expect(document.title).toBe("Cengizhan Köse | Senior Fullstack Engineer");
   });
 
-  it("/portfolio is noindex, and robots goes away on the next page", async () => {
-    renderAt("/portfolio");
+  // /portfolio was the noindex example until W8 (T-10 exit); a 404 is noindex
+  // for good.
+  it("a 404 is noindex, and robots goes away on the next page", async () => {
+    renderAt("/no-such-page");
     await waitFor(() => expect(robots()).toMatch(/^noindex/));
 
     await go("/about");
     await waitFor(() => expect(document.title).toBe(pages["/about"].en.title));
+    expect(robots()).toBeUndefined();
+  });
+
+  it("/portfolio is indexable since W8: no robots tag", async () => {
+    renderAt("/portfolio");
+    await waitFor(() =>
+      expect(document.title).toBe(pages["/portfolio"].en.title),
+    );
     expect(robots()).toBeUndefined();
   });
 

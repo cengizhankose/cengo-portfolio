@@ -512,15 +512,15 @@ describe("usePageMeta with the full getPageMeta output (SEO-04/06/07)", () => {
     expect(ldScripts()).toHaveLength(1);
   });
 
-  it("a noindex page (portfolio) and a 404 print no canonical, share card or schema", () => {
+  it("the portfolio (indexable since W8) prints its card and no robots tag; a 404 prints no canonical, share card or schema", () => {
     const { rerender } = render(<Probe meta={homeMeta()} />);
     expect(canonicals()).toHaveLength(1);
 
     rerender(<Probe meta={portfolioMeta()} />);
-    expect(canonicals()).toHaveLength(0);
-    expect(social()).toEqual([]);
+    expect(canonicals()).toHaveLength(1);
+    expect(social().length).toBeGreaterThan(0);
     expect(ldScripts()).toHaveLength(0);
-    expect(content("robots")).toBe("noindex, follow");
+    expect(content("robots")).toBeUndefined();
 
     rerender(<Probe meta={homeMeta()} />);
     expect(canonicals()).toHaveLength(1);

@@ -142,11 +142,12 @@ describe("a 404, a noindex page and a post that has no data", () => {
     }
   });
 
-  test("/portfolio is noindex, follow with no canonical or card (T-10)", () => {
+  test("/portfolio is indexable since W8 (T-10 exit): canonical and card, no robots tag", () => {
     const html = head("/portfolio");
-    expect(html).toContain('content="noindex, follow"');
-    expect(html).not.toContain("canonical");
-    expect(html).not.toContain("og:");
+    expect(html).not.toContain('name="robots"');
+    expect(html).toContain("https://www.cengizhankose.com/portfolio");
+    expect(html).toContain('rel="canonical"');
+    expect(html).toContain("og:title");
     expect(html).not.toContain("ld+json");
   });
 

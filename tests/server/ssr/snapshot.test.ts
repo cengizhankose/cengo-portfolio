@@ -391,19 +391,51 @@ describe("static pages", () => {
     expect(html).not.toContain("<form");
   });
 
-  test("portfolio: the heading only (noindex page)", () => {
+  test("portfolio: one h1, the three cases in order, the archive, the repos and the contact link (W8)", () => {
     const html = snap("/portfolio", "en");
+    expect(count(html, /<h1\b/g)).toBe(1);
     expect(html).toContain('<h1 class="display-4 mb-4">Portfolio</h1>');
+    expect(
+      [
+        ...html.matchAll(
+          /<article class="project-card" data-project-id="([^"]+)"/g,
+        ),
+      ].map((m) => m[1]),
+    ).toEqual(["salesgym", "farmin", "effort_lab"]);
+    // Three cards + the archive teaser + the selected repos.
+    expect(count(html, /<h2\b/g)).toBe(5);
+    expect(html).not.toContain("Under Construction");
+    expect(html).not.toContain("portfolio.underConstruction");
+    expect(html).toContain("Efe Akkurt");
+    expect(html).toContain("1st place · ConvoAI World Istanbul · 2026");
+    expect(html).toContain('href="/about#awards"');
+    expect(html).toContain('href="https://github.com/cengizhankose/Voxly"');
+    expect(html).toContain('href="/contact"');
+    // The site's own pages link without a new tab; other sites open one.
+    expect(html).toContain(
+      '<a data-track="project" href="https://effort.cengizhankose.com" hreflang="tr" target="_blank" rel="noopener noreferrer">',
+    );
   });
 
-  test("every static page has exactly one <main> and a navigation of indexable pages", () => {
+  test("portfolio (TR open): the Turkish cards and the /tr links", () => {
+    const html = snap("/tr/portfolio", "tr", {}, ALL_LIVE);
+    expect(html).toContain('<h1 class="display-4 mb-4">Portfolyo</h1>');
+    expect(html).toContain("Birincilik · ConvoAI World Istanbul · 2026");
+    expect(html).toContain('href="/tr/about#awards"');
+    expect(html).toContain('href="/tr/contact"');
+    expect(html).toContain("(yeni sekmede açılır)");
+  });
+
+  test("every static page has exactly one <main> and a navigation of indexable pages (portfolio included since W8)", () => {
     for (const path of ["/", "/about", "/contact", "/portfolio", "/blog"]) {
       const html = snap(path, "en", { lists: [[], []] });
       expect(count(html, /<main\b/g), path).toBe(1);
       expect(count(html, /<nav\b/g), path).toBe(1);
       const nav = /<nav[\s\S]*<\/nav>/.exec(html)![0];
+      // The portfolio is indexable since W8 (T-10 exit): it is in the list.
       expect(internalLinks(nav), path).toEqual([
         "/",
+        "/portfolio",
         "/about",
         "/blog",
         "/contact",
@@ -509,6 +541,22 @@ describe("the 404 page", () => {
     )) {
       expect(href).toStartWith("/tr");
     }
+  });
+});
+
+describe("the portfolio equals what <Portfolio/> renders (W8)", () => {
+  // EN only: /tr/portfolio is a 404 to the client's route table until TR opens
+  // (the Turkish snapshot is checked above with ALL_LIVE).
+  test("/portfolio: the container, card by card", async () => {
+    const { Portfolio } = await component("pages/portfolio/index.jsx");
+    const client = dom(app("/portfolio", createElement(Portfolio)));
+    const server = dom(snap("/portfolio", "en"));
+    expect(normalised(server.querySelector(".portfolio"))).toBe(
+      normalised(client.querySelector(".portfolio")),
+    );
+    // Not vacuous: the cards and the badge icon are in both.
+    expect(server.querySelectorAll("article.project-card")).toHaveLength(3);
+    expect(client.querySelectorAll("article.project-card svg")).toHaveLength(2);
   });
 });
 

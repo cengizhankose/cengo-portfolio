@@ -125,15 +125,17 @@ describe("a route change ends with one of each tag", () => {
     ).toHaveLength(1);
   });
 
+  // The portfolio was the noindex example until W8 (T-10 exit); a 404 is
+  // noindex for good.
   test("a noindex page drops the tags the previous page left", async () => {
     const document = await load("/about");
-    applyPageMeta(getMeta(matchRoute("/portfolio"), "en", {}));
+    applyPageMeta(getMeta(matchRoute("/no-such-page"), "en", {}));
     const counts = managed(document);
     expect(counts.canonicals).toBe(0);
     expect(counts.ogTitles).toBe(0);
     expect(
       document.querySelector('meta[name="robots"]')!.getAttribute("content"),
-    ).toBe("noindex, follow");
+    ).toBe("noindex");
   });
 });
 

@@ -130,13 +130,13 @@ describe("head fields of the static pages (SEO-04, SEO-06, SEO-07)", () => {
     expect(ldScripts()).toHaveLength(0);
   });
 
-  it("/portfolio (noindex) has no canonical, share card or schema", async () => {
+  it("/portfolio (indexable since W8): its own canonical and og:url, no schema", async () => {
     renderAt("/portfolio");
-    await waitFor(() =>
-      expect(document.title).toBe("Portfolio | Cengizhan Köse"),
-    );
-    expect(canonicals()).toHaveLength(0);
-    expect(socialKeys()).toEqual([]);
+    await waitFor(() => expect(canonicals()).toHaveLength(1));
+    expect(document.title).toBe("Portfolio | Cengizhan Köse");
+    expect(canonicals()[0]).toHaveAttribute("href", `${HOST}/portfolio`);
+    expect(value("og:url")).toBe(`${HOST}/portfolio`);
+    expect(value("og:title")).toBe("Portfolio | Cengizhan Köse");
     expect(ldScripts()).toHaveLength(0);
   });
 
@@ -164,7 +164,7 @@ describe("SPA navigation keeps one of each (DevTools criteria)", () => {
 
     const expectations = {
       "/about": { canonical: `${HOST}/about`, ld: 0 },
-      "/portfolio": { canonical: null, ld: 0 },
+      "/portfolio": { canonical: `${HOST}/portfolio`, ld: 0 },
       "/contact": { canonical: `${HOST}/contact`, ld: 0 },
       "/blog": { canonical: `${HOST}/blog`, ld: 0 },
       "/": { canonical: `${HOST}/`, ld: 1 },

@@ -21,10 +21,8 @@ import {
 } from "./loose";
 
 const HOST = "https://www.cengizhankose.com";
-const NOINDEX_PATHS = ["/portfolio"];
-const INDEXABLE_PATHS = STATIC_PATHS.filter(
-  (path) => !NOINDEX_PATHS.includes(path),
-);
+// Every static page is indexable since W8 (T-10 exit: the portfolio has cases).
+const INDEXABLE_PATHS = [...STATIC_PATHS];
 
 const post = (over: Record<string, unknown> = {}) => ({
   slug: "atlas-steward",
@@ -175,11 +173,11 @@ describe("getPageMeta canonical on static pages (SEO-04 step 2)", () => {
     );
   });
 
-  test("a noindex page has no canonical (T-10 portfolio)", () => {
+  test("the portfolio has a canonical on both languages since W8 (T-10 exit)", () => {
     for (const locale of LOCALES) {
       const meta = getPageMeta(matchRoute("/portfolio"), locale);
-      expect(meta.robots).toBe("noindex, follow");
-      expect(meta.canonical).toBeNull();
+      expect(meta.robots).toBeNull();
+      expect(meta.canonical).toBe(`${HOST}${localePath(locale, "/portfolio")}`);
     }
   });
 

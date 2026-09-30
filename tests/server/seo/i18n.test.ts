@@ -198,10 +198,19 @@ describe("hreflang alternates (SEO-11 step 4)", () => {
     expect(alternatesFor(matchRoute("/"), {}, ALL_LIVE)).toEqual(trHome);
   });
 
-  test("noindex pages never get alternates (T-10 portfolio)", () => {
-    expect(alternatesFor(matchRoute("/portfolio"), {}, ALL_LIVE)).toEqual([]);
+  test("the portfolio has its pair since W8 (T-10 exit); noindex pages would get none", () => {
+    const pair = [
+      { hreflang: "en", href: `${WWW}/portfolio` },
+      { hreflang: "tr", href: `${WWW}/tr/portfolio` },
+      { hreflang: "x-default", href: `${WWW}/portfolio` },
+    ];
+    expect(alternatesFor(matchRoute("/portfolio"), {}, ALL_LIVE)).toEqual(pair);
     expect(
       alternatesFor(matchRoute("/tr/portfolio", ALL_LIVE), {}, ALL_LIVE),
+    ).toEqual(pair);
+    // 404 pages (noindex for good) still get none.
+    expect(
+      alternatesFor(matchRoute("/nope"), { notFound: true }, ALL_LIVE),
     ).toEqual([]);
   });
 

@@ -87,16 +87,12 @@ describe("static page titles (SEO-25, T-07, SEO-10)", () => {
 
 describe("robots and lang", () => {
   test("indexable static pages have no robots value", () => {
-    for (const path of ["/", "/about", "/contact", "/blog"]) {
+    // /portfolio joined the list in W8 (T-10 exit, SEO-14): the three cases
+    // are published, so it is indexable on both locales.
+    for (const path of ["/", "/about", "/contact", "/blog", "/portfolio"]) {
       for (const locale of LOCALES) {
         expect(staticMeta(path, locale).robots).toBeNull();
       }
-    }
-  });
-
-  test("/portfolio stays noindex, follow on both locales (T-10, SEO-14)", () => {
-    for (const locale of LOCALES) {
-      expect(staticMeta("/portfolio", locale).robots).toBe("noindex, follow");
     }
   });
 
