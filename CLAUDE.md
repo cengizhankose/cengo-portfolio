@@ -12,6 +12,19 @@ bun run preview      # Preview production build (port 4173)
 bun test             # Run tests with Bun
 ```
 
+**Local database** (K-02: Docker Postgres 18 from `docker-compose.yml`, never the production DB)
+```bash
+cp .env.example .env     # PG_CONNECTION_URL -> localhost/portfolio_dev, no password
+bun run db:up            # compose `db` service, waits for the healthcheck
+bun run db:migrate       # drizzle-kit migrate
+bun run db:seed          # 3 published sample posts + draft `taslak-ornek`; `-- --from-live` also copies public posts
+bun run dev              # API (:3001) + Vite
+```
+Reset: `docker compose down -v`, then the chain again. The dev API, drizzle-kit and `scripts/*` go through
+`src/db/guard.ts`: they refuse any database that is not on localhost **and** named `*_dev`/`*_test`.
+One-off production work only via `outplane env run --app cengoportfoliolhal -- ...` with `--prod` (scripts) or
+`ALLOW_REMOTE_DB=1` (drizzle-kit); `db:seed` never runs against a non-local database.
+
 **Deployment**
 ```bash
 bun run predeploy    # Build before deployment

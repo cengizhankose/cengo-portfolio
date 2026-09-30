@@ -39,6 +39,8 @@
     "test": "bun test",
     "predeploy": "bun run build",
     "deploy": "gh-pages -d dist",
+    "db:up": "docker compose up -d --wait db",
+    "db:seed": "bun run scripts/seed-dev.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

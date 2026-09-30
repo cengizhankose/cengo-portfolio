@@ -1,8 +1,14 @@
 #!/usr/bin/env -S PATH="$HOME/.bun/bin:$PATH" bun
 import postgres from 'postgres'
 import { readFileSync } from 'fs'
+import { assertNonProdDb } from '../src/db/guard'
 
-const sql = postgres(process.env.PG_CONNECTION_URL, { max: 1 })
+// Local dev DB only unless `--prod` is passed, and then only inside
+// `outplane env run` so the production URL never lands on disk (BE-04 / SEC-06).
+const url = process.env.PG_CONNECTION_URL
+assertNonProdDb(url)
+
+const sql = postgres(url!, { max: 1 })
 
 const draft = readFileSync('/Users/logan/.hermes/cache/blog-steward-laya-v2.md', 'utf8')
 const [heading, ...body] = draft.split('\n')
