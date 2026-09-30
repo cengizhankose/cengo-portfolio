@@ -215,18 +215,26 @@ describe("runSmoke against the app", () => {
       distDir: DIST,
       env: { RATE_LIMIT_DISABLED: "1" },
     });
-    // hello-world has fewer than 100 words: it would fail a 250-word threshold, but only
-    // the named post has to meet it.
+    // W8-SEO-blog-author-rss: every post page now carries the author box and
+    // the footer (~100 words), so hello-world passes the default 100. The named
+    // post's threshold must still apply to it alone: 2000 words fails only
+    // long-post (about 400 words here), hello-world is not held to it.
     const named = await runSmoke(BASE, {
       fetch: viaApp(app),
       post: "long-post",
-      minWords: 250,
+      minWords: 2000,
     });
     const failing = named.lines.filter((line) => line.startsWith("FAIL"));
     expect(failing).toHaveLength(1);
     expect(failing[0]).toMatch(
-      /^FAIL \/blog\/hello-world #root holds the article \(\d+ words\) \(need 100\)$/,
+      /^FAIL \/blog\/long-post #root holds the article \(\d+ words\) \(need 2000\)$/,
     );
+    const met = await runSmoke(BASE, {
+      fetch: viaApp(app),
+      post: "long-post",
+      minWords: 250,
+    });
+    expect(met.failures).toEqual([]);
     const all = await runSmoke(BASE, { fetch: viaApp(app), minWords: 5 });
     expect(all.failures).toEqual([]);
   });

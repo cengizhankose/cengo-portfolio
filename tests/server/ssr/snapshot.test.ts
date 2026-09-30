@@ -156,7 +156,9 @@ describe("a post page", () => {
     );
     // Parsed, the image has no event handler attribute (the hostile text sits
     // inside the escaped alt and src values).
-    const images = dom(out).querySelectorAll("img");
+    // W8-SEO-blog-author-rss: the post page also carries the author portrait,
+    // so the cover is looked up by its class.
+    const images = dom(out).querySelectorAll("img.blog-post-cover");
     expect(images).toHaveLength(1);
     expect(images[0].hasAttribute("onerror")).toBe(false);
   });
@@ -459,7 +461,14 @@ describe("TR pages (once LIVE.static opens 'tr')", () => {
       { post: TR_POST },
       EN_ONLY,
     );
-    for (const href of internalLinks(html)) expect(href).not.toStartWith("/tr");
+    // The language's RSS feed is a file, not a page (W8-SEO-blog-author-rss):
+    // a TR post links to /tr/rss.xml, which is open whatever LIVE.static says.
+    const pages = internalLinks(html).filter(
+      (href) => !href.endsWith("rss.xml"),
+    );
+    expect(pages.length).toBeGreaterThan(0);
+    for (const href of pages) expect(href).not.toStartWith("/tr");
+    expect(internalLinks(html)).toContain("/tr/rss.xml");
   });
 });
 
