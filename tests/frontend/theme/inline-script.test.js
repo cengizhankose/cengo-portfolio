@@ -163,6 +163,17 @@ describe("index.html head structure", () => {
     expect(HTML.indexOf('type="module"')).toBeGreaterThan(scriptAt);
   });
 
+  it('FE-09 grep: the first "data-theme|stylesheet" line is the script\'s', () => {
+    // Same check as `curl -s $SITE/ | grep -n "data-theme\|stylesheet"`.
+    const hits = HTML.split("\n").filter((line) =>
+      /data-theme|stylesheet/.test(line),
+    );
+    expect(hits[0]).toContain('setAttribute("data-theme"');
+    expect(hits.slice(1).some((line) => line.includes("stylesheet"))).toBe(
+      true,
+    );
+  });
+
   it("comes after the two theme-color metas it updates (DSG-16)", () => {
     const metas = [...head.matchAll(/<meta\b[^>]*name="theme-color"[^>]*>/g)];
     expect(metas).toHaveLength(2);
