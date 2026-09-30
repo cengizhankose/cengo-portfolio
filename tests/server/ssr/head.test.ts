@@ -245,6 +245,24 @@ describe("escaping", () => {
   });
 });
 
+describe("stylesheets of a lazily loaded page", () => {
+  test("are linked after the other head tags, once each, with the href escaped", () => {
+    const route = matchRoute("/blog");
+    const meta = getMeta(route, "en", {}, EN_ONLY);
+    const html = renderHeadTags(meta, {
+      stylesheets: ["/assets/style-Cs9zuWa1.css", '/assets/x".css'],
+    });
+    expect(html).toEndWith(
+      '<link rel="stylesheet" href="/assets/style-Cs9zuWa1.css"><link rel="stylesheet" href="/assets/x&quot;.css">',
+    );
+    expect(count(html, /rel="stylesheet"/g)).toBe(2);
+  });
+
+  test("none by default", () => {
+    expect(head("/blog")).not.toContain("stylesheet");
+  });
+});
+
 describe("robustness", () => {
   test("empty meta prints nothing", () => {
     expect(renderHeadTags({})).toBe("");

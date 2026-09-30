@@ -5,9 +5,12 @@
  * not become second tags, and a shell without a marker stops startup.
  */
 import { describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   assertShellMarkers,
+  findStylesheets,
   injectIntoShell,
   injectShellMeta,
   readShell,
@@ -240,5 +243,41 @@ describe("injectShellMeta (SEO-02 step 4, kept for SEO_INJECT=off)", () => {
     expect(html).toContain('name="robots-extra"');
     expect(count(html, /name="robots"/g)).toBe(1);
     expect(html).toContain('content="noindex"');
+  });
+});
+
+describe("findStylesheets (the lazy chunk's CSS, found by a class name the snapshot prints)", () => {
+  function dist(files: Record<string, string>) {
+    const dir = mkdtempSync(join(tmpdir(), "seo-css-"));
+    mkdirSync(join(dir, "assets"));
+    for (const [name, text] of Object.entries(files)) {
+      writeFileSync(join(dir, "assets", name), text);
+    }
+    return dir;
+  }
+
+  test("returns the site path of every stylesheet holding the marker, in name order", () => {
+    const dir = dist({
+      "style-b.css": ".blog-container{padding:0}",
+      "index-a.css": ":root{}",
+      "style-a.css": ".x{}.blog-container{}",
+      "notes.txt": ".blog-container",
+      "app.js": ".blog-container",
+    });
+    try {
+      expect(findStylesheets(dir, ".blog-container")).toEqual([
+        "/assets/style-a.css",
+        "/assets/style-b.css",
+      ]);
+      expect(findStylesheets(dir, ".nothing-here")).toEqual([]);
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+
+  test("no assets directory (dev, tests) gives an empty list", () => {
+    expect(findStylesheets(join(tmpdir(), "no-such-dist-7f3"), ".x")).toEqual(
+      [],
+    );
   });
 });

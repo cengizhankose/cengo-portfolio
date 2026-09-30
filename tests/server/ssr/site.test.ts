@@ -4,8 +4,8 @@
  * their status rules; ETag/304; the kill switch; the negative cache for unknown
  * slugs; fail-fast on a shell without markers.
  */
-import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { afterAll, afterEach, describe, expect, test } from "bun:test";
+import { cpSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Hono } from "hono";
@@ -675,5 +675,116 @@ describe("the snapshot of the real post has the post's words (SEO-01 criteria 1-
     expect(wordCount(root)).toBeGreaterThan(1500);
     expect(count(root, /<h1\b/g)).toBe(1);
     expect(count(root, /<h[23]\b/g)).toBeGreaterThanOrEqual(10);
+  });
+});
+
+describe("the blog's lazily loaded stylesheet is linked where the snapshot needs it", () => {
+  // A copy of the fixture dist with one more stylesheet, like Vite's
+  // assets/style-<hash>.css of the blog chunk.
+  const dir = mkdtempSync(join(tmpdir(), "seo-blogcss-"));
+  cpSync(FIXTURE_DIST, dir, { recursive: true });
+  writeFileSync(
+    join(dir, "assets", "style-blog1.css"),
+    ".blog-container{padding:80px 20px}.blog-post-container{padding:20px}",
+  );
+  const app = siteWith(fakeQueries(), { distDir: dir });
+  const link = '<link rel="stylesheet" href="/assets/style-blog1.css">';
+
+  test("the blog index and a post link it once, in <head>", async () => {
+    for (const path of [
+      "/blog",
+      "/blog/hello-world",
+      "/tr/blog/merhaba-dunya",
+    ]) {
+      const { html } = await pageOf(app, path);
+      expect(count(html, /assets\/style-blog1\.css/g), path).toBe(1);
+      expect(html.indexOf(link), path).toBeLessThan(html.indexOf("</head>"));
+    }
+  });
+
+  test("the other pages and the 404s do not", async () => {
+    for (const path of [
+      "/",
+      "/about",
+      "/contact",
+      "/portfolio",
+      "/olmayan-sayfa",
+      "/blog/yok-boyle-bir-yazi",
+    ]) {
+      const { html } = await pageOf(app, path);
+      expect(html, path).not.toContain("style-blog1.css");
+    }
+  });
+
+  test("the shell's own stylesheet and a build without the lazy CSS are untouched", async () => {
+    const { html } = await pageOf(app, "/blog");
+    expect(html).toContain('href="/assets/style-3f9a1c.css"');
+    const { html: plain } = await pageOf(site, "/blog"); // fixture dist: no blog CSS
+    expect(count(plain, /rel="stylesheet"/g)).toBe(1);
+  });
+
+  afterAll(() => {
+    rmSync(dir, { recursive: true });
+  });
+});
+
+describe("a request without a Host header (W3 review)", () => {
+  // HTTP/1.0 may omit Host; Bun then hands the handler a path instead of a URL.
+  // Before the fix every such request was a 500.
+  async function rawStatus(port: number, request: string): Promise<string> {
+    let data = "";
+    await new Promise<void>((resolve) => {
+      const timer = setTimeout(resolve, 3000);
+      void Bun.connect({
+        hostname: "127.0.0.1",
+        port,
+        socket: {
+          open: (socket) => void socket.write(request),
+          data: (socket, chunk) => {
+            data += chunk.toString();
+            if (data.includes("\r\n")) {
+              clearTimeout(timer);
+              socket.end();
+              resolve();
+            }
+          },
+          close: () => {
+            clearTimeout(timer);
+            resolve();
+          },
+          error: () => resolve(),
+        },
+      });
+    });
+    return data.split("\r\n")[0];
+  }
+
+  test.each([
+    ["/", "200"],
+    ["/about", "200"],
+    ["/blog/hello-world", "200"],
+    ["/blog/merhaba-dunya", "301"],
+    ["/olmayan-sayfa", "404"],
+  ])("GET %s HTTP/1.0 -> %s", async (path, status) => {
+    const app = createApp({
+      queries: fakeQueries(),
+      serveSpa: true,
+      distDir: FIXTURE_DIST,
+      env: { RATE_LIMIT_DISABLED: "1" },
+    });
+    const server = Bun.serve({
+      port: 0,
+      hostname: "127.0.0.1",
+      fetch: app.fetch,
+    });
+    try {
+      const line = await rawStatus(
+        server.port!,
+        `GET ${path} HTTP/1.0\r\n\r\n`,
+      );
+      expect(line).toContain(` ${status} `);
+    } finally {
+      void server.stop(true);
+    }
   });
 });
