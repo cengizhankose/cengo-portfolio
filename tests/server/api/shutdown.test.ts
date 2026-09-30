@@ -20,10 +20,17 @@ describe("createShutdown with a real Bun.serve (BE-21 criterion 3)", () => {
       },
       exit: (code) => steps.push(`exit ${code}`),
     });
+    // The slow query runs until the test releases it: SIGTERM is sent once the
+    // request is inside the handler, however loaded the machine (no timing race).
+    let entered!: () => void;
+    const queryStarted = new Promise<void>((resolve) => (entered = resolve));
+    let release!: () => void;
+    const queryGate = new Promise<void>((resolve) => (release = resolve));
     const app = createApp({
       queries: fakeQueries({
         listPublishedPosts: async () => {
-          await Bun.sleep(500); // slow query still running when SIGTERM arrives (at 150 ms)
+          entered();
+          await queryGate;
           return [];
         },
       }),
@@ -34,21 +41,28 @@ describe("createShutdown with a real Bun.serve (BE-21 criterion 3)", () => {
 
     const { lines } = await captureLogs(async () => {
       const inflight = fetch(`${base}/api/posts`);
-      await Bun.sleep(150);
-      const done = lifecycle.shutdown("SIGTERM");
-      expect(lifecycle.isShuttingDown()).toBe(true);
-      // /ready flips to 503 at once (checked in-process; the socket is closing).
-      expect((await app.request("/ready")).status).toBe(503);
-      await Bun.sleep(50);
-      const late = await fetch(`${base}/health`).then(
-        (res) => `status ${res.status}`,
-        (error: { code?: string }) => `error ${error.code ?? "unknown"}`,
-      );
-      const res = await inflight;
-      expect(res.status).toBe(200);
-      expect(await res.json()).toEqual([]);
-      expect(late).toStartWith("error");
-      await done;
+      try {
+        await queryStarted;
+        const done = lifecycle.shutdown("SIGTERM");
+        expect(lifecycle.isShuttingDown()).toBe(true);
+        // /ready flips to 503 at once (checked in-process; the socket is closing).
+        expect((await app.request("/ready")).status).toBe(503);
+        await Bun.sleep(50);
+        // Still in flight: a new connection is refused meanwhile.
+        const late = await fetch(`${base}/health`).then(
+          (res) => `status ${res.status}`,
+          (error: { code?: string }) => `error ${error.code ?? "unknown"}`,
+        );
+        expect(late).toStartWith("error");
+        expect(steps).not.toContain("closeDb"); // the pool outlives the request
+        release();
+        const res = await inflight;
+        expect(res.status).toBe(200);
+        expect(await res.json()).toEqual([]);
+        await done;
+      } finally {
+        release();
+      }
     });
 
     expect(steps).toEqual(["stop", "stopped", "closeDb", "exit 0"]);

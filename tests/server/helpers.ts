@@ -49,6 +49,27 @@ export function fakeQueries(overrides: Partial<PostQueries> = {}): PostQueries {
   };
 }
 
+/**
+ * Wraps every method of `base` and records the method names called, for
+ * "the query object is never called" assertions (write routes, rejected slugs).
+ */
+export function spyQueries(base: PostQueries = fakeQueries()): {
+  queries: PostQueries;
+  calls: string[];
+} {
+  const calls: string[] = [];
+  const queries = Object.fromEntries(
+    Object.entries(base).map(([name, method]) => [
+      name,
+      (...args: unknown[]) => {
+        calls.push(name);
+        return (method as (...a: unknown[]) => unknown)(...args);
+      },
+    ]),
+  ) as PostQueries;
+  return { queries, calls };
+}
+
 /** Every query rejects, as with a database that is down. */
 export function failingQueries(
   error: Error = new Error("connect ECONNREFUSED"),

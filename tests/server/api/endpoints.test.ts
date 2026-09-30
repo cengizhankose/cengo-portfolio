@@ -16,6 +16,7 @@ import {
   FIXTURE_DIST,
   SAMPLE_POST,
   silenceLogs,
+  spyQueries,
   UUID,
 } from "../helpers";
 
@@ -133,26 +134,22 @@ describe("row 5: writes on /api/posts (K-01 = A: no write routes)", () => {
   ])(
     "error: %s %s -> 404 JSON envelope, the query object is never called",
     async (method, path) => {
-      let called = false;
-      const spy = fakeQueries({
-        getPublishedPostBySlug: async () => {
-          called = true;
-          return null;
-        },
-        listPublishedPosts: async () => {
-          called = true;
-          return [];
-        },
-      });
-      const res = await site(spy).request(path, {
+      const { queries, calls } = spyQueries();
+      const res = await site(queries).request(path, {
         method,
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ title: "x" }),
       });
       await expectEnvelope(res, 404, "NOT_FOUND");
-      expect(called).toBe(false);
+      expect(calls).toEqual([]);
     },
   );
+
+  test("control: the spy does see a read route's query", async () => {
+    const { queries, calls } = spyQueries();
+    expect((await site(queries).request("/api/posts")).status).toBe(200);
+    expect(calls).toEqual(["listPublishedPosts"]);
+  });
 });
 
 describe("row 6: unknown /api/*", () => {
