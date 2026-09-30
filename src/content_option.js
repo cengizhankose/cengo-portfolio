@@ -179,7 +179,6 @@ const dataportfolio = [
 
 const contactConfig = {
   YOUR_EMAIL: "kose651@gmail.com",
-  // YOUR_FONE: "(000)000-0000",
   description:
     "Feel free to contact me about web to mobile project. I can develop high quality products for your business needs. ",
   YOUR_SERVICE_ID: "service_5i3xexc",

@@ -21,3 +21,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# local env files: secrets never go into git
+.env
+.env.*
+!.env.example
