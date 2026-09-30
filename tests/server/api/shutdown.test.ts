@@ -1,6 +1,6 @@
 // BE-21: graceful shutdown. In-flight requests finish, new connections are
 // refused, the DB pool closes, exit 0; a hung step is cut off with exit 1.
-import { describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, test } from "bun:test";
 import { createApp } from "../../../src/api/app";
 import { createShutdown } from "../../../src/api/shutdown";
 import { REPO_ROOT, captureLogs, fakeQueries } from "../helpers";
@@ -110,6 +110,13 @@ describe("createShutdown with a real Bun.serve (BE-21 criterion 3)", () => {
 // Local analogue of the docker stop criteria (BE-21 criteria 1-2): the real
 // server.ts process, SIGTERM, exit 0 well under 3 s with "shutdown complete".
 describe("server.ts process", () => {
+  // A failed assertion before the signal must not leave the server running.
+  const spawned: ReturnType<typeof Bun.spawn>[] = [];
+  afterAll(() => {
+    for (const proc of spawned)
+      if (proc.exitCode === null) proc.kill("SIGKILL");
+  });
+
   test.each(["SIGTERM", "SIGINT"] as const)(
     "%s -> exit 0 in < 3 s, last lines say shutdown complete",
     async (signal) => {
@@ -128,6 +135,7 @@ describe("server.ts process", () => {
         stdout: "pipe",
         stderr: "pipe",
       });
+      spawned.push(proc);
       const reader = proc.stdout.getReader();
       const decoder = new TextDecoder();
       let output = "";
