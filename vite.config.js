@@ -47,5 +47,14 @@ export default defineConfig({
   preview: {
     port: 4173,
     host: true
+  },
+  // Component tests (T-02): Vitest + jsdom, only tests/frontend/**.
+  // Server/API tests live in tests/server/** and run under `bun test`.
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['tests/frontend/setup.js'],
+    include: ['tests/frontend/**/*.test.{js,jsx}'],
+    restoreMocks: true,
+    unstubGlobals: true
   }
 })

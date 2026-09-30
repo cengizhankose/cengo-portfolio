@@ -1,0 +1,5 @@
+# Bun test runner scope (T-02): server/API tests only.
+# `bun test` (with or without a path) collects tests/server/** here;
+# component tests in tests/frontend/** run under Vitest + jsdom instead.
+[test]
+root = "tests/server"
