@@ -94,7 +94,10 @@ export default function Cursor() {
 
     const onPointerOver = (event) => {
       if (!isMouse(event)) return;
+      // Clears a stale hover too: after an SPA navigation the hovered link is
+      // removed without a pointerout, so every pointerover re-evaluates.
       if (event.target.closest?.(CLICKABLE)) ring.dataset.hover = "";
+      else delete ring.dataset.hover;
     };
 
     const onPointerOut = (event) => {

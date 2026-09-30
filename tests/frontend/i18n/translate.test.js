@@ -134,7 +134,8 @@ describe("defineDictionary (namespaced files -> flat keys)", () => {
 describe("getContent(locale) (FE-14 step 6)", () => {
   it("EN is the content moved from content_option.js", () => {
     const en = getContent("en");
-    expect(en.hero.title).toBe("I’m Cengizhan Köse");
+    // K-06b hero (W5-DSG-motion-cursor-hero): name + role, 3 phrases.
+    expect(en.hero.name).toBe("Cengizhan Köse");
     expect(en.hero.phrases).toHaveLength(3);
     expect(en.timeline).toHaveLength(6);
     expect(en.skills.map((skill) => skill.name)).toEqual([
@@ -150,7 +151,12 @@ describe("getContent(locale) (FE-14 step 6)", () => {
 
   it("TR falls back to EN field by field while TR is incomplete", () => {
     const tr = getContent("tr");
-    expect(tr.hero.title).toBe(getContent("en").hero.title);
+    // Every TR section that is still empty shows the EN section.
+    const en = getContent("en");
+    const emptyTr = Object.keys(CONTENT.tr).filter(
+      (section) => Object.keys(CONTENT.tr[section]).length === 0,
+    );
+    for (const section of emptyTr) expect(tr[section]).toEqual(en[section]);
     expect(tr.services.map((s) => s.id)).toEqual(
       getContent("en").services.map((s) => s.id),
     );

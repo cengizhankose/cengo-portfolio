@@ -51,8 +51,18 @@ describe("local entry points refuse non-local databases", () => {
     expectRefused(run(["run", "db:migrate"], PROD_NAME_URL));
   });
 
-  test("scripts/insert-blog-post.ts without --prod", () => {
-    expectRefused(run(["scripts/insert-blog-post.ts"], REMOTE_URL));
+  // The publish CLI (BE-16 / SEC-29) replaced scripts/insert-blog-post.ts;
+  // without --prod it only accepts the local database, even with
+  // ALLOW_REMOTE_DB=1 (its production path is --prod + PG_WRITE_CONNECTION_URL).
+  test("scripts/content/publish-post.ts without --prod", () => {
+    expectRefused(
+      run(["scripts/content/publish-post.ts", "--verify"], REMOTE_URL),
+    );
+    expectRefused(
+      run(["scripts/content/publish-post.ts", "--verify"], REMOTE_URL, {
+        ALLOW_REMOTE_DB: "1",
+      }),
+    );
   });
 
   test("bun run db:seed refuses even with --prod and ALLOW_REMOTE_DB=1", () => {

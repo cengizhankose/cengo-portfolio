@@ -60,7 +60,8 @@ beforeEach(() => {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url) => {
-      const body = String(url).endsWith("/api/posts") ? [POST] : POST;
+      // List keys carry ?lang= since W5 (FE-12); posts are /api/posts/<slug>.
+      const body = /\/api\/posts(\?|$)/.test(String(url)) ? [POST] : POST;
       return new Response(JSON.stringify(body), {
         status: 200,
         headers: { "content-type": "application/json" },

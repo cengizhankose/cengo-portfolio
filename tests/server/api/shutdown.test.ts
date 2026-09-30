@@ -141,7 +141,8 @@ describe("server.ts process", () => {
           HOME: process.env.HOME ?? "",
           PORT: "0",
           LOG_LEVEL: "info",
-          // Nothing listens there; the pool is lazy, so no query ever runs.
+          // Nothing listens there: the startup cache warm-up (PERF-06) fails
+          // fast on the closed port, so shutdown stays quick.
           PG_CONNECTION_URL: "postgres://test@127.0.0.1:1/portfolio_test",
           PG_SSL_MODE: "disable",
           PG_CA_CERT: "",

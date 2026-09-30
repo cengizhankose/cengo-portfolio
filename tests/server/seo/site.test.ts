@@ -112,7 +112,7 @@ describe("shared content (FE-14; MKT-21 step 6, DSG-33 step 1)", () => {
   test("no page meta in the content modules and the name is spelled Köse", () => {
     expect(shared).not.toHaveProperty("meta");
     expect(en).not.toHaveProperty("meta");
-    expect((en as any).hero.title).toContain("Cengizhan Köse");
+    expect((en as any).hero.name).toBe("Cengizhan Köse");
     expect(shared.logotext).toBe("CENGO");
   });
 

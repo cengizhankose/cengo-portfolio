@@ -7,13 +7,9 @@ import { Glob } from "bun";
 import { Hono } from "hono";
 import { posts } from "../../../src/db/schema";
 import { createPostQueries } from "../../../src/db/queries/posts";
+import { createPostsRouter } from "../../../src/api/routes/posts";
 import { createTestDb, REPO_ROOT } from "../db/pglite";
-
-// The default router builds a postgres.js client on import; it never connects
-// unless a route queries it. Aim it at a closed local port regardless.
-process.env.PG_CONNECTION_URL = "postgres://test@127.0.0.1:1/portfolio_test";
-const { default: postsRouter, createPostsRouter } =
-  await import("../../../src/api/routes/posts");
+import { fakeQueries } from "../helpers";
 
 const WRITE_REQUESTS: [method: string, path: string][] = [
   ["POST", "/api/posts"],
@@ -40,8 +36,8 @@ function writeRequest(app: Hono, method: string, path: string) {
   });
 }
 
-describe("mounted production router (as in server.ts / src/api/index.ts)", () => {
-  const app = new Hono().route("/api/posts", postsRouter);
+describe("mounted production router (as createApp mounts it in server.ts / src/api/index.ts)", () => {
+  const app = new Hono().route("/api/posts", createPostsRouter(fakeQueries()));
 
   test.each(WRITE_REQUESTS)(
     "%s %s with the old fallback key -> 404",

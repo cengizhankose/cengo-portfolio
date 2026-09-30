@@ -113,33 +113,3 @@ export function createPostsRouter(queries: PostQueries) {
 
   return router;
 }
-
-// ---------------------------------------------------------------------------
-// Deprecated default export: the router over the process-wide read-only
-// database (dbRead, SEC-14), resolved on first query so importing this module
-// never loads src/db. Production code uses createApp(); only
-// tests/server/security/write-surface.test.ts still mounts this (handoff:
-// switch that test to createApp, then delete this block).
-let processQueries: Promise<PostQueries> | undefined;
-
-const loadProcessQueries = () =>
-  (processQueries ??= (async () => {
-    const { dbRead } = await import("../../db");
-    const { createPostQueries } = await import("../../db/queries/posts");
-    return createPostQueries(dbRead);
-  })());
-
-const lazyProcessQueries = new Proxy({} as PostQueries, {
-  get:
-    (_target, name) =>
-    async (...args: unknown[]) => {
-      const queries = await loadProcessQueries();
-      const method = queries[name as keyof PostQueries] as (
-        ...a: unknown[]
-      ) => unknown;
-      return method(...args);
-    },
-});
-
-/** @deprecated Mount `createApp({ queries })` instead. */
-export default createPostsRouter(lazyProcessQueries);

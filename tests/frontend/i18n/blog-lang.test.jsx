@@ -156,11 +156,15 @@ describe("/blog language groups (FE-14 step 11, DSG-19 step 4)", () => {
     expect(screen.getAllByText("September 29, 2026")).toHaveLength(2);
   });
 
-  it("asks the relative API path (FE-33, BE-09)", async () => {
+  it("asks the relative API path, one request per language group (FE-33, BE-09, T-12)", async () => {
     const fetchMock = stubFetch([]);
     renderAt("/blog");
     await screen.findByText(/No posts yet/);
-    expect(fetchMock.mock.calls[0][0]).toBe("/api/posts");
+    // W5 (FE-12, T-04): swr keys are the API paths with ?lang= (BE-07).
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "/api/posts?lang=en",
+      "/api/posts?lang=tr&missingIn=en",
+    ]);
   });
 });
 

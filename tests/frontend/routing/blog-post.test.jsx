@@ -134,7 +134,8 @@ describe("missing post -> NotFound variant 'post' (SEO-08, FE-16 step 3)", () =>
   it("a server error is not 'not found' and keeps the page indexable", async () => {
     fetch.mockImplementation(async () => json({ error: "x" }, 503));
     renderAt("/blog/hello-world");
-    await screen.findByText(/could not be loaded/i);
+    // W5 (DSG-20 step 4): EN title is "Couldn't load this post".
+    await screen.findByText(/couldn't load this post/i);
     expect(
       screen.queryByRole("heading", { name: "Post not found" }),
     ).not.toBeInTheDocument();
