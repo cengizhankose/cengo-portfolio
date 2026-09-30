@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import { Socialicons } from "../components/socialicons";
 import { NotFound } from "../pages/notfound";
 import { useT, useUiLocale } from "../i18n";
 import { pageRoutes } from "./pageRoutes";
 
-// The site shell: landmarks, the page transition and route-change focus.
+// The site shell: landmarks, the page transition, route-change focus and the
+// route error boundary (FE-03).
 // The page table (every page x every language, gated by LIVE) lives in
 // ./pageRoutes.jsx (FE-14); anything it does not match renders NotFound.
 
@@ -48,10 +50,15 @@ function AnimatedRoutes({ focusTargetRef }) {
         }
       }}
     >
-      <Routes location={displayLocation}>
-        {pageRoutes()}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      {/* FE-03: a page that throws (or whose chunk fails to load) falls back
+          to the error screen here, inside <main>; the header and menu stay.
+          Keyed by the shown pathname, so the next page starts clean. */}
+      <ErrorBoundary key={displayLocation.pathname}>
+        <Routes location={displayLocation}>
+          {pageRoutes()}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ErrorBoundary>
     </div>
   );
 }
