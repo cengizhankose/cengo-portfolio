@@ -47,7 +47,7 @@ describe("encodeIco", () => {
 });
 
 describe("masters", () => {
-  test("share-image content box is inside the safe area and the builder refuses otherwise", async () => {
+  test("share-image content box is inside the safe area", async () => {
     const marcellus = await load(
       "marcellus",
       "marcellus-latin-400-normal.woff",
