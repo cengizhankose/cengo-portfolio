@@ -204,7 +204,7 @@ describe("post endpoint (ANL-15 step 3, criterion 5)", () => {
     renderBlog("/blog/hello-world");
     await screen.findByRole("heading", {
       level: 1,
-      name: "This post could not be loaded",
+      name: "Couldn't load this post",
     });
     await waitFor(() => expect(errorEvents()).toHaveLength(1));
     expect(errorEvents()[0][1]).toEqual({

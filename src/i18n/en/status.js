@@ -12,7 +12,7 @@ export default {
   network:
     "Your browser couldn't reach the server. Check your connection and try again.",
   server: "The server couldn't answer right now. Try again in a moment.",
-  postError: "This post could not be loaded",
+  postError: "Couldn't load this post",
   // ErrorBoundary fallback (FE-03): a page failed to render; the header and
   // menu still work.
   crash: {

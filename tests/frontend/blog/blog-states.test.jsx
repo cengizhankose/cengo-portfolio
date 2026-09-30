@@ -217,7 +217,7 @@ describe("the blog-states scenarios (DSG-20 criterion 4, EN)", () => {
 
     await screen.findByRole("heading", {
       level: 1,
-      name: "This post could not be loaded",
+      name: "Couldn't load this post",
     });
     const state = document.querySelector(".status-state");
     expect(state).toHaveClass("blog-error");
