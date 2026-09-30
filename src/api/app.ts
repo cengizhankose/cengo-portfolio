@@ -6,7 +6,7 @@
 // tests run it with fakes or PGlite and no port.
 //
 // Order:
-//   requestId -> request logger -> [security headers] -> /api rate limit
+//   requestId -> request logger -> security headers -> /api rate limit
 //   -> canonical host -> /health -> /ready -> /api/posts -> /api/* JSON 404
 //   -> site (mountSite) -> notFound / onError (T-01 envelope)
 //
@@ -20,6 +20,7 @@ import { mountSite } from "../server/static";
 import { EMPTY_BUILD_INFO, type BuildInfo } from "./build-info";
 import { errorHandler, notFoundHandler } from "./errors";
 import { canonicalHost } from "./middleware/canonical-host";
+import { cspModeFromEnv, inlineScriptHashesFromDist } from "./middleware/csp";
 import {
   rateLimit,
   rateLimitSettingsFromEnv,
@@ -27,6 +28,10 @@ import {
   type TokenBucketStore,
 } from "./middleware/rate-limit";
 import { requestLogger } from "./middleware/request-logger";
+import {
+  hstsMaxAgeFromEnv,
+  securityHeaders,
+} from "./middleware/security-headers";
 import { readyHandler } from "./ready";
 import { createPostsRouter } from "./routes/posts";
 import type { AppEnv } from "./types";
@@ -46,8 +51,8 @@ export interface CreateAppOptions {
   /** Graceful shutdown state (BE-21); /ready answers 503 while it is true. */
   isShuttingDown?: () => boolean;
   /**
-   * Runtime settings: RL_READ_PER_MIN, RATE_LIMIT_DISABLED (.env.example).
-   * Defaults to process.env.
+   * Runtime settings: CSP_MODE, HSTS_MAX_AGE, RL_READ_PER_MIN,
+   * RATE_LIMIT_DISABLED (.env.example). Defaults to process.env.
    */
   env?: Record<string, string | undefined>;
   /** The /api token buckets (T-08); tests inject one with a fake clock. */
@@ -79,7 +84,16 @@ export function createApp({
   // 2. One JSON log line per request; platform probes at debug level.
   app.use("*", requestLogger({ quietPaths: [HEALTH_PATH, READY_PATH] }));
 
-  // 3. [slot, W3 SEC-04/09/17/18/19] security headers: app.use("*", ...)
+  // 3. Security headers on every response (SEC-04/09/17/18/19). The CSP
+  //    allows the inline scripts of the built HTML by hash, read once here.
+  app.use(
+    "*",
+    securityHeaders({
+      cspMode: cspModeFromEnv(env.CSP_MODE),
+      scriptHashes: serveSpa ? inlineScriptHashesFromDist(distDir!) : [],
+      hstsMaxAge: hstsMaxAgeFromEnv(env.HSTS_MAX_AGE),
+    }),
+  );
 
   // 4. Read rate limit per client on /api/* (SEC-10/BE-18, T-08): /api, /api/
   //    and unknown /api paths count too; /health and /ready are outside it.
