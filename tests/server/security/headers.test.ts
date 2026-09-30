@@ -124,7 +124,7 @@ function expectBaseHeaders(res: Response) {
     "camera=(), microphone=(), geolocation=()",
   );
   expect(res.headers.get("x-powered-by")).toBeNull();
-  // Browser default kept for DNS prefetch (Google Fonts preconnect until W8).
+  // Browser default kept for DNS prefetch (no external font host any more, PERF-08).
   expect(res.headers.get("x-dns-prefetch-control")).toBeNull();
   expect(countSix(res)).toBe(6);
 }
@@ -180,15 +180,8 @@ describe("CSP (SEC-04)", () => {
       "https://cloudflareinsights.com",
       "https://api.emailjs.com",
     ]);
-    expect(directive(csp, "style-src")).toEqual([
-      "'self'",
-      "'unsafe-inline'",
-      "https://fonts.googleapis.com",
-    ]);
-    expect(directive(csp, "font-src")).toEqual([
-      "'self'",
-      "https://fonts.gstatic.com",
-    ]);
+    expect(directive(csp, "style-src")).toEqual(["'self'", "'unsafe-inline'"]);
+    expect(directive(csp, "font-src")).toEqual(["'self'"]);
     expect(directive(csp, "img-src")).toEqual(["'self'", "data:", "https:"]);
     expect(directive(csp, "frame-ancestors")).toEqual(["'none'"]);
     expect(directive(csp, "frame-src")).toEqual(["'none'"]);
@@ -204,8 +197,6 @@ describe("CSP (SEC-04)", () => {
       expect(hosts).toEqual([
         "https://api.emailjs.com",
         "https://cloudflareinsights.com",
-        "https://fonts.googleapis.com",
-        "https://fonts.gstatic.com",
         "https://static.cloudflareinsights.com",
         "https://stats.cengizhankose.com",
       ]);
