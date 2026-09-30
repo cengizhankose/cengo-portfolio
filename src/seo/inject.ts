@@ -21,7 +21,8 @@
 // Startup: assertShellMarkers() checks that the shell still has the markers
 // this file rewrites. A build change that removes one stops the process at
 // start (fail fast) instead of silently serving pages without SEO.
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { escapeHtml } from "./head";
 import { serializeJsonLd } from "./jsonld.js";
 import { SEO_DATA_ID } from "./readSeoData.js";
@@ -66,6 +67,36 @@ export function readShell(file: string): string {
   const shell = readFileSync(file, "utf8");
   assertShellMarkers(shell, file);
   return shell;
+}
+
+/**
+ * The built stylesheets (`assets/*.css` under `distRoot`, as site paths) that
+ * contain `marker`, in name order.
+ *
+ * A page that Vite splits into its own chunk (the blog) brings its stylesheet
+ * with the chunk, after the app has started. The snapshot of such a page uses
+ * those class names from the first paint, so the server links the stylesheet in
+ * the <head> (renderHeadTags `stylesheets`): without it the snapshot is drawn
+ * unstyled and jumps when the chunk's CSS arrives (layout shift). The file is
+ * found by a class name the snapshot itself prints, because the hashed file name
+ * says nothing about the page; Vite's runtime loader skips a stylesheet that is
+ * already linked by the same href, so it is fetched once. Reads the files once,
+ * at startup. An empty list (dev, a build without the chunk) prints nothing.
+ */
+export function findStylesheets(distRoot: string, marker: string): string[] {
+  let files: string[];
+  try {
+    files = readdirSync(join(distRoot, "assets"));
+  } catch {
+    return [];
+  }
+  return files
+    .filter((file) => file.endsWith(".css"))
+    .sort()
+    .filter((file) =>
+      readFileSync(join(distRoot, "assets", file), "utf8").includes(marker),
+    )
+    .map((file) => `/assets/${file}`);
 }
 
 // Head tags this layer prints itself (src/seo/head.ts). Anything of this kind

@@ -9,8 +9,9 @@
 //
 // Order: title, description, robots, canonical, hreflang alternates, the Open
 // Graph / Twitter / article tags in socialTags() order (og:locale:alternate
-// repeats), the JSON-LD block, then the page's resource hints. A field that is
-// null (a 404, a noindex page, a post that has no data) prints nothing, which
+// repeats), the JSON-LD block, then the page's resource hints (the hero preload)
+// and the stylesheets of a lazily loaded page. A field that is null (a 404, a
+// noindex page, a post that has no data) prints nothing, which
 // is what makes the canonical, the share card and the structured data of a 404
 // absent (SEO-02, SEO-04, SEO-06, SEO-07).
 //
@@ -96,7 +97,10 @@ export function preloadFor(
  */
 export function renderHeadTags(
   meta: HeadMeta,
-  { preload }: { preload?: Preload | null } = {},
+  {
+    preload,
+    stylesheets = [],
+  }: { preload?: Preload | null; stylesheets?: readonly string[] } = {},
 ): string {
   const tags: string[] = [];
 
@@ -141,6 +145,11 @@ export function renderHeadTags(
   if (preload) {
     const tag = preloadTag(preload);
     if (tag) tags.push(tag);
+  }
+  // Stylesheets of a lazily loaded page (src/seo/inject.ts findStylesheets()),
+  // so the snapshot is drawn with them from the first paint.
+  for (const href of stylesheets) {
+    tags.push(`<link rel="stylesheet" href="${escapeHtml(href)}">`);
   }
 
   return tags.join("");

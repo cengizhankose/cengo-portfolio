@@ -17,6 +17,7 @@ import { blogIndexLists } from "../lib/swrFallback.js";
 import { postKey } from "../lib/swr.js";
 import { preloadFor, renderHeadTags } from "../seo/head";
 import {
+  findStylesheets,
   injectIntoShell,
   injectShellMeta,
   readShell,
@@ -77,6 +78,13 @@ const RETRY_AFTER_SECONDS = "120";
 const MISSING_TTL_MS = 30_000;
 /** ... and at most this many unknown slugs are remembered (oldest first out), so random URLs cannot grow the map. */
 const MISSING_MAX = 500;
+
+/**
+ * Class names of the blog pages' stylesheet, which Vite ships with the lazy
+ * blog chunk: the server links it in the <head> of the blog pages so their
+ * snapshot is styled from the first paint (src/seo/inject.ts findStylesheets).
+ */
+const BLOG_STYLE_MARKERS = [".blog-container", ".blog-post-container"];
 
 /** Directories whose file names carry a hash or version (`v1`): cacheable for a year. */
 const IMMUTABLE_PREFIXES = ["/assets/", "/img/", "/fonts/"];
@@ -157,6 +165,15 @@ export function mountSite(
       (queries !== undefined && seoEnabled(process.env.SEO_INJECT))) &&
     htmlByTarget.has(shellFile);
   const shellText = seo ? readShell(shellFile) : "";
+  const blogStyles = seo
+    ? [
+        ...new Set(
+          BLOG_STYLE_MARKERS.flatMap((marker) =>
+            findStylesheets(distRoot, marker),
+          ),
+        ),
+      ].sort()
+    : [];
 
   const loadDoc = (file: string): Promise<HtmlDoc> => {
     let doc = docs.get(file);
@@ -315,6 +332,7 @@ export function mountSite(
     data: { post?: unknown } = {},
     snapshot: { lists?: unknown[][]; post?: unknown } = {},
     fallback: Record<string, unknown> | null = null,
+    stylesheets: readonly string[] = [],
   ) => {
     const meta = getPageMeta(route, locale, data);
     return toDoc(
@@ -322,6 +340,7 @@ export function mountSite(
         lang: meta.lang,
         headTags: renderHeadTags(meta, {
           preload: preloadFor(route, meta.lang ?? locale),
+          stylesheets,
         }),
         bodyHtml: renderSnapshot(route, meta.lang ?? locale, snapshot as any),
         data: fallback,
@@ -339,6 +358,7 @@ export function mountSite(
       { post },
       { post },
       { [postKey(route.slug)!]: post },
+      blogStyles,
     );
     return respond(c, doc, 200);
   };
@@ -355,7 +375,7 @@ export function mountSite(
     } catch (error) {
       log("error", "post lookup failed", {
         reqId: c.get("requestId"),
-        path: new URL(c.req.url).pathname,
+        path: requestUrl(c).pathname,
         ...errorFields(error),
       });
       return renderUnavailable(c);
@@ -398,7 +418,7 @@ export function mountSite(
     } catch (error) {
       log("error", "post list failed", {
         reqId: c.get("requestId"),
-        path: new URL(c.req.url).pathname,
+        path: requestUrl(c).pathname,
         ...errorFields(error),
       });
       return renderUnavailable(c);
@@ -409,7 +429,14 @@ export function mountSite(
     );
     return respond(
       c,
-      composePage(route, route.locale, {}, { lists: cards }, fallback),
+      composePage(
+        route,
+        route.locale,
+        {},
+        { lists: cards },
+        fallback,
+        blogStyles,
+      ),
       200,
     );
   };
@@ -449,7 +476,7 @@ export function mountSite(
   };
 
   app.get("*", async (c) => {
-    const { pathname, search } = new URL(c.req.url);
+    const { pathname, search } = requestUrl(c);
     const target = safeResolve(distRoot, pathname);
     if (target === null) return notFound(c);
     const sitePath = toSitePath(distRoot, target);
@@ -475,6 +502,16 @@ export function mountSite(
 
     return renderPage(c, pathname, search);
   });
+}
+
+/**
+ * The request's URL. For an HTTP/1.0 request without a Host header `c.req.url`
+ * is only a path ("/about"), which `new URL()` alone rejects with a 500; the
+ * base just lets the parse succeed and is never read (no host is ever used to
+ * build a response, K-03).
+ */
+function requestUrl(c: Context): URL {
+  return new URL(c.req.url, "http://localhost");
 }
 
 /** SEO_INJECT=off (any case, trimmed) is the kill switch; anything else leaves the layer on. */
