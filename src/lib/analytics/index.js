@@ -167,9 +167,12 @@ export function initAnalytics({
     // ANL-09: outbound clicks, only once tracking is on. Clicks before the
     // tracker has loaded wait in the queue like any other event.
     initOutboundTracking({ send: track, doc: win.document });
-    // ANL-06 / PERF-23: web-vitals stays out of the entry chunk.
+    // ANL-06 / PERF-23: web-vitals stays out of the entry chunk. The landing
+    // pathname is read now, not when the chunk arrives: a SPA navigation in
+    // between must not tag the landing page with the next page's type.
+    const landingPathname = win.location.pathname;
     import("../webVitals.js")
-      .then((module) => module.initWebVitals())
+      .then((module) => module.initWebVitals({ pathname: landingPathname }))
       .catch(() => {});
     return true;
   } catch {

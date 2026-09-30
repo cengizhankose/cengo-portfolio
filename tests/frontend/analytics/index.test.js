@@ -158,6 +158,20 @@ describe("tracker tag (ANL-01, PERF-23, T-13)", () => {
     );
   });
 
+  it("hands the landing pathname to web-vitals as it was at init (W7 handoff)", async () => {
+    const vitals = await import("../../../src/lib/webVitals.js");
+    vitals.initWebVitals.mockClear();
+    window.history.replaceState(null, "", "/tr/about");
+    expect(start()).toBe(true);
+    // a SPA navigation before the web-vitals chunk resolves
+    window.history.replaceState(null, "", "/blog");
+    await vi.waitFor(() =>
+      expect(vitals.initWebVitals).toHaveBeenCalledWith({
+        pathname: "/tr/about",
+      }),
+    );
+  });
+
   it("does not load web-vitals when tracking is off", async () => {
     const vitals = await import("../../../src/lib/webVitals.js");
     vitals.initWebVitals.mockClear();
