@@ -7,10 +7,11 @@
 // description and one of every other tag (T-03). Every tag it prints carries
 // `data-seo`, which is how usePageMeta finds and reuses it.
 //
-// Order: title, description, robots, canonical, hreflang alternates, the Open
-// Graph / Twitter / article tags in socialTags() order (og:locale:alternate
-// repeats), the JSON-LD block, then the page's resource hints (the hero preload)
-// and the stylesheets of a lazily loaded page. A field that is null (a 404, a
+// Order: title, description, robots, canonical, hreflang alternates, the two
+// RSS autodiscovery links, the Open Graph / Twitter / article tags in
+// socialTags() order (og:locale:alternate repeats), the JSON-LD block, then the
+// page's resource hints (the hero preload) and the stylesheets of a lazily
+// loaded page. A field that is null (a 404, a
 // noindex page, a post that has no data) prints nothing, which
 // is what makes the canonical, the share card and the structured data of a 404
 // absent (SEO-02, SEO-04, SEO-06, SEO-07).
@@ -20,8 +21,9 @@
 // close the script element. Nothing here reads the request: the host and the
 // URLs come from the page registry (K-03).
 import { serializeJsonLd } from "./jsonld.js";
-import { pages, socialTags } from "./pages.js";
-import { DEFAULT_LOCALE } from "./site.js";
+import { canonicalUrl, pages, socialTags } from "./pages.js";
+import { FEED_PATH } from "./pages/post.js";
+import { DEFAULT_LOCALE, LOCALES, SITE_NAME } from "./site.js";
 
 const MARK = " data-seo";
 const JSON_LD_ID = "ld-json";
@@ -91,16 +93,40 @@ export function preloadFor(
   return values?.preload ?? null;
 }
 
+// RSS autodiscovery (MKT-07): one <link rel="alternate" type="application/rss+xml">
+// per language's feed, /rss.xml and /tr/rss.xml (src/server/rss.ts), on every
+// page that has a title (a head with no title is not a page). Deliberately
+// without `hreflang`: the hreflang alternates are one per page and managed by
+// the client (usePageMeta setAlternates, the server's inject step strips the
+// shell's), the feeds are fixed for the whole site. They carry `data-seo` like
+// every other tag of this file; the client has no rule for them and leaves
+// them as printed.
+const FEED_LABEL: Record<string, string> = { en: "Blog (EN)", tr: "Blog (TR)" };
+
+/** The feed links of the head, one per language, as tags. */
+export function feedLinkTags(): string[] {
+  return LOCALES.map(
+    (locale) =>
+      `<link rel="alternate" type="application/rss+xml" title="${escapeHtml(`${FEED_LABEL[locale] ?? locale} | ${SITE_NAME}`)}" href="${escapeHtml(canonicalUrl(FEED_PATH, locale))}"${MARK}>`,
+  );
+}
+
 /**
  * The head tags of a page as one string, ready for injectIntoShell().
- * `preload` is the resource hint of the page (preloadFor()), if any.
+ * `preload` is the resource hint of the page (preloadFor()), if any; `feeds`
+ * (default true) prints the RSS autodiscovery links on a page with a title.
  */
 export function renderHeadTags(
   meta: HeadMeta,
   {
     preload,
     stylesheets = [],
-  }: { preload?: Preload | null; stylesheets?: readonly string[] } = {},
+    feeds = true,
+  }: {
+    preload?: Preload | null;
+    stylesheets?: readonly string[];
+    feeds?: boolean;
+  } = {},
 ): string {
   const tags: string[] = [];
 
@@ -128,6 +154,7 @@ export function renderHeadTags(
       `<link rel="alternate" hreflang="${escapeHtml(alternate.hreflang)}" href="${escapeHtml(alternate.href)}"${MARK}>`,
     );
   }
+  if (feeds && has(meta.title)) tags.push(...feedLinkTags());
   for (const { attribute, key, content } of socialTags(meta) as {
     attribute: string;
     key: string;
