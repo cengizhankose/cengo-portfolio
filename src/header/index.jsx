@@ -2,31 +2,47 @@ import { useEffect, useRef, useState } from "react";
 import "./style.css";
 import { VscGrabber, VscClose } from "react-icons/vsc";
 import { Link, useLocation } from "react-router-dom";
-import { logotext, socialprofils } from "../content_option";
+import { logotext } from "../content/shared.js";
 import Themetoggle from "../components/themetoggle";
+import { LanguageSwitcher } from "../components/langswitch";
+import { SOCIAL_PROFILE_URLS } from "../components/socialicons";
 import { getSocialLinks } from "../components/socialicons/icons";
+import { useLocalePath, useT, useUiLocale } from "../i18n";
 
 const MENU_ID = "site-navigation";
 
+// Menu sections: path (made language-specific with useLocalePath) and the
+// nav.* dictionary key of the label.
 const NAV_ITEMS = [
-  { to: "/", label: "Home" },
-  { to: "/portfolio", label: "Portfolio" },
-  { to: "/about", label: "About" },
-  { to: "/blog", label: "Blog" },
-  { to: "/contact", label: "Contact" },
+  { path: "/", key: "home" },
+  { path: "/portfolio", key: "portfolio" },
+  { path: "/about", key: "about" },
+  { path: "/blog", key: "blog" },
+  { path: "/contact", key: "contact" },
 ];
 
-// Same K-11 list and order as the side strip; the visible text is the name.
-const SOCIAL_LINKS = getSocialLinks(socialprofils);
+// Same K-11 list and order as the side strip; the visible text is the name
+// (a brand name, not translated).
+const SOCIAL_LINKS = getSocialLinks(SOCIAL_PROFILE_URLS);
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// A control hidden by CSS (display: none, visibility: hidden, e.g. a
+// width-dependent header item) must not become the trap's first or last
+// stop. Browsers without checkVisibility (and jsdom) keep every candidate.
+const isShown = (element) =>
+  typeof element.checkVisibility === "function"
+    ? element.checkVisibility({ visibilityProperty: true })
+    : true;
 
 // Keeps Tab / Shift+Tab inside `container` while the full-screen menu is open.
 // `inert` on the page content does the same in current browsers; this also
 // covers browsers without `inert` (Safari < 15.5).
 function keepFocusInside(container, event) {
-  const items = Array.from(container.querySelectorAll(FOCUSABLE));
+  const items = Array.from(container.querySelectorAll(FOCUSABLE)).filter(
+    isShown,
+  );
   if (items.length === 0) return;
   const first = items[0];
   const last = items[items.length - 1];
@@ -57,6 +73,11 @@ const Headermain = () => {
   const { pathname } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [menuPathname, setMenuPathname] = useState(pathname);
+  const t = useT();
+  const lp = useLocalePath();
+  // Header, menu and footer speak the interface language (DSG-19 uiLang),
+  // which differs from <html lang> on a TR post before the TR pages open.
+  const uiLocale = useUiLocale();
   const headerRef = useRef(null);
   const buttonRef = useRef(null);
   const firstLinkRef = useRef(null);
@@ -67,7 +88,21 @@ const Headermain = () => {
     setIsOpen(false);
   }
 
-  const closeMenu = () => setIsOpen(false);
+  // Choosing the page that is already open changes no route, so the
+  // route-change focus in routes.jsx does not run and focus would drop to
+  // <body>. Move it to <main> once the menu has closed (the page content is
+  // inert until then).
+  const focusMainAfterClose = useRef(false);
+  const closeMenu = (target) => {
+    if (target === pathname) focusMainAfterClose.current = true;
+    setIsOpen(false);
+  };
+
+  useEffect(() => {
+    if (isOpen || !focusMainAfterClose.current) return;
+    focusMainAfterClose.current = false;
+    document.getElementById("main")?.focus({ preventScroll: true });
+  }, [isOpen]);
 
   // Everything that depends on the open state follows `isOpen`: body scroll
   // lock, inert page content, focus and the Escape / Tab handling. The
@@ -100,21 +135,31 @@ const Headermain = () => {
 
   return (
     <>
-      <a className="skip-link" href="#main" onClick={skipToMain}>
-        Skip to content
+      <a
+        className="skip-link"
+        href="#main"
+        lang={uiLocale}
+        onClick={skipToMain}
+      >
+        {t("a11y.skipToContent")}
       </a>
-      <header className="fixed-top site__header" ref={headerRef}>
+      <header
+        className="fixed-top site__header"
+        lang={uiLocale}
+        ref={headerRef}
+      >
         <div className="d-flex align-items-center justify-content-between">
-          <Link className="navbar-brand nav_ac" to="/">
+          <Link className="navbar-brand nav_ac" to={lp("/")}>
             {logotext}
           </Link>
           <div className="d-flex align-items-center">
-            <Themetoggle />
+            <LanguageSwitcher />
+            <Themetoggle label={t("a11y.darkTheme")} />
             <button
               ref={buttonRef}
               type="button"
               className="menu__button nav_ac"
-              aria-label="Menu"
+              aria-label={t("nav.menu")}
               aria-expanded={isOpen}
               aria-controls={MENU_ID}
               onClick={() => setIsOpen((open) => !open)}
@@ -134,17 +179,17 @@ const Headermain = () => {
         >
           <div className="bg__menu h-100">
             <div className="menu__wrapper">
-              <nav className="menu__container p-3" aria-label="Main menu">
+              <nav className="menu__container p-3" aria-label={t("nav.label")}>
                 <ul className="the_menu">
-                  {NAV_ITEMS.map(({ to, label }, index) => (
-                    <li className="menu_item" key={to}>
+                  {NAV_ITEMS.map(({ path, key }, index) => (
+                    <li className="menu_item" key={path}>
                       <Link
                         ref={index === 0 ? firstLinkRef : undefined}
-                        onClick={closeMenu}
-                        to={to}
+                        onClick={() => closeMenu(lp(path))}
+                        to={lp(path)}
                         className="my-3"
                       >
-                        {label}
+                        {t(`nav.${key}`)}
                       </Link>
                     </li>
                   ))}
@@ -161,7 +206,7 @@ const Headermain = () => {
               ))}
             </ul>
             <p className="copyright m-0">
-              © {new Date().getFullYear()} Cengizhan Köse
+              {t("footer.copyright", { year: new Date().getFullYear() })}
             </p>
           </div>
         </div>

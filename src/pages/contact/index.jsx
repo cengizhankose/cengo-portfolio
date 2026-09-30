@@ -1,17 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import "./style.css";
 import { Container, Row, Col, Alert } from "react-bootstrap";
-import { useLocation } from "react-router-dom";
-import { contactConfig } from "../../content_option";
+import { email, emailjs } from "../../content/shared.js";
+import { useContent, useRoute, useT } from "../../i18n";
 import { getPageMeta } from "../../seo/pages.js";
-import { matchRoute } from "../../seo/routes.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
 
 // SEC-24: @emailjs/browser v4 options. blockHeadless rejects automated
 // browsers, limitRate allows one send per 30 s per browser (localStorage).
 const RATE_LIMIT_ID = "contact-form";
 const SEND_OPTIONS = {
-  publicKey: contactConfig.YOUR_PUBLIC_KEY,
+  publicKey: emailjs.publicKey,
   blockHeadless: true,
   limitRate: { id: RATE_LIMIT_ID, throttle: 30000 },
 };
@@ -43,25 +42,24 @@ function forgetRateLimit() {
 // label of its own takes its label from nearby text ("Email: …" in the left
 // column) and becomes EMAIL_ADDRESS, even off screen. `subject` with its own
 // aria-label stays UNKNOWN_TYPE, which autofill never fills. The wrapper is
-// aria-hidden, so screen readers do not announce the label.
+// aria-hidden, so screen readers do not announce the label (contact.honeypot,
+// a neutral text in every language).
 const HONEYPOT = "subject";
-const HONEYPOT_LABEL = "Leave this field empty";
 
 const EMPTY_FIELDS = { name: "", email: "", message: "", [HONEYPOT]: "" };
 
-const { messages } = contactConfig;
-
-// Renders a status message; `{emailMe}` becomes a mailto: link. alert-link
-// takes the alert's own text colour (the global link colour is the page
-// text colour, unreadable on the light alert background).
-function StatusMessage({ text }) {
+// Renders a status message (contact.success / error / rateLimited);
+// `{emailMe}` becomes a mailto: link whose text is contact.emailMe.
+// alert-link takes the alert's own text colour (the global link colour is the
+// page text colour, unreadable on the light alert background).
+function StatusMessage({ text, linkText }) {
   const [before, after] = text.split("{emailMe}");
   if (after === undefined) return before;
   return (
     <>
       {before}
-      <a className="alert-link" href={`mailto:${contactConfig.YOUR_EMAIL}`}>
-        {messages.emailMe}
+      <a className="alert-link" href={`mailto:${email}`}>
+        {linkText}
       </a>
       {after}
     </>
@@ -69,7 +67,9 @@ function StatusMessage({ text }) {
 }
 
 export const ContactUs = () => {
-  const route = matchRoute(useLocation().pathname);
+  const route = useRoute();
+  const t = useT();
+  const { contact } = useContent();
   usePageMeta(getPageMeta(route, route.locale));
   const [formData, setFormdata] = useState({
     ...EMPTY_FIELDS,
@@ -115,7 +115,7 @@ export const ContactUs = () => {
     const templateParams = {
       from_name: formData.email,
       user_name: formData.name,
-      to_name: contactConfig.YOUR_EMAIL,
+      to_name: email,
       message: formData.message,
     };
 
@@ -123,10 +123,10 @@ export const ContactUs = () => {
     setFormdata((prev) => ({ ...prev, loading: true, show: false }));
 
     loadEmailjs()
-      .then((emailjs) =>
-        emailjs.send(
-          contactConfig.YOUR_SERVICE_ID,
-          contactConfig.YOUR_TEMPLATE_ID,
+      .then((sdk) =>
+        sdk.send(
+          emailjs.serviceId,
+          emailjs.templateId,
           templateParams,
           SEND_OPTIONS,
         ),
@@ -166,7 +166,7 @@ export const ContactUs = () => {
       <Container>
         <Row className="mb-5 mt-3">
           <Col lg="8">
-            <h1 className="display-4 mb-4">Contact me</h1>
+            <h1 className="display-4 mb-4">{t("contact.title")}</h1>
             <hr className="t_border my-4 ms-0 text-start" />
           </Col>
         </Row>
@@ -180,35 +180,37 @@ export const ContactUs = () => {
               className="rounded-0 co_alert"
               tabIndex={-1}
               onClose={closeAlert}
+              closeLabel={t("contact.closeAlert")}
               dismissible
             >
               <p className="my-0">
-                <StatusMessage text={messages[formData.status]} />
+                <StatusMessage
+                  text={t(`contact.${formData.status}`)}
+                  linkText={t("contact.emailMe")}
+                />
               </p>
             </Alert>
           </Col>
           <Col lg="5" className="mb-5">
-            <h2 className="h3 color_sec py-4">Get in touch</h2>
+            <h2 className="h3 color_sec py-4">{t("contact.getInTouch")}</h2>
             <address>
-              <strong>Email:</strong>{" "}
-              <a href={`mailto:${contactConfig.YOUR_EMAIL}`}>
-                {contactConfig.YOUR_EMAIL}
-              </a>
+              <strong>{t("contact.emailLabel")}</strong>{" "}
+              <a href={`mailto:${email}`}>{email}</a>
             </address>
-            <p>{contactConfig.description}</p>
+            <p>{contact.description}</p>
           </Col>
           <Col lg="7" className="d-flex align-items-center">
             <form onSubmit={handleSubmit} className="contact__form w-100">
               <Row>
                 <Col lg="6" className="mb-3">
                   <label htmlFor="name" className="form-label">
-                    Name
+                    {t("contact.form.name")}
                   </label>
                   <input
                     className="form-control"
                     id="name"
                     name="name"
-                    placeholder="Jane Doe…"
+                    placeholder={t("contact.placeholder.name")}
                     autoComplete="name"
                     value={formData.name}
                     type="text"
@@ -218,13 +220,13 @@ export const ContactUs = () => {
                 </Col>
                 <Col lg="6" className="mb-3">
                   <label htmlFor="email" className="form-label">
-                    Email
+                    {t("contact.form.email")}
                   </label>
                   <input
                     className="form-control rounded-0"
                     id="email"
                     name="email"
-                    placeholder="you@example.com…"
+                    placeholder={t("contact.placeholder.email")}
                     autoComplete="email"
                     type="email"
                     value={formData.email}
@@ -235,13 +237,13 @@ export const ContactUs = () => {
               </Row>
               <div className="mb-3">
                 <label htmlFor="message" className="form-label">
-                  Message
+                  {t("contact.form.message")}
                 </label>
                 <textarea
                   className="form-control rounded-0"
                   id="message"
                   name="message"
-                  placeholder="Tell me about your project…"
+                  placeholder={t("contact.placeholder.message")}
                   rows="5"
                   value={formData.message}
                   onChange={handleChange}
@@ -257,7 +259,7 @@ export const ContactUs = () => {
                   name={HONEYPOT}
                   tabIndex={-1}
                   autoComplete="off"
-                  aria-label={HONEYPOT_LABEL}
+                  aria-label={t("contact.honeypot")}
                   data-1p-ignore
                   data-lpignore="true"
                   data-bwignore="true"
@@ -272,7 +274,7 @@ export const ContactUs = () => {
                 disabled={formData.loading}
                 aria-busy={formData.loading}
               >
-                {formData.loading ? "Sending…" : "Send message"}
+                {formData.loading ? t("contact.sending") : t("contact.submit")}
               </button>
             </form>
           </Col>

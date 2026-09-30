@@ -50,6 +50,24 @@ module.exports = [
       "react/prop-types": "off",
     },
   },
+  // T-12 / FE-14: visible interface text comes from the i18n dictionaries
+  // (t("ns.key")) or the content files, never from a literal in JSX, so a
+  // new string cannot skip the TR translation. Props are not checked
+  // (className, href, ...); translated props (aria-label, placeholder, alt)
+  // go through t() by convention. Language-neutral punctuation is allowed.
+  {
+    files: ["src/{pages,header,components}/**/*.{js,jsx}"],
+    rules: {
+      "react/jsx-no-literals": [
+        "error",
+        {
+          noStrings: true,
+          ignoreProps: true,
+          allowedStrings: ["©", "·", "—", "–", "→", "←", "|"],
+        },
+      ],
+    },
+  },
   // Must stay last: turns off stylistic rules that Prettier owns.
   prettier,
 ];
