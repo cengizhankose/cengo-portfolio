@@ -1,0 +1,44 @@
+/* Cursor ring (T-14; PERF-11, FE-07, DSG-21). Follows the system cursor,
+   which stays visible everywhere. No fill, 1.5px outline, 32px across.
+   Colours and layer come from the tokens in src/index.css, so the ring
+   follows the theme without filters. Cursor.jsx writes the position to the
+   `translate` property and the hover growth is the `scale` property: scale
+   applies before translate, around the ring's centre, so growing never moves
+   the ring (with `transform` it would scale the position too). Both run on
+   the compositor. Hidden until the first mouse move (no ring
+   parked in the top-left corner) and while the pointer is outside the
+   window. Only opacity, scale and border-color transition.
+   The hairlines in the page background colour on both sides of the border
+   cannot be seen on the page itself; over a fill in the ring's own colour
+   (the primary CTA in either theme) they keep the ring's edges visible,
+   without a blend mode or filter. */
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border: 1.5px solid var(--cursor-ring-color);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px var(--bg-color),
+    inset 0 0 0 1px var(--bg-color);
+  pointer-events: none;
+  z-index: var(--z-cursor);
+  opacity: 0;
+  will-change: translate;
+  transition:
+    opacity 0.15s ease-out,
+    scale 0.15s ease-out,
+    border-color 0.15s ease-out;
+}
+
+.cursor-ring[data-visible] {
+  opacity: 1;
+}
+
+.cursor-ring[data-hover] {
+  border-color: var(--cursor-ring-hover-color);
+  scale: 1.5;
+}
