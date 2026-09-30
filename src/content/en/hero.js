@@ -1,15 +1,24 @@
-// EN page content, section "hero" (T-12, FE-14). The text is the site's copy
-// from before the language split, unchanged; content fixes come with the owning
-// package: W5-DSG-motion-cursor-hero (K-06b H1 + rotator) and
-// W7-MKT-hero-contact-conversion (MKT-02 copy). src/content/tr/hero.js has the
-// same shape.
+// EN page content, section "hero" (T-12, FE-14). Source: 00-icerik-girdileri
+// §2.4 (K-06b: a static H1 with name and role, and one line under it that
+// turns once and stops on its last phrase). src/content/tr/hero.js has the
+// same shape. W7-MKT-hero-contact-conversion (MKT-02) extends this section
+// with the value proposition; the H1 structure stays.
+//
+//   name, role  the H1 ("Cengizhan Köse" + role on its own line)
+//   roleLang    language of `role`: it stays English on the TR pages too
+//               (recommended default, §2.4/§10), so the page marks it up
+//               with lang="en" there (WCAG 3.1.2)
+//   phrases     the rotating line, shown in order; the last one stays. At
+//               most 4 and the same count in both languages (DSG-07 timing)
+//   lead        the sentence under the rotating line
 export default {
-  title: "I’m Cengizhan Köse",
+  name: "Cengizhan Köse",
+  role: "Senior Fullstack Engineer",
+  roleLang: "en",
   phrases: [
-    "I love coding and designing",
-    "I have some startup projects",
-    "I develop high-quality products",
+    "Shipping for fleet technology",
+    "Shipping for e-commerce",
+    "Fleet tech, e-commerce and AI.",
   ],
-  description:
-    "I’m a full-stack developer / part-time entrepreneur, currently working in Turkey.",
+  lead: "I build web and mobile products end to end with TypeScript, React, Node.js and React Native.",
 };

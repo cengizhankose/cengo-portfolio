@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { preload } from "react-dom";
 import "./style.css";
-import Typewriter from "typewriter-effect";
 import { Link } from "react-router-dom";
 import photoImg from "../../assets/images/photo.JPG";
 import { useContent, useLocalePath, useRoute, useT } from "../../i18n";
@@ -37,18 +36,35 @@ export const Home = () => {
         <div className="text order-2 order-lg-1 h-100 d-lg-flex justify-content-center">
           <div className="align-self-center ">
             <div className="intro mx-auto">
-              <h2>{hero.title}</h2>
-              <h1>
-                <Typewriter
-                  options={{
-                    strings: [...hero.phrases],
-                    autoStart: true,
-                    loop: true,
-                    deleteSpeed: 10,
-                  }}
-                />
+              {/* K-06b (SEO-12, FE-23, DSG-09): one static h1, name + role,
+                  complete in the first render. The role keeps its own
+                  language when it differs from the page's (TR pages). */}
+              <h1 className="intro__name">
+                {hero.name}{" "}
+                <span
+                  className="intro__role"
+                  lang={
+                    hero.roleLang === route.locale ? undefined : hero.roleLang
+                  }
+                >
+                  {hero.role}
+                </span>
               </h1>
-              <p>{hero.description}</p>
+              {/* The line under the h1 turns once and stops on its last
+                  phrase (CSS only, ./style.css; still under reduced motion).
+                  Screen readers skip the moving copy and read the last
+                  phrase once from the hidden text (DSG-09, FE-23). */}
+              <p className="intro__tagline">
+                <span className="rotator" aria-hidden="true">
+                  {hero.phrases.map((phrase, index) => (
+                    <span key={phrase} style={{ "--i": index }}>
+                      {phrase}
+                    </span>
+                  ))}
+                </span>
+                <span className="visually-hidden">{hero.phrases.at(-1)}</span>
+              </p>
+              <p className="intro__lead">{hero.lead}</p>
               <div className="intro_btn-action pb-5">
                 <Link to={lp("/about")} className="text_2">
                   <div id="button_p" className="ac_btn btn ">
