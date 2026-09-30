@@ -180,3 +180,25 @@ code {
 .color_sec {
   color: var(--secondary-color);
 }
+
+/* Reduced motion (FE-06, DSG-07). With the OS "reduce motion" setting on,
+   nothing on the page moves by itself: every animation and transition
+   finishes at once. Durations become 0.01ms instead of `animation: none` on
+   purpose: the page transition (src/app/routes.jsx) swaps routes on
+   animationend, which still fires for a 0.01ms animation. Delays go to 0 so
+   nothing appears late either (the menu links wait 0.6s otherwise). The
+   hero rotator and the contact loading bar also switch their animation off
+   in their own stylesheets; the custom cursor ring is not mounted at all
+   (src/app/App.jsx). FE-20's !important count leaves this block out. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-delay: 0s !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
