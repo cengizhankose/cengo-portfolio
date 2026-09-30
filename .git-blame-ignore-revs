@@ -6,3 +6,6 @@
 # FE-22: the orchestrator appends the full hash of the one-off
 # `bun run format` (+ `eslint --fix`) commit made on the integration branch
 # right after the W1 merge, one hash per line with a comment above it.
+
+# W1 bulk Prettier baseline
+174526ef7545a3d7b32b33f3d5c9943e77ee1927
