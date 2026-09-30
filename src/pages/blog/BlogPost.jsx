@@ -1,9 +1,6 @@
 import { useEffect } from "react";
 import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import MermaidRenderer from "./MermaidRenderer";
+import PostMarkdown from "./PostMarkdown.jsx";
 import { NotFound } from "../notfound";
 import { StatusState } from "../../components/statusstate";
 import { usePublishPostTranslations } from "../../components/langswitch/postTranslations";
@@ -152,15 +149,7 @@ function BlogPostPage() {
             )}
           </p>
         )}
-        <div className="blog-content markdown-body" id="blog-markdown-root">
-          <MermaidRenderer content={post.content} />
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
-          >
-            {post.content}
-          </ReactMarkdown>
-        </div>
+        <PostMarkdown content={post.content} lang={lang} />
       </article>
     </div>
   );

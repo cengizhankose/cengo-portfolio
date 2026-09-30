@@ -251,18 +251,58 @@
   margin: 40px 0;
 }
 
-/* Mermaid diagram styling */
+/* Mermaid diagram (FE-13, FE-35, DSG-06). <Mermaid> draws at the diagram's
+   natural size (useMaxWidth is off in src/lib/mermaidTheme.js), so a wide
+   diagram scrolls inside its frame instead of shrinking to unreadable
+   labels; the frame is a tab stop so the keyboard can scroll it. Colours
+   are theme tokens; the frame is square and transparent like the rest of
+   the site, so in the light theme it sits on the white page. */
+.mermaid-diagram,
+.mermaid-placeholder {
+  box-sizing: border-box;
+  margin: 2rem 0;
+  padding: 1rem;
+  background: transparent;
+  border-radius: 0;
+}
+
 .mermaid-diagram {
-  margin: 2rem auto;
-  padding: 1.25rem;
-  background: rgba(22, 27, 34, 0.6);
-  border: 1px solid rgba(31, 111, 235, 0.25);
-  border-radius: 12px;
+  border: 1px solid var(--border-color);
   overflow-x: auto;
-  text-align: center;
+  text-align: left;
 }
 
 .mermaid-diagram svg {
-  max-width: 100%;
+  display: block;
+  max-width: none;
   height: auto;
+}
+
+.mermaid-diagram:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 2px;
+}
+
+/* Holds the diagram's place while Mermaid loads and draws (no layout jump,
+   no raw source on screen). */
+.mermaid-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 14rem;
+  border: 1px dashed var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* On a wide screen the frame grows past the 760px text column (centred on
+   it), up to the width of the widest diagram, so most diagrams fit without
+   scrolling. The 4rem keeps it inside the page frame. */
+@media (min-width: 900px) {
+  .mermaid-diagram,
+  .mermaid-placeholder {
+    --mermaid-width: min(calc(100vw - 4rem), 1360px);
+    width: var(--mermaid-width);
+    margin-left: calc((100% - var(--mermaid-width)) / 2);
+  }
 }

@@ -5,6 +5,10 @@
    (browser UI theme-color, DSG-16).
    --text-muted: secondary text and placeholders, WCAG AA on --bg-color
    (#a3a3a3 on #0c0c0c 7.75:1, #595959 on #fff 7.00:1; DSG-04, DSG-21).
+   --border-color: hairline borders (shared token contract, 08-design-plan:
+   dark #3a3a3a, light #d4d4d4): the blog diagram frame (DSG-06), later the
+   inline code and badge outlines (DSG-26, DSG-08). A quiet edge, not a
+   control boundary: the diagram frame has its own focus ring.
    Cursor ring (T-14, DSG-21): --cursor-ring-color / --cursor-ring-hover-color
    point at theme tokens and are resolved on <html>, so they follow
    data-theme without a second declaration (dark #a3a3a3 / #fff, light
@@ -19,6 +23,7 @@
   --text-color: #fff;
   --text-color-2: #fff;
   --text-muted: #a3a3a3;
+  --border-color: #3a3a3a;
   --overlay-color: rgb(12 12 12 / 63%);
   --cursor-ring-color: var(--text-muted);
   --cursor-ring-hover-color: var(--text-color);
@@ -33,6 +38,7 @@
   --text-color: #000;
   --text-color-2: #000;
   --text-muted: #595959;
+  --border-color: #d4d4d4;
   --overlay-color: rgb(255 255 255 / 70%);
 }
 
