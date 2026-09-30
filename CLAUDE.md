@@ -53,9 +53,11 @@ Production, in this order (SEC-29 / SEC-15):
    audit line (`post_publish`, commit, contentSha256); the git history of `content/posts/` is the audit trail.
 3. `outplane env run --app cengoportfoliolhal -- bun run content:publish --verify --prod` must print only
    `<slug> ok`; `drift`, `missing` or `untracked` (a row without a file, e.g. a write that bypassed the CLI) exit 1.
-4. Cache: the server's post cache is fresh for 60 s and then serves the old value once while it refreshes, and
-   that answer may be cached at the edge for 5 min. So wait 60 s, request each URL the CLI printed once, wait a
-   few seconds, then purge exactly those URLs in Cloudflare (www only).
+4. Cache: the server's post cache is fresh for 60 s and then answers once with the old value while it refreshes
+   in the background, and that answer may stay at the edge for 5 min. So: wait 60 s; GET each URL the CLI printed
+   once with an extra `cb=<n>` query parameter (a new edge cache key, so the request reaches the server, which
+   ignores the parameter and refreshes); wait a few seconds; then purge exactly the printed URLs in Cloudflare
+   (www only).
 
 `--prod` reads only the process environment: the package script starts Bun with `--no-env-file`, so a local
 `.env` (e.g. `PG_SSL_MODE=disable`) never reaches a production write; TLS is always verify-full (SEC-22).

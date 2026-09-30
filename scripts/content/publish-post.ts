@@ -591,7 +591,7 @@ async function publish(args: CliArgs, d: Deps): Promise<number> {
     }
   }
   d.stdout(
-    "purge in Cloudflare (www), after one request per URL once 60 s have passed (see CLAUDE.md):",
+    "cache (CLAUDE.md): after 60 s GET each URL once with an extra cb=<n> query parameter, wait 5 s, then purge these in Cloudflare (www):",
   );
   for (const url of purgeUrls(result, translations)) d.stdout(`  ${url}`);
 
