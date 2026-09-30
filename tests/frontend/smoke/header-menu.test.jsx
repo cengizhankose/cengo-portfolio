@@ -68,4 +68,39 @@ describe("Headermain menu (smoke)", () => {
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
     expect(document.body).not.toHaveClass("ovhidden");
   });
+
+  // W2-FE-nav-a11y review (ledger): choosing the page that is already open
+  // changes no route; focus must land on <main>, not on <body>.
+  it("moves focus to <main> when the current page is chosen", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/about"]}>
+        <Headermain />
+        <div className="s_c">
+          <main id="main" tabIndex={-1} />
+        </div>
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole("button", { name: "Menu" }));
+    await user.click(screen.getByRole("link", { name: "About" }));
+
+    expect(document.activeElement).toBe(document.getElementById("main"));
+    expect(document.querySelector(".s_c")).not.toHaveAttribute("inert");
+  });
+
+  it("leaves focus to the route change when another page is chosen", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/about"]}>
+        <Headermain />
+        <div className="s_c">
+          <main id="main" tabIndex={-1} />
+        </div>
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole("button", { name: "Menu" }));
+    await user.click(screen.getByRole("link", { name: "Blog" }));
+
+    expect(document.activeElement).not.toBe(document.getElementById("main"));
+  });
 });

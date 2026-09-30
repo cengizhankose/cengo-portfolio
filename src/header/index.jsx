@@ -88,7 +88,21 @@ const Headermain = () => {
     setIsOpen(false);
   }
 
-  const closeMenu = () => setIsOpen(false);
+  // Choosing the page that is already open changes no route, so the
+  // route-change focus in routes.jsx does not run and focus would drop to
+  // <body>. Move it to <main> once the menu has closed (the page content is
+  // inert until then).
+  const focusMainAfterClose = useRef(false);
+  const closeMenu = (target) => {
+    if (target === pathname) focusMainAfterClose.current = true;
+    setIsOpen(false);
+  };
+
+  useEffect(() => {
+    if (isOpen || !focusMainAfterClose.current) return;
+    focusMainAfterClose.current = false;
+    document.getElementById("main")?.focus({ preventScroll: true });
+  }, [isOpen]);
 
   // Everything that depends on the open state follows `isOpen`: body scroll
   // lock, inert page content, focus and the Escape / Tab handling. The
@@ -171,7 +185,7 @@ const Headermain = () => {
                     <li className="menu_item" key={path}>
                       <Link
                         ref={index === 0 ? firstLinkRef : undefined}
-                        onClick={closeMenu}
+                        onClick={() => closeMenu(lp(path))}
                         to={lp(path)}
                         className="my-3"
                       >
