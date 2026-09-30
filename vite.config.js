@@ -10,9 +10,25 @@ const host = process.env.VITE_HOST || "127.0.0.1";
 // The browser only talks to this origin; /api is proxied (BE-09: no CORS).
 const API_TARGET = "http://127.0.0.1:3001";
 
+// PERF-09 / FE-21: src/styles/bootstrap-subset.scss is compiled with
+// sass-embedded. Bootstrap 5.3 only supports @import and still uses global
+// built-ins and the old color functions, so Dart Sass would print deprecation
+// warnings for its sources (quietDeps) and for the subset's own @import lines.
+// ("mixed-decls" from the plan is obsolete in Dart Sass 1.105 and would itself
+// print a warning.) tests/frontend/bootstrap/** compiles with these options.
+export const scssOptions = {
+  quietDeps: true,
+  silenceDeprecations: ["import", "global-builtin", "color-functions"],
+};
+
 export default defineConfig({
   plugins: [react()],
   base: "/",
+  css: {
+    preprocessorOptions: {
+      scss: scssOptions,
+    },
+  },
   build: {
     outDir: "dist",
     sourcemap: false,
