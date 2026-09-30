@@ -7,7 +7,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Link, MemoryRouter, useNavigate } from "react-router-dom";
 import { SWRConfig, useSWRConfig } from "swr";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { swrConfig } from "../../../src/lib/swr.js";
 
 const analytics = vi.hoisted(() => ({
@@ -125,6 +125,12 @@ const views = () => analytics.trackPageview.mock.calls.map(([view]) => view);
 const contexts = () =>
   analytics.setPageContext.mock.calls.map(([context]) => context);
 const article = () => screen.findByRole("heading", { level: 1 });
+
+// The BlogPost chunk and the markdown chain behind it are imported cold the
+// first time; on a busy machine that can take longer than one test's 5 s.
+beforeAll(async () => {
+  await import("../../../src/pages/blog/BlogPost");
+}, 60_000);
 
 beforeEach(() => {
   analytics.trackPageview.mockReset();

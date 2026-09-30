@@ -10,7 +10,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Link, MemoryRouter } from "react-router-dom";
 import { SWRConfig } from "swr";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { swrConfig } from "../../../src/lib/swr.js";
 
 function stubPage(name) {
@@ -40,6 +40,12 @@ vi.mock("../../../src/pages/blog/loaders.js", async (importOriginal) => {
 });
 
 const { default: AppRoutes } = await import("../../../src/app/routes.jsx");
+
+// Warm the real module behind the gate, so releasing it is instant even on a
+// busy machine (the gate, not the import, is what the test controls).
+beforeAll(async () => {
+  await import("../../../src/pages/blog/BlogHome");
+}, 60_000);
 
 beforeEach(() => {
   document.head.innerHTML = "<title>x</title>";

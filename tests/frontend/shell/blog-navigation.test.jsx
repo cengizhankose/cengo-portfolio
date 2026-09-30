@@ -8,7 +8,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Link, MemoryRouter } from "react-router-dom";
 import { SWRConfig } from "swr";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { swrConfig } from "../../../src/lib/swr.js";
 
 function stubPage(name) {
@@ -51,15 +51,19 @@ function renderAt(path) {
 const postListRequests = (fetchMock) =>
   fetchMock.mock.calls.filter(([url]) => String(url).startsWith("/api/posts"));
 
+// The chunk is loaded before the click, as a hover or focus preload (PERF-14)
+// usually leaves it. Cold, the import can take longer than one test's 5 s on
+// a busy machine.
+beforeAll(async () => {
+  await import("../../../src/pages/blog/BlogHome");
+}, 60_000);
+
 beforeEach(() => {
   document.head.innerHTML = "<title>x</title>";
 });
 
 describe("/ -> /blog", () => {
   it("has the Blog h1 in the DOM and the posts request started right after the click", async () => {
-    // The chunk is loaded before the click, as a hover or focus preload
-    // (PERF-14) usually leaves it.
-    await import("../../../src/pages/blog/BlogHome");
     const pending = new Promise(() => {});
     const fetchMock = vi.fn(() => pending);
     vi.stubGlobal("fetch", fetchMock);
