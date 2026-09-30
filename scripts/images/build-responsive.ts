@@ -315,7 +315,8 @@ export async function buildResponsive(
 
 if (import.meta.main) {
   const name = process.argv[2];
-  const spec = name ? PRESETS[name] : undefined;
+  // hasOwn: "constructor" or "toString" must not resolve an inherited property.
+  const spec = name && Object.hasOwn(PRESETS, name) ? PRESETS[name] : undefined;
   if (!spec) {
     console.error(
       `usage: bun scripts/images/build-responsive.ts <preset>\npresets: ${Object.keys(PRESETS).join(", ")}`,

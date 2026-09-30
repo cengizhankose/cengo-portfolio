@@ -217,6 +217,23 @@ describe("building a cover", () => {
   );
 });
 
+describe("the command line (W6 review handoff)", () => {
+  it("looks presets up with hasOwn, so inherited names are not presets", () => {
+    const source = readFileSync(
+      join(import.meta.dirname, "../../../scripts/images/build-responsive.ts"),
+      "utf8",
+    );
+    expect(source).toMatch(/Object\.hasOwn\(PRESETS, name\)/);
+    expect(Object.hasOwn(PRESETS, "constructor")).toBe(false);
+    expect(Object.keys(PRESETS).sort()).toEqual([
+      "hero",
+      "portfolio-effort-lab",
+      "portfolio-farmin",
+      "portfolio-salesgym",
+    ]);
+  });
+});
+
 describe("the hero preset is untouched by the crop and budget options", () => {
   it("has no aspect or byte budget", () => {
     expect(PRESETS.hero.aspect).toBeUndefined();
