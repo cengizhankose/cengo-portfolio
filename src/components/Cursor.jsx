@@ -24,10 +24,12 @@ import "./Cursor.css";
 export const CLICKABLE =
   'a, button, [role="button"], input, select, textarea, label, summary, [data-cursor-hover]';
 
-// Share of the remaining distance the ring covers in one frame.
-const EASE = 0.25;
-// Below this distance (|dx| + |dy| in px) the ring snaps and the loop stops.
-const SETTLE = 0.1;
+// Share of the remaining distance the ring covers in one frame, and the
+// distance (|dx| + |dy| in px) under which it snaps to the pointer and the
+// loop stops. Together they settle a jump across a 4K screen in < 30 frames
+// (< 0.5 s at 60 Hz, PERF-12), with no visible snap.
+const EASE = 0.3;
+const SETTLE = 0.5;
 
 const isMouse = (event) => event.pointerType === "mouse";
 
