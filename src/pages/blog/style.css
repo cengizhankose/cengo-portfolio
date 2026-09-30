@@ -307,11 +307,14 @@
 
 /* On a wide screen the frame grows past the 760px text column (centred on
    it), up to the width of the widest diagram, so most diagrams fit without
-   scrolling. The 4rem keeps it inside the page frame. */
+   scrolling. The 8rem keeps it inside the page frame and clear of the fixed
+   "Follow Me" strip (src/components/socialicons, visible from 992px, right
+   edge at x=50): the frame's left edge is 4rem from the window edge, so a
+   1024-1440px window no longer puts the frame's border under the icons. */
 @media (min-width: 900px) {
   .mermaid-diagram,
   .mermaid-placeholder {
-    --mermaid-width: min(calc(100vw - 4rem), 1360px);
+    --mermaid-width: min(calc(100vw - 8rem), 1360px);
     width: var(--mermaid-width);
     margin-left: calc((100% - var(--mermaid-width)) / 2);
   }

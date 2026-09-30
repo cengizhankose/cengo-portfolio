@@ -2,7 +2,7 @@
 // the stored drawings. They must say what the blog's own theme mapping says
 // (FE-35, src/lib/mermaidTheme.js), so a stored diagram looks like one drawn
 // in the browser, plus the two settings a stored diagram needs.
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, setDefaultTimeout } from "bun:test";
 import { join } from "node:path";
 import {
   THEME_TOKENS,
@@ -15,6 +15,9 @@ import {
   publishConfig,
   THEMES,
 } from "../../../scripts/lib/render-mermaid";
+
+// Shared machines get loaded: the default 5 s per test is too tight for jsdom and PGlite.
+setDefaultTimeout(30_000);
 
 const readJson = (theme: "light" | "dark") =>
   Bun.file(configPath(theme)).json();

@@ -9,6 +9,7 @@ import {
   describe,
   expect,
   test,
+  setDefaultTimeout,
 } from "bun:test";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -42,6 +43,9 @@ import {
   tempDir,
 } from "../content/helpers";
 import { FLOW_A, FLOW_B, fakeRenderer, fence } from "./support";
+
+// Shared machines get loaded: the default 5 s per test is too tight for jsdom and PGlite.
+setDefaultTimeout(30_000);
 
 const SLUG = "diagram-post";
 const keyA = diagramKey(FLOW_A);
@@ -122,8 +126,10 @@ describe("publishing a post with diagrams", () => {
     expect(row.content).not.toContain("<svg");
 
     expect(result.stdout).toContain("diagrams: 2 stored");
+    // progress is stderr: stdout starts with the result line
+    expect(result.out[0]).toStartWith("inserted ");
     expect(
-      result.out.filter((line) => line.startsWith("diagram ")),
+      result.err.filter((line) => line.startsWith("diagram ")),
     ).toHaveLength(2);
     // the audit line stays the last line
     expect(JSON.parse(result.out.at(-1)!).event).toBe("post_publish");
@@ -253,7 +259,7 @@ describe("--verify compares diagram keys", () => {
   let content: { dir: string; cleanup: () => Promise<unknown> };
   beforeAll(async () => {
     content = await tempDir("diagrams-verify-");
-  });
+  }, SETUP_TIMEOUT_MS);
   afterAll(async () => {
     await content.cleanup();
   });

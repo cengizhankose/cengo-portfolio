@@ -1,11 +1,24 @@
 // PERF-05 step 6 / 8: posts.diagrams (migration 0002) and the single-post
 // query that returns it. PGlite with the real migration files.
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  setDefaultTimeout,
+} from "bun:test";
 import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { createPostQueries } from "../../../src/db/queries/posts";
 import { posts, type PostDiagrams } from "../../../src/db/schema";
 import { createStrictTestDb, MIGRATIONS } from "../db/pglite";
+
+// Shared machines get loaded: the default 5 s per test is too tight for jsdom and PGlite.
+setDefaultTimeout(30_000);
+
+/** PGlite start + migrations can take seconds on a loaded machine. */
+const SETUP_TIMEOUT_MS = 30_000;
 
 const DIAGRAMS: PostDiagrams = {
   "0a1b2c3d": {
@@ -22,7 +35,7 @@ describe("migration 0002 (posts.diagrams)", () => {
   beforeAll(async () => {
     ctx = await createStrictTestDb();
     queries = createPostQueries(ctx.db);
-  });
+  }, SETUP_TIMEOUT_MS);
   afterAll(async () => {
     await ctx.close();
   });

@@ -567,7 +567,9 @@ async function publish(args: CliArgs, d: Deps): Promise<number> {
   // that cannot be drawn never leaves a half-written post behind.
   const diagrams = await d.renderDiagrams(post.content, {
     lang: post.lang,
-    progress: (line) => d.stdout(`diagram ${line}`),
+    // Progress is stderr, like the other notes: stdout keeps its shape (the
+    // result line first, the audit line last).
+    progress: (line) => d.stderr(`diagram ${line}`),
   });
 
   const { db, close } = d.openDb(target.url, target.options);

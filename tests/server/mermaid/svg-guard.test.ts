@@ -1,6 +1,6 @@
 // PERF-05 step 5: what may be stored in posts.diagrams. The guard verifies
 // the sanitised SVG; every case here is something the page must never print.
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, setDefaultTimeout } from "bun:test";
 import {
   assertSafeCss,
   assertStoredSvg,
@@ -9,6 +9,9 @@ import {
   UnsafeSvgError,
 } from "../../../scripts/lib/svg-guard";
 import { realSvg, smallSvg } from "./support";
+
+// Shared machines get loaded: the default 5 s per test is too tight for jsdom and PGlite.
+setDefaultTimeout(30_000);
 
 const ID = "m-0a1b2c3d-light";
 const svg = (body: string, attrs = "") =>

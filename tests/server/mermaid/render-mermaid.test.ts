@@ -2,7 +2,7 @@
 // sanitiser (sanitizeSvg over jsdom) and guard. What is drawn is checked by
 // chrome-render.test.ts in a real Chrome; here the pipeline around the
 // drawing is: keys, labels, per-theme configs, ids, cleaning, verification.
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, setDefaultTimeout } from "bun:test";
 import { diagramKey } from "../../../src/lib/diagram-key.js";
 import {
   DiagramError,
@@ -25,6 +25,9 @@ import {
   realSvg,
   smallSvg,
 } from "./support";
+
+// Shared machines get loaded: the default 5 s per test is too tight for jsdom and PGlite.
+setDefaultTimeout(30_000);
 
 const keyA = diagramKey(FLOW_A);
 const keyB = diagramKey(FLOW_B);

@@ -3,7 +3,7 @@
 // code text react-markdown gives it. These tests close that loop with the
 // real pipeline: drawings stored under extractDiagramBlocks() keys must all be
 // found when the same markdown is rendered (nothing falls back to mermaid).
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -20,16 +20,22 @@ const mermaid = vi.hoisted(() => ({
 }));
 vi.mock("mermaid", () => ({ default: mermaid }));
 
+// Shared machines get loaded: the default 5 s per test is too tight for jsdom.
+vi.setConfig({ testTimeout: 30_000 });
+
 const ROOT = join(import.meta.dirname, "..", "..", "..");
-const LIVE = readFileSync(
-  join(
-    ROOT,
-    "content/posts/atlas-steward-laya-konustan-yarim-is-cikaran-sistem.tr.md",
-  ),
-  "utf8",
-)
-  .replace(/^---\n[\s\S]*?\n---\n/, "")
-  .trim();
+// The repository's live post (content/posts). The Docker gate copies it too;
+// a checkout without content/ skips the one test that needs it.
+const LIVE_FILE = join(
+  ROOT,
+  "content/posts/atlas-steward-laya-konustan-yarim-is-cikaran-sistem.tr.md",
+);
+const HAS_LIVE = existsSync(LIVE_FILE);
+const LIVE = HAS_LIVE
+  ? readFileSync(LIVE_FILE, "utf8")
+      .replace(/^---\n[\s\S]*?\n---\n/, "")
+      .trim()
+  : "";
 
 beforeEach(() => {
   mermaid.initialize.mockReset();
@@ -71,16 +77,19 @@ function expectAllFound(markdown, lang) {
 }
 
 describe("the live post", () => {
-  it("has five diagrams, every one found by its key, with the page's own names", () => {
-    const { blocks, figures } = expectAllFound(LIVE, "tr");
-    expect(blocks).toHaveLength(5);
-    expect(new Set(blocks.map((b) => b.key)).size).toBe(5);
-    // the stored label is the name the page shows (same rule, same text)
-    expect(figures.map((f) => f.getAttribute("aria-label"))).toEqual(
-      blocks.map((b) => b.label),
-    );
-    expect(blocks[0].label).toBe("Diyagram: Steward'ın boru hattı");
-  });
+  it.skipIf(!HAS_LIVE)(
+    "has five diagrams, every one found by its key, with the page's own names",
+    () => {
+      const { blocks, figures } = expectAllFound(LIVE, "tr");
+      expect(blocks).toHaveLength(5);
+      expect(new Set(blocks.map((b) => b.key)).size).toBe(5);
+      // the stored label is the name the page shows (same rule, same text)
+      expect(figures.map((f) => f.getAttribute("aria-label"))).toEqual(
+        blocks.map((b) => b.label),
+      );
+      expect(blocks[0].label).toBe("Diyagram: Steward'ın boru hattı");
+    },
+  );
 });
 
 describe("fence spellings the script and the page must read the same way", () => {

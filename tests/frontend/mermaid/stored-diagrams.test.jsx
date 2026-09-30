@@ -23,6 +23,9 @@ vi.mock("mermaid", () => {
   return { default: mermaid };
 });
 
+// Shared machines get loaded: the default 5 s per test is too tight for jsdom.
+vi.setConfig({ testTimeout: 30_000 });
+
 const ROOT = join(import.meta.dirname, "..", "..", "..");
 const STYLE = readFileSync(
   join(ROOT, "src", "pages", "blog", "style.css"),

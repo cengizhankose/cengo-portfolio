@@ -45,6 +45,12 @@ import { diagramText } from "../../lib/markdown/diagramText.js";
 import { mermaidConfig, readTokens } from "../../lib/mermaidTheme.js";
 import { useTheme } from "../../lib/theme.js";
 
+// --- client branch (stage A) -------------------------------------------------
+// Everything from here to "stored branch" goes away in PERF-05 step 10(d),
+// when the live post has its drawings: delete renderDiagram() and
+// ClientDiagram, and let <Mermaid> show the source as <pre><code> when there is
+// no stored drawing. Nothing below imports mermaid statically.
+//
 // mermaid.initialize() is global, so "initialize + render" is one step and
 // steps run strictly one after another: two diagrams (or one diagram and a
 // theme change) can never render under each other's configuration.
@@ -132,6 +138,7 @@ function ClientDiagram({ chart, label, lang }) {
   );
 }
 
+// --- stored branch (stage B) -------------------------------------------------
 // posts.diagrams of the post on screen, { [key]: { label, light, dark } }, or
 // null (BlogPost provides it around <PostMarkdown>).
 export const DiagramsContext = createContext(null);
