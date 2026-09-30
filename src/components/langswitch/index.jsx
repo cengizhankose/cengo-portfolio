@@ -35,7 +35,8 @@ const isPlainClick = (event) =>
 function localeSwitchProps(route, from, to, exact) {
   const props = { from_locale: from, to_locale: to };
   if (route?.type === "notfound") return props;
-  return { ...props, target: exact ? "translation" : "blog_index" };
+  const target = exact ? "translation" : "blog_index";
+  return { ...props, target };
 }
 
 export function LanguageSwitcher() {
