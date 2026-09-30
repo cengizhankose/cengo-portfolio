@@ -26,7 +26,7 @@
   "scripts": {
     "dev": "concurrently \"bun run api\" \"vite\"",
     "dev:vite": "vite",
-    "api": "bun run src/api/index.ts",
+    "api": "PORT=3001 bun --watch src/api/index.ts",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src --max-warnings=0",
@@ -78,6 +78,7 @@
     "nanoid": "^3.3.18",
     "picomatch": "^4.0.4",
     "postcss": "^8.5.28",
-    "rollup": "^4.59.0"
+    "rollup": "^4.59.0",
+    "vite": "^7.3.6"
   }
 }

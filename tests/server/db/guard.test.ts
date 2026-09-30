@@ -1,22 +1,85 @@
 // BE-04 / SEC-06: one guard for every local tool.
 import { describe, expect, test } from "bun:test";
-import { assertNonProdDb, prodOverrideRequested } from "../../../src/db/guard";
+import postgres from "postgres";
+import {
+  assertNonProdDb,
+  isLocalDbHost,
+  prodOverrideRequested,
+} from "../../../src/db/guard";
 
 const noWarn = () => {};
-const strict = { allowProd: false, warn: noWarn };
+// inContainer pinned so results do not depend on where the tests run.
+const strict = { allowProd: false, warn: noWarn, inContainer: false };
+
+const ACCEPTED = [
+  "postgres://portfolio@localhost:5432/portfolio_dev",
+  "postgres://portfolio@127.0.0.1:5432/portfolio_dev",
+  "postgres://portfolio@[::1]:5432/portfolio_test",
+  "postgresql://portfolio@LOCALHOST/portfolio_dev",
+  "postgres://a%40b@localhost/portfolio_dev",
+];
 
 describe("assertNonProdDb", () => {
-  test.each([
-    "postgres://portfolio@localhost:5432/portfolio_dev",
-    "postgres://portfolio@127.0.0.1:5432/portfolio_dev",
-    "postgres://portfolio@[::1]:5432/portfolio_test",
-    "postgresql://portfolio@LOCALHOST/portfolio_dev",
-    "postgres://portfolio@db:5432/portfolio_dev",
-  ])("accepts local dev database %s", (url) => {
+  test.each(ACCEPTED)("accepts local dev database %s", (url) => {
     const result = assertNonProdDb(url, strict);
     expect(result.local).toBe(true);
     expect(result.database).toMatch(/_(dev|test)$/);
   });
+
+  test("the compose host `db` is local only inside a container", () => {
+    const url = "postgres://portfolio@db:5432/portfolio_dev";
+    expect(assertNonProdDb(url, { ...strict, inContainer: true }).local).toBe(
+      true,
+    );
+    expect(() => assertNonProdDb(url, strict)).toThrow(
+      'Refusing to use database "portfolio_dev"',
+    );
+  });
+
+  // W1 review: WHATWG URL ends userinfo at the LAST '@', postgres.js at the
+  // FIRST '@' and splits hosts on ','. Every URL the parsers read differently
+  // is refused.
+  test.each([
+    [
+      "first-@ vs last-@ split",
+      "postgres://a@db.prod.invalid,b@localhost/portfolio_dev",
+    ],
+    [
+      "two '@' in the authority",
+      "postgres://a@db.prod.invalid@localhost/portfolio_dev",
+    ],
+    [
+      "encoded comma host list",
+      "postgres://u@db.prod.invalid%2Clocalhost/portfolio_dev",
+    ],
+    [
+      "encoded host that decodes to localhost",
+      "postgres://u@local%68ost/portfolio_dev",
+    ],
+    ["unix socket path host", "postgres://u@%2Ftmp/portfolio_dev"],
+  ])("refuses a parser-ambiguous URL: %s", (_label, url) => {
+    expect(() => assertNonProdDb(url, strict)).toThrow(
+      'Refusing to use database "portfolio_dev"',
+    );
+    expect(isLocalDbHost(url, { inContainer: true })).toBe(false);
+  });
+
+  test("the W1 probe really would dial the remote host with postgres.js", () => {
+    const probe = "postgres://a@db.prod.invalid,b@localhost/portfolio_dev";
+    const sql = postgres(probe, { max: 1 });
+    expect(sql.options.host[0]).toBe("db.prod.invalid");
+    void sql.end({ timeout: 0 });
+  });
+
+  test.each(ACCEPTED)(
+    "postgres.js dials only a local host for accepted %s",
+    (url) => {
+      const sql = postgres(url, { max: 1 });
+      for (const host of sql.options.host)
+        expect(["localhost", "127.0.0.1", "["]).toContain(host.toLowerCase());
+      void sql.end({ timeout: 0 });
+    },
+  );
 
   test.each([
     [
@@ -129,6 +192,29 @@ describe("assertNonProdDb", () => {
       warn: (m) => warnings.push(m),
     });
     expect(warnings).toHaveLength(0);
+  });
+
+  test("a tool-specific hint replaces the override advice", () => {
+    expect(() =>
+      assertNonProdDb("postgres://u@db.prod.invalid/portfolio_dev", {
+        ...strict,
+        hint: "seeding never targets a remote database",
+      }),
+    ).toThrow(/; seeding never targets a remote database$/);
+  });
+});
+
+describe("isLocalDbHost (used by the production TLS check)", () => {
+  test.each([
+    ["postgres://u@localhost/x", true],
+    ["postgres://u:p@127.0.0.1:5432/anything", true],
+    ["postgres://u@db.prod.invalid/x_dev", false],
+    ["postgres://u@localhost/x?host=db.prod.invalid", false],
+    ["not a url", false],
+  ])("%s -> %p", (url, expected) => {
+    expect(isLocalDbHost(url as string, { inContainer: false })).toBe(
+      expected as boolean,
+    );
   });
 });
 

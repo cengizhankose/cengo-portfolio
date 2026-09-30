@@ -1,23 +1,26 @@
-// BE-04 / SEC-06: dev seed is idempotent, contains the hidden draft, and the
-// optional live import only accepts well-formed public data.
+// BE-04 / SEC-06 / BE-19 (T-12): dev seed is idempotent, contains the hidden
+// draft and an EN/TR translation pair, and the optional live import only
+// accepts well-formed public data.
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { eq } from "drizzle-orm";
 import { posts } from "../../../src/db/schema";
 import { createPostQueries } from "../../../src/db/queries/posts";
 import {
   DEV_SEED_POSTS,
   DRAFT_SLUG,
   LIVE_POSTS_URL,
+  TRANSLATION_KEY,
   fetchLivePosts,
   parseLivePosts,
   seedDevPosts,
 } from "../../../scripts/seed-dev";
-import { createTestDb } from "./pglite";
+import { createStrictTestDb } from "./pglite";
 
-describe("seedDevPosts (PGlite)", () => {
-  let ctx: Awaited<ReturnType<typeof createTestDb>>;
+describe("seedDevPosts (PGlite, production schema)", () => {
+  let ctx: Awaited<ReturnType<typeof createStrictTestDb>>;
 
   beforeAll(async () => {
-    ctx = await createTestDb();
+    ctx = await createStrictTestDb();
   });
 
   afterAll(async () => {
@@ -31,8 +34,30 @@ describe("seedDevPosts (PGlite)", () => {
     expect(rows.find((r) => r.slug === DRAFT_SLUG)?.published).toBe(false);
   });
 
+  test("T-12 fixtures: EN/TR pair, a TR post without translation, a TR draft", async () => {
+    const rows = await ctx.db.select().from(posts);
+    const bySlug = Object.fromEntries(rows.map((r) => [r.slug, r]));
+    expect(bySlug["hello-world"]).toMatchObject({
+      lang: "en",
+      translationKey: TRANSLATION_KEY,
+      published: true,
+    });
+    expect(bySlug["merhaba-dunya"]).toMatchObject({
+      lang: "tr",
+      translationKey: TRANSLATION_KEY,
+      published: true,
+    });
+    expect(bySlug["sadece-turkce"]).toMatchObject({
+      lang: "tr",
+      translationKey: null,
+      published: true,
+    });
+    expect(bySlug[DRAFT_SLUG]).toMatchObject({ lang: "tr", publishedAt: null });
+    for (const row of rows.filter((r) => r.published))
+      expect(row.publishedAt).toBeInstanceOf(Date);
+  });
+
   test("second run is a no-op (ON CONFLICT DO NOTHING) and keeps edited rows", async () => {
-    const { eq } = await import("drizzle-orm");
     await ctx.db
       .update(posts)
       .set({ title: "edited locally" })
@@ -51,6 +76,19 @@ describe("seedDevPosts (PGlite)", () => {
     const list = await queries.listPublishedPosts();
     expect(list.length).toBe(3);
     expect(list.map((p) => p.slug)).not.toContain(DRAFT_SLUG);
+  });
+
+  test("BE-03 (T-12): the TR post reports its EN translation", async () => {
+    const queries = createPostQueries(ctx.db);
+    const post = await queries.getPublishedPostBySlug("merhaba-dunya");
+    expect([post?.lang, post?.translations.map((t) => t.lang)]).toEqual([
+      "tr",
+      ["en"],
+    ]);
+    expect(post?.translations).toEqual([{ lang: "en", slug: "hello-world" }]);
+    expect(
+      (await queries.getPublishedPostBySlug("sadece-turkce"))?.translations,
+    ).toEqual([]);
   });
 
   test("an empty batch inserts nothing", async () => {
@@ -73,7 +111,7 @@ describe("live import (public API, no credentials)", () => {
     },
   ];
 
-  test("maps public rows to published inserts without ids", () => {
+  test("maps public rows to published TR inserts without ids (pre-T-12 payload)", () => {
     const [row] = parseLivePosts(sample);
     expect(row).toEqual({
       slug: "a-live-post",
@@ -81,11 +119,33 @@ describe("live import (public API, no credentials)", () => {
       content: "body",
       excerpt: null,
       coverImage: null,
+      seoTitle: null,
+      lang: "tr",
+      translationKey: null,
       published: true,
       createdAt: new Date("2026-09-01T10:00:00.000Z"),
       updatedAt: new Date("2026-09-02T10:00:00.000Z"),
+      publishedAt: new Date("2026-09-01T10:00:00.000Z"),
     });
     expect(row).not.toHaveProperty("id");
+  });
+
+  test("keeps lang, translationKey and publishedAt from a T-12 payload", () => {
+    const [row] = parseLivePosts([
+      {
+        ...sample[0],
+        lang: "en",
+        translationKey: "a-live-post",
+        publishedAt: "2026-09-03T10:00:00.000Z",
+        seoTitle: "A live post | test",
+      },
+    ]);
+    expect(row).toMatchObject({
+      lang: "en",
+      translationKey: "a-live-post",
+      publishedAt: new Date("2026-09-03T10:00:00.000Z"),
+      seoTitle: "A live post | test",
+    });
   });
 
   test.each([
@@ -94,6 +154,8 @@ describe("live import (public API, no credentials)", () => {
     ["missing title", [{ ...sample[0], title: "" }]],
     ["non-string content", [{ ...sample[0], content: 42 }]],
     ["non-string excerpt", [{ ...sample[0], excerpt: {} }]],
+    ["unknown lang", [{ ...sample[0], lang: "de" }]],
+    ["bad translationKey", [{ ...sample[0], translationKey: "a b" }]],
   ])("rejects %s", (_label, data) => {
     expect(() => parseLivePosts(data)).toThrow();
   });
@@ -115,5 +177,31 @@ describe("live import (public API, no credentials)", () => {
     const fakeFetch = (async () =>
       new Response("nope", { status: 503 })) as unknown as typeof fetch;
     await expect(fetchLivePosts(fakeFetch)).rejects.toThrow("returned 503");
+  });
+
+  test("fetchLivePosts stops reading once the body exceeds the cap (W1 review)", async () => {
+    let pulled = 0;
+    const endless = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulled += 1;
+        controller.enqueue(new Uint8Array(1024).fill(32));
+      },
+    });
+    const fakeFetch = (async () =>
+      new Response(endless, { status: 200 })) as unknown as typeof fetch;
+    await expect(fetchLivePosts(fakeFetch, 4096)).rejects.toThrow(
+      "unexpectedly large",
+    );
+    expect(pulled).toBeLessThan(10);
+  });
+
+  test("fetchLivePosts refuses a declared Content-Length above the cap", async () => {
+    const fakeFetch = (async () =>
+      new Response("[]", {
+        headers: { "content-length": "999999" },
+      })) as unknown as typeof fetch;
+    await expect(fetchLivePosts(fakeFetch, 4096)).rejects.toThrow(
+      "unexpectedly large",
+    );
   });
 });

@@ -1,7 +1,9 @@
 #!/usr/bin/env bun
-// Seed the local development database (K-02 = A; BE-04 / SEC-06).
+// Seed the local development database (K-02 = A; BE-04 / SEC-06; T-12 for BE-19).
 //
-//   bun run db:seed                -> 3 published sample posts + 1 draft (slug: taslak-ornek)
+//   bun run db:seed                -> EN/TR translation pair (hello-world <-> merhaba-dunya),
+//                                     one TR post without translation (sadece-turkce)
+//                                     and one TR draft (taslak-ornek)
 //   bun run db:seed -- --from-live -> also copies the PUBLISHED posts from the public,
 //                                     unauthenticated API (no production credentials)
 //
@@ -11,24 +13,31 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "../src/db/schema";
-import { posts } from "../src/db/schema";
+import { POST_LANGS, posts, type PostLang } from "../src/db/schema";
 import { assertNonProdDb } from "../src/db/guard";
 import type { PostsDb } from "../src/db/queries/posts";
 
 export type NewPost = typeof posts.$inferInsert;
 
 export const DRAFT_SLUG = "taslak-ornek";
+export const TRANSLATION_KEY = "hello-world";
 export const LIVE_POSTS_URL = "https://www.cengizhankose.com/api/posts";
+export const SEED_REFUSAL_HINT =
+  "db:seed never writes to a remote database; --prod and ALLOW_REMOTE_DB=1 do not apply here";
 const MAX_LIVE_RESPONSE_BYTES = 5 * 1024 * 1024;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const at = (iso: string) => new Date(iso);
 
 // Obvious development fixtures: they never leave the local database.
 export const DEV_SEED_POSTS: NewPost[] = [
   {
-    slug: "dev-seed-markdown-sampler",
-    title: "Dev seed: Markdown sampler",
+    slug: "hello-world",
+    lang: "en",
+    translationKey: TRANSLATION_KEY,
+    title: "Dev seed: Hello world (Markdown sampler)",
     excerpt:
-      "Local development fixture covering headings, lists, code and a table.",
+      "Local development fixture covering headings, lists, code and a table. Translated as merhaba-dunya.",
     content: [
       "## Headings and lists",
       "",
@@ -46,50 +55,80 @@ export const DEV_SEED_POSTS: NewPost[] = [
       "| a      | 1     |",
     ].join("\n"),
     published: true,
-    createdAt: new Date("2026-01-03T09:00:00Z"),
-    updatedAt: new Date("2026-01-03T09:00:00Z"),
+    createdAt: at("2026-01-03T09:00:00Z"),
+    updatedAt: at("2026-01-03T09:00:00Z"),
+    publishedAt: at("2026-01-03T09:00:00Z"),
   },
   {
-    slug: "dev-seed-mermaid-diagram",
-    title: "Dev seed: Mermaid diagram",
-    excerpt: "Local development fixture with one Mermaid flowchart.",
+    slug: "merhaba-dunya",
+    lang: "tr",
+    translationKey: TRANSLATION_KEY,
+    title: "Dev seed: Merhaba dünya (Markdown örnekleri)",
+    excerpt:
+      "Yerel geliştirme verisi: başlık, liste, kod ve tablo. İngilizcesi hello-world.",
     content: [
-      "A single diagram to exercise the Mermaid renderer locally.",
+      "## Başlıklar ve listeler",
+      "",
+      "Bu yazı yalnız yerel geliştirme veritabanında bulunur.",
+      "",
+      "- birinci madde",
+      "- `satır içi kod` içeren ikinci madde",
+      "",
+      "```ts",
+      "const selam: string = 'merhaba'",
+      "```",
+      "",
+      "| Sütun | Değer |",
+      "| ----- | ----- |",
+      "| a     | 1     |",
+    ].join("\n"),
+    published: true,
+    createdAt: at("2026-01-02T09:00:00Z"),
+    updatedAt: at("2026-01-02T09:00:00Z"),
+    publishedAt: at("2026-01-02T09:00:00Z"),
+  },
+  {
+    slug: "sadece-turkce",
+    lang: "tr",
+    translationKey: null,
+    title: "Dev seed: Yalnız Türkçe (Mermaid ve uzun metin)",
+    excerpt:
+      "Çevirisi olmayan yerel geliştirme verisi: bir Mermaid diyagramı ve birkaç paragraf.",
+    content: [
+      "Mermaid çizicisini yerelde denemek için tek bir diyagram.",
       "",
       "```mermaid",
       "flowchart LR",
-      "  A[Draft] --> B{Review}",
-      "  B -->|ok| C[Publish]",
-      "  B -->|changes| A",
+      "  A[Taslak] --> B{İnceleme}",
+      "  B -->|tamam| C[Yayın]",
+      "  B -->|değişiklik| A",
       "```",
-    ].join("\n"),
+      "",
+      ...Array.from(
+        { length: 6 },
+        (_, i) =>
+          `Paragraf ${i + 1}. Satır uzunluğu, boşluk ve okuma ilerlemesini denemek için ` +
+          "yer tutucu metin. Gerçek içerik taşımaz.",
+      ).flatMap((p) => [p, ""]),
+    ]
+      .join("\n")
+      .trimEnd(),
     published: true,
-    createdAt: new Date("2026-01-02T09:00:00Z"),
-    updatedAt: new Date("2026-01-02T09:00:00Z"),
-  },
-  {
-    slug: "dev-seed-long-read",
-    title: "Dev seed: Long read",
-    excerpt:
-      "Local development fixture with several paragraphs for layout checks.",
-    content: Array.from(
-      { length: 8 },
-      (_, i) =>
-        `Paragraph ${i + 1}. Placeholder text for checking line length, spacing and ` +
-        "reading progress in the local blog layout. It carries no real content.",
-    ).join("\n\n"),
-    published: true,
-    createdAt: new Date("2026-01-01T09:00:00Z"),
-    updatedAt: new Date("2026-01-01T09:00:00Z"),
+    createdAt: at("2026-01-01T09:00:00Z"),
+    updatedAt: at("2026-01-01T09:00:00Z"),
+    publishedAt: at("2026-01-01T09:00:00Z"),
   },
   {
     slug: DRAFT_SLUG,
-    title: "Dev seed: unpublished draft",
+    lang: "tr",
+    translationKey: null,
+    title: "Dev seed: yayınlanmamış taslak",
     excerpt: "Must never be returned by the public API (BE-03 / SEC-08).",
     content: "This draft exists to prove that unpublished posts stay hidden.",
     published: false,
-    createdAt: new Date("2026-01-04T09:00:00Z"),
-    updatedAt: new Date("2026-01-04T09:00:00Z"),
+    createdAt: at("2026-01-04T09:00:00Z"),
+    updatedAt: at("2026-01-04T09:00:00Z"),
+    publishedAt: null,
   },
 ];
 
@@ -124,6 +163,17 @@ function optionalDate(value: unknown): Date | undefined {
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
+// T-12: the live posts that predate `lang` are Turkish (the 0001 backfill).
+function liveLang(value: unknown, index: number): PostLang {
+  if (value === undefined || value === null) return "tr";
+  if (
+    typeof value === "string" &&
+    (POST_LANGS as readonly string[]).includes(value)
+  )
+    return value as PostLang;
+  throw new Error(`Live post #${index}: invalid lang`);
+}
+
 /** Validates the public list response and maps it to insertable, published rows. */
 export function parseLivePosts(data: unknown): NewPost[] {
   if (!Array.isArray(data))
@@ -131,8 +181,19 @@ export function parseLivePosts(data: unknown): NewPost[] {
   return data.map((item, index) => {
     if (typeof item !== "object" || item === null)
       throw new Error(`Live post #${index}: not an object`);
-    const { slug, title, content, excerpt, coverImage, createdAt, updatedAt } =
-      item as Record<string, unknown>;
+    const {
+      slug,
+      title,
+      content,
+      excerpt,
+      coverImage,
+      createdAt,
+      updatedAt,
+      publishedAt,
+      lang,
+      translationKey,
+      seoTitle,
+    } = item as Record<string, unknown>;
     if (typeof slug !== "string" || slug.length > 200 || !SLUG.test(slug)) {
       throw new Error(`Live post #${index}: invalid slug`);
     }
@@ -140,38 +201,75 @@ export function parseLivePosts(data: unknown): NewPost[] {
       throw new Error(`Live post #${index}: invalid title`);
     if (typeof content !== "string")
       throw new Error(`Live post #${index}: invalid content`);
+    const key = optionalString(translationKey, "translationKey", index);
+    if (key !== null && (key.length > 200 || !SLUG.test(key)))
+      throw new Error(`Live post #${index}: invalid translationKey`);
+    const created = optionalDate(createdAt);
     return {
       slug,
       title,
       content,
       excerpt: optionalString(excerpt, "excerpt", index),
       coverImage: optionalString(coverImage, "coverImage", index),
+      seoTitle: optionalString(seoTitle, "seoTitle", index),
+      lang: liveLang(lang, index),
+      translationKey: key,
       published: true,
-      createdAt: optionalDate(createdAt),
+      createdAt: created,
       updatedAt: optionalDate(updatedAt),
+      publishedAt: optionalDate(publishedAt) ?? created ?? null,
     };
   });
+}
+
+/** Reads at most `maxBytes` of the body; a larger (or larger-declared) body is refused. */
+async function readCapped(res: Response, maxBytes: number): Promise<string> {
+  const tooLarge = () => new Error("Live response is unexpectedly large");
+  const declared = Number(res.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > maxBytes) throw tooLarge();
+  if (!res.body) return "";
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel();
+      throw tooLarge();
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
 }
 
 /** Reads the published posts from the public API (read-only, no credentials). */
 export async function fetchLivePosts(
   fetchImpl: typeof fetch = fetch,
+  maxBytes: number = MAX_LIVE_RESPONSE_BYTES,
 ): Promise<NewPost[]> {
   const res = await fetchImpl(LIVE_POSTS_URL, {
     headers: { accept: "application/json" },
     signal: AbortSignal.timeout(15_000),
   });
   if (!res.ok) throw new Error(`GET ${LIVE_POSTS_URL} returned ${res.status}`);
-  const body = await res.text();
-  if (body.length > MAX_LIVE_RESPONSE_BYTES)
-    throw new Error("Live response is unexpectedly large");
-  return parseLivePosts(JSON.parse(body));
+  return parseLivePosts(JSON.parse(await readCapped(res, maxBytes)));
 }
 
 async function main() {
   const url = process.env.PG_CONNECTION_URL;
   // Seeding writes fixture data: never allowed outside a local dev database.
-  const { database } = assertNonProdDb(url, { allowProd: false });
+  const { database } = assertNonProdDb(url, {
+    allowProd: false,
+    hint: SEED_REFUSAL_HINT,
+  });
   const client = postgres(url!, { max: 1 });
   const db = drizzle(client, { schema });
   try {

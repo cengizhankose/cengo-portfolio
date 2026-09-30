@@ -56,11 +56,13 @@ describe("local entry points refuse non-local databases", () => {
   });
 
   test("bun run db:seed refuses even with --prod and ALLOW_REMOTE_DB=1", () => {
-    expectRefused(
-      run(["scripts/seed-dev.ts", "--prod"], REMOTE_URL, {
-        ALLOW_REMOTE_DB: "1",
-      }),
-    );
+    const result = run(["scripts/seed-dev.ts", "--prod"], REMOTE_URL, {
+      ALLOW_REMOTE_DB: "1",
+    });
+    expectRefused(result);
+    // The refusal must not suggest an override that db:seed ignores (W1 review).
+    expect(result.output).toContain("do not apply here");
+    expect(result.output).not.toContain("pass --prod or set");
   });
 });
 

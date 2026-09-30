@@ -1,6 +1,15 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+// SEC-12: the dev and preview servers listen on loopback only. LAN access is a
+// deliberate opt-in (`VITE_HOST=0.0.0.0 bun run dev:vite`); the compose app-dev
+// container sets it because its port is published through Docker.
+const host = process.env.VITE_HOST || "127.0.0.1";
+
+// Dev API (`bun run api`, src/api/index.ts) on the same loopback interface.
+// The browser only talks to this origin; /api is proxied (BE-09: no CORS).
+const API_TARGET = "http://127.0.0.1:3001";
+
 export default defineConfig({
   plugins: [react()],
   base: "/",
@@ -31,10 +40,10 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-    host: true,
+    host,
     proxy: {
       "/api": {
-        target: "http://localhost:3001",
+        target: API_TARGET,
         changeOrigin: true,
       },
     },
@@ -46,7 +55,7 @@ export default defineConfig({
   },
   preview: {
     port: 4173,
-    host: true,
+    host,
   },
   // Component tests (T-02): Vitest + jsdom, only tests/frontend/**.
   // Server/API tests live in tests/server/** and run under `bun test`.
