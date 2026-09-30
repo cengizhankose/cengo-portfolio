@@ -2,8 +2,17 @@
 // sending and errors, fields clear only after success, one send per click),
 // DSG-04 (visible, bound labels), FE-36 / DSG-23 / MKT-09 (status messages,
 // no raw EmailJS error, mailto fallback) and SEC-24 / FE-24 (@emailjs/browser
-// v4 options, honeypot). EmailJS is mocked: nothing leaves the test.
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+// v4 options, honeypot). EmailJS is mocked: nothing leaves the test. The page
+// loads the SDK with import() when the form is sent; vi.mock covers that
+// import too. Load failures are in sdk-load-failure.test.jsx.
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { MemoryRouter } from "react-router-dom";
@@ -266,6 +275,8 @@ describe("while sending (DSG-05, MKT-11)", () => {
 
     await user.dblClick(submitButton());
 
+    // send runs after the SDK import resolves.
+    await waitFor(() => expect(emailjs.send).toHaveBeenCalled());
     expect(emailjs.send).toHaveBeenCalledTimes(1);
     expect(document.querySelector("button[type=submit][disabled]")).toBe(
       submitButton(),
@@ -295,6 +306,7 @@ describe("while sending (DSG-05, MKT-11)", () => {
       form.requestSubmit();
     });
 
+    await waitFor(() => expect(emailjs.send).toHaveBeenCalled());
     expect(emailjs.send).toHaveBeenCalledTimes(1);
     await act(async () => pending.reject({ status: 0, text: "Network Error" }));
     expect(values()).toEqual([TYPED.name, TYPED.email, TYPED.message]);

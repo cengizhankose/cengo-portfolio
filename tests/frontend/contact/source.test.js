@@ -3,7 +3,7 @@
 // Static checks for the contact package. jsdom loads no stylesheets, so the
 // DSG-04 / DSG-13 computed-style criteria are checked on the CSS source; the
 // grep criteria of MKT-11, MKT-09, SEC-24 and FE-24 run on the files.
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { ESLint } from "eslint";
 import { describe, expect, it } from "vitest";
@@ -127,10 +127,26 @@ describe("EmailJS SDK (SEC-24, FE-24)", () => {
     expect(read("bun.lock")).not.toContain("emailjs-com");
   });
 
-  it("imports the v4 SDK in the contact page", () => {
+  // v4 reads localStorage while its module loads and throws SecurityError
+  // when site data is blocked. A static import put it in the main chunk and
+  // blanked every route, so the contact page loads it with import() on send.
+  it("loads the v4 SDK on demand, never with a static import", () => {
     const page = read("src/pages/contact/index.jsx");
-    expect(page).toMatch(/import emailjs from "@emailjs\/browser";/);
+    expect(page).toMatch(/import\(\s*"@emailjs\/browser"\s*\)/);
+    expect(page).not.toMatch(/from\s+["']@emailjs\/browser["']/);
+    expect(page).not.toMatch(/^\s*import\s+["']@emailjs\/browser["']/m);
     expect(page).not.toContain("emailjs-com");
+  });
+
+  it("is not imported statically anywhere in src", () => {
+    const sources = readdirSync(`${ROOT}src`, { recursive: true }).filter(
+      (file) => /\.(jsx?|tsx?|mjs)$/.test(file),
+    );
+    const staticImports = sources.filter((file) =>
+      /(from\s+|^\s*import\s+)["']@emailjs\//m.test(read(`src/${file}`)),
+    );
+    expect(sources.length).toBeGreaterThan(20);
+    expect(staticImports).toEqual([]);
   });
 });
 

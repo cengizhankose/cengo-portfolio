@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import emailjs from "@emailjs/browser";
 import "./style.css";
 import { Container, Row, Col, Alert } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
@@ -18,6 +17,13 @@ const SEND_OPTIONS = {
 
 // EmailJS rejects with status 429 when limitRate blocks a send.
 const RATE_LIMITED = 429;
+
+// The SDK is loaded when a message is sent, never with the page (SEC-24,
+// FE-24). @emailjs/browser v4 reads `localStorage` while its module loads,
+// and that read throws SecurityError when the browser blocks site data. In
+// the main chunk the throw left every route blank; loaded here, it rejects
+// like any failed send and the error message offers the mailto: link.
+const loadEmailjs = () => import("@emailjs/browser").then((sdk) => sdk.default);
 
 const EMPTY_FIELDS = { name: "", email: "", message: "", company: "" };
 
@@ -94,12 +100,14 @@ export const ContactUs = () => {
     sending.current = true;
     setFormdata((prev) => ({ ...prev, loading: true, show: false }));
 
-    emailjs
-      .send(
-        contactConfig.YOUR_SERVICE_ID,
-        contactConfig.YOUR_TEMPLATE_ID,
-        templateParams,
-        SEND_OPTIONS,
+    loadEmailjs()
+      .then((emailjs) =>
+        emailjs.send(
+          contactConfig.YOUR_SERVICE_ID,
+          contactConfig.YOUR_TEMPLATE_ID,
+          templateParams,
+          SEND_OPTIONS,
+        ),
       )
       .then(
         () => {
@@ -107,9 +115,11 @@ export const ContactUs = () => {
           // Fields are cleared only after a successful send.
           showResult("success", true);
         },
+        // Every failure lands here: the SDK did not load (site data blocked,
+        // chunk not fetched), EmailJS refused it, or the network failed.
         (error) => {
           sending.current = false;
-          // The raw EmailJS error stays in the console, never in the UI.
+          // The raw error stays in the console, never in the UI.
           console.error("Contact form: message not sent", error);
           showResult(
             error?.status === RATE_LIMITED ? "rateLimited" : "error",
