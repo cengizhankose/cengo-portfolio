@@ -9,6 +9,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../../../src/app/App";
 import { ErrorBoundary } from "../../../src/components/ErrorBoundary";
+import { translate } from "../../../src/i18n/translate.js";
 import { finishPageTransition, json } from "./support.jsx";
 
 vi.mock("../../../src/pages/portfolio", () => ({
@@ -112,7 +113,10 @@ describe("a page that throws (FE-03 criteria 2 and 3)", () => {
     await finishPageTransition();
 
     expect(
-      await screen.findByRole("heading", { level: 1, name: "About me" }),
+      await screen.findByRole("heading", {
+        level: 1,
+        name: translate("en", "about.title"),
+      }),
     ).toBeInTheDocument();
     expect(document.querySelector(".route-error")).toBeNull();
     expect(window.location.pathname).toBe("/about");
