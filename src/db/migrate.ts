@@ -8,18 +8,18 @@
 //   and records them in drizzle.__drizzle_migrations; a second run is a no-op.
 // - A session advisory lock serialises concurrent starts (two instances of a
 //   rolling or doubled deploy, BE-29): the second waits, then has nothing to do.
-// - A database built with `drizzle-kit push` (posts table, no migrations table)
-//   is refused with the baseline SQL, instead of crash-looping on
-//   CREATE TABLE "posts" (BE-14 step 4).
+// - A database built with `drizzle-kit push` (posts table, no or an empty
+//   migrations table) is refused with the baseline SQL, instead of
+//   crash-looping on CREATE TABLE "posts" (BE-14 step 4).
 // - After migrating, the recorded count must reach the journal length; a
 //   baseline with the wrong created_at would otherwise skip migrations silently.
 //
 // Connection: PG_MIGRATE_URL (a role allowed to run DDL, SEC-14), else
 // PG_CONNECTION_URL; a direct session, not a transaction pooler (the lock and
-// the SET are per session). TLS follows the server's policy (clientConfig:
-// verify-full in production, SEC-22). Outside production the local-DB guard
-// applies (BE-04): `bun run db:migrate` touches only localhost *_dev / *_test
-// databases unless --prod or ALLOW_REMOTE_DB=1 is given.
+// the session settings are per session). TLS follows the server's policy
+// (clientConfig: verify-full in production, SEC-22). Outside production the
+// local-DB guard applies (BE-04): `bun run db:migrate` touches only localhost
+// *_dev / *_test databases unless --prod or ALLOW_REMOTE_DB=1 is given.
 // Log lines are JSON (BE-08) and never contain the URL, the host or credentials.
 import { readMigrationFiles, type MigrationMeta } from "drizzle-orm/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -115,17 +115,20 @@ export async function acquireLock(
  * driver errors as "Failed query: ..." with the real error as `cause`).
  * Messages are kept for Postgres errors and code-less errors (ours, the guard,
  * the TLS policy); network and TLS errors carry a code and often name the
- * host in their message, so only their code is logged.
+ * host in their message, so only their code is logged. So are Postgres
+ * authorization errors (SQLSTATE class 28), whose message names the role.
  */
 export function failureFields(error: unknown): Record<string, unknown> {
   if (!(error instanceof Error)) return { err: String(error) };
   const describe = (e: Error, key: "err" | "cause") => {
     const code = (e as { code?: unknown }).code;
     const hasCode = typeof code === "string";
+    const keepMessage =
+      !hasCode || (e.name === "PostgresError" && !code.startsWith("28"));
     return {
       [`${key}Name`]: e.name,
       ...(hasCode ? { [`${key}Code`]: code } : {}),
-      ...(!hasCode || e.name === "PostgresError" ? { [key]: e.message } : {}),
+      ...(keepMessage ? { [key]: e.message } : {}),
     };
   };
   return {
@@ -166,26 +169,26 @@ export async function runMigrations(
   const entries = journal(migrationsFolder).length;
   // Throws on an unsafe TLS setup in production before connecting (SEC-22).
   const { options } = clientConfig(url, env);
-  // The app's 5 s statement cap (BE-13) is not for DDL; it is lifted with a
-  // SET below, because postgres.js drops a falsy (0) startup parameter.
-  const { statement_timeout: _appCap, ...connection } = options.connection;
   // One connection: the advisory lock is held by the session that migrates.
+  // Only application_name goes in the startup message; the app's 5 s
+  // statement cap (BE-13) stays out, it is not for DDL.
   const sql = postgres(url, {
     ...options,
     max: 1,
     idle_timeout: 0,
     max_lifetime: null,
     onnotice: () => {},
-    connection: {
-      ...connection,
-      application_name: MIGRATION_APPLICATION_NAME,
-      lock_timeout: DDL_LOCK_TIMEOUT_MS,
-    },
+    connection: { application_name: MIGRATION_APPLICATION_NAME },
   });
 
   let locked = false;
   try {
-    await sql`set statement_timeout = 0`;
+    // Session settings as SETs, not startup parameters: postgres.js drops a
+    // falsy (0) startup parameter, and a pooler may reject unknown ones. No
+    // statement timeout; a table lock is waited for at most 15 s, so DDL never
+    // queues reads behind it for long.
+    await sql`select set_config('statement_timeout', '0', false),
+                     set_config('lock_timeout', ${`${DDL_LOCK_TIMEOUT_MS}ms`}, false)`;
     await acquireLock(
       async () => {
         const [row] = await sql<{ locked: boolean }[]>`
@@ -202,20 +205,23 @@ export async function runMigrations(
     const [state] = await sql<{ journal: boolean; posts: boolean }[]>`
       select to_regclass('drizzle.__drizzle_migrations') is not null as journal,
              to_regclass('public.posts') is not null as posts`;
-    if (state.posts && !state.journal) {
-      throw new MigrationError(
-        "posts exists but drizzle.__drizzle_migrations does not (schema built with drizzle-kit push); " +
-          "run this baseline once as the owner, then deploy again:\n" +
-          baselineSql(migrationsFolder),
-      );
-    }
-
     const count = async () => {
       const [row] = await sql<{ n: number }[]>`
         select count(*)::int as n from drizzle.__drizzle_migrations`;
       return row.n;
     };
     const before = state.journal ? await count() : 0;
+    // An empty migrations table next to posts is a half-done baseline: drizzle
+    // would run 0000 and fail on CREATE TABLE "posts" without this hint.
+    if (state.posts && before === 0) {
+      throw new MigrationError(
+        `posts exists but drizzle.__drizzle_migrations ${state.journal ? "is empty" : "does not exist"} ` +
+          "(schema built with drizzle-kit push); " +
+          "run this baseline once as the owner, then deploy again:\n" +
+          baselineSql(migrationsFolder),
+      );
+    }
+
     await migrate(drizzle(sql), { migrationsFolder });
     const recorded = await count();
 

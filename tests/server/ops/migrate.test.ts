@@ -221,6 +221,39 @@ describe("a database built with drizzle-kit push (no migrations table)", () => {
   });
 });
 
+describe("a half-done baseline (posts plus an empty migrations table)", () => {
+  beforeAll(async () => {
+    await resetDatabase();
+    await wire.db.exec(SQL_0000);
+    // The baseline's first two statements ran, the insert did not.
+    await wire.db.exec(baselineSql().split("\n").slice(0, 2).join("\n"));
+  });
+
+  test("is refused with the baseline hint instead of drizzle's CREATE TABLE error", async () => {
+    const { code, lines } = await runMain(localEnv());
+    expect(code).toBe(1);
+    const failed = line(lines, "migrations failed");
+    expect(failed).toMatchObject({ errName: "MigrationError" });
+    expect(String(failed?.err)).toContain(
+      "drizzle.__drizzle_migrations is empty",
+    );
+    expect(String(failed?.err)).toContain(baselineSql());
+    expect(await recordedMigrations()).toBe(0);
+    expect(await hasColumn("lang")).toBe(false);
+    expect(await advisoryLocks()).toBe(0);
+  });
+
+  test("the full baseline SQL completes it; the next start applies the rest", async () => {
+    await wire.db.exec(baselineSql());
+    const { code, lines } = await runMain(localEnv());
+    expect(code).toBe(0);
+    expect(line(lines, "migrations applied")).toMatchObject({
+      applied: JOURNAL_ENTRIES - 1,
+      recorded: JOURNAL_ENTRIES,
+    });
+  });
+});
+
 describe("a wrong baseline cannot skip migrations silently", () => {
   beforeAll(async () => {
     await resetDatabase();
@@ -274,12 +307,13 @@ describe("runMigrations with a custom migrations folder", () => {
   });
   beforeEach(resetDatabase);
 
-  test("migrations run while this session holds the advisory lock, without a statement timeout", async () => {
+  test("migrations run while this session holds the advisory lock, with no statement timeout and a 15 s lock timeout", async () => {
     const migrationsFolder = await folder({
       "0000_session_probe": `create table session_probe as
         select (select count(*)::int from pg_locks
                 where locktype = 'advisory' and objid = ${MIGRATION_LOCK_KEY}) as locks,
-               current_setting('statement_timeout') as statement_timeout;`,
+               current_setting('statement_timeout') as statement_timeout,
+               current_setting('lock_timeout') as lock_timeout;`,
     });
     await runMigrations(wire.url, {
       env: { PG_SSL_MODE: "disable" },
@@ -288,8 +322,14 @@ describe("runMigrations with a custom migrations folder", () => {
     const { rows } = await wire.db.query<{
       locks: number;
       statement_timeout: string;
-    }>("select locks, statement_timeout from session_probe");
-    expect(rows[0]).toEqual({ locks: 1, statement_timeout: "0" });
+      lock_timeout: string;
+    }>("select locks, statement_timeout, lock_timeout from session_probe");
+    expect(DDL_LOCK_TIMEOUT_MS).toBe(15_000);
+    expect(rows[0]).toEqual({
+      locks: 1,
+      statement_timeout: "0",
+      lock_timeout: "15s",
+    });
     expect(await advisoryLocks()).toBe(0);
   });
 
@@ -353,7 +393,7 @@ describe("CLI refusals", () => {
 });
 
 describe("connection settings on the wire", () => {
-  test("one session named cengo-portfolio-migrate with a DDL lock timeout, not the app's 5 s statement cap", async () => {
+  test("the startup message carries only application_name (timeouts are SETs; a pooler may reject unknown parameters)", async () => {
     let startup: Buffer | undefined;
     // Records the startup message, then answers with a FATAL ErrorResponse.
     const fields = Buffer.from("SFATAL\0C28000\0Mstartup recorded\0\0");
@@ -387,7 +427,7 @@ describe("connection settings on the wire", () => {
       if (pairs[i]) params.set(pairs[i], pairs[i + 1]);
     expect(params.get("application_name")).toBe(MIGRATION_APPLICATION_NAME);
     expect(params.has("statement_timeout")).toBe(false);
-    expect(params.get("lock_timeout")).toBe(String(DDL_LOCK_TIMEOUT_MS));
+    expect(params.has("lock_timeout")).toBe(false);
   });
 });
 
@@ -465,6 +505,20 @@ describe("failureFields", () => {
     expect(
       JSON.stringify(failureFields(new Error("x", { cause: net }))),
     ).not.toContain("10.1.2.3");
+  });
+
+  test("Postgres authorization errors (class 28) log only their code: the message names the role", () => {
+    const auth = Object.assign(
+      new Error('password authentication failed for user "portfolio_owner"'),
+      { name: "PostgresError", code: "28P01" },
+    );
+    expect(failureFields(auth)).toEqual({
+      errName: "PostgresError",
+      errCode: "28P01",
+    });
+    expect(
+      JSON.stringify(failureFields(new Error("x", { cause: auth }))),
+    ).not.toContain("portfolio_owner");
   });
 
   test("non-Error values are stringified", () => {
