@@ -130,8 +130,18 @@ describe("robots and lang", () => {
     );
   });
 
-  test("getPageMeta returns exactly title, description, robots, lang and alternates", () => {
-    const keys = ["alternates", "description", "lang", "robots", "title"];
+  test("getPageMeta returns exactly the head fields, present on every page (SEO-04/06/07)", () => {
+    const keys = [
+      "alternates",
+      "canonical",
+      "description",
+      "jsonLd",
+      "lang",
+      "og",
+      "robots",
+      "title",
+      "twitter",
+    ];
     expect(Object.keys(staticMeta("/", "en")).sort()).toEqual(keys);
     expect(Object.keys(getPageMeta("/nope", "en")).sort()).toEqual(keys);
     expect(
@@ -149,7 +159,7 @@ describe("blog post meta (MKT-21 step 4, SEO-10, SEO-09)", () => {
     const meta = getPageMeta(route, "en", {
       post: { title: "  Short post  ", excerpt: " What it covers. " },
     });
-    expect(meta).toEqual({
+    expect(meta).toMatchObject({
       title: "Short post | Cengizhan Köse",
       description: "What it covers.",
       robots: null,
@@ -201,9 +211,24 @@ describe("blog post meta (MKT-21 step 4, SEO-10, SEO-09)", () => {
   });
 
   test("while the post loads the blog meta is used, without noindex", () => {
-    expect(getPageMeta(route, "en", { post: null })).toEqual(
-      getPageMeta(matchRoute("/blog"), "en"),
-    );
+    const loading = getPageMeta(route, "en", { post: null });
+    const blog = getPageMeta(matchRoute("/blog"), "en");
+    expect(loading).toMatchObject({
+      title: blog.title,
+      description: blog.description,
+      robots: null,
+      lang: "en",
+      alternates: [],
+    });
+    // The blog's canonical, share card and schema do not describe this URL:
+    // a post that has not loaded prints none (SEO-04, SEO-06, SEO-07).
+    expect(loading).toMatchObject({
+      canonical: null,
+      og: null,
+      twitter: null,
+      jsonLd: null,
+    });
+    expect(blog.canonical).not.toBeNull();
   });
 
   test("an API 404 gives the post-not-found meta with noindex", () => {
