@@ -5,38 +5,19 @@
 //
 // web-vitals measures the page that was loaded (the landing page); SPA
 // navigations are not measured separately. page_type and ui_locale therefore
-// describe the landing page; content_language comes from the page context.
+// describe the landing page, read from the route table through pageType.js
+// (the same source as the page view hook); content_language comes from the
+// page context.
 
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 import { track } from "./analytics/index.js";
-
-// Stop-gap page-type lookup for the landing page. W7-FE-route-shell replaces
-// it with getPageType() from src/lib/analytics/pageType.js (planned there);
-// the values must stay the PAGE_TYPES of events.js.
-const STATIC_PAGE_TYPES = {
-  "/": "home",
-  "/about": "about",
-  "/portfolio": "portfolio",
-  "/contact": "contact",
-  "/privacy": "privacy",
-  "/blog": "blog_index",
-};
-
-function splitLocalePrefix(pathname) {
-  if (pathname === "/tr" || pathname.startsWith("/tr/")) {
-    return { locale: "tr", path: pathname.slice(3) || "/" };
-  }
-  return { locale: "en", path: pathname };
-}
+import { getPageType, getUiLocale } from "./analytics/pageType.js";
 
 function landingPage(pathname) {
-  const { locale, path } = splitLocalePrefix(pathname || "/");
-  const trimmed = path.length > 1 ? path.replace(/\/+$/, "") || "/" : path;
-  let pageType = STATIC_PAGE_TYPES[trimmed];
-  if (!pageType) {
-    pageType = /^\/blog\/[^/]+$/.test(trimmed) ? "blog_post" : "not_found";
-  }
-  return { page_type: pageType, ui_locale: locale };
+  return {
+    page_type: getPageType(pathname),
+    ui_locale: getUiLocale(pathname),
+  };
 }
 
 function roundValue(name, value) {

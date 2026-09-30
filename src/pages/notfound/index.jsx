@@ -8,6 +8,15 @@
 // language's home page and blog. Text: the notFound.* dictionary keys
 // (src/i18n/{en,tr}/notFound.js). Layout: the shared StatusState (DSG-20);
 // the .not-found class stays as this page's hook.
+//
+// Analytics (ANL-05): on mount, once, `not_found_viewed` with the coarse path
+// group and the referrer host (./report.js). The page view itself comes from
+// the route shell's hook, as page_type `not_found` (ANL-07), from a layout
+// effect: it goes out before this page's effect, so `not_found_viewed` follows
+// the page_view and carries this page's url, title and referrer. This page
+// sends no page_view of its own.
+import { useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { StatusState } from "../../components/statusstate";
 import {
   displayLocale,
@@ -16,8 +25,10 @@ import {
   useRoute,
   useT,
 } from "../../i18n";
+import { track } from "../../lib/analytics";
 import { getPageMeta } from "../../seo/pages.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
+import { notFoundViewedProps } from "./report.js";
 
 // variant: "page" | "post" (`kind`, the DSG-20 plan's name, is accepted too).
 export function NotFound({ variant = "page", kind }) {
@@ -27,6 +38,17 @@ export function NotFound({ variant = "page", kind }) {
   // Title "Page not found | …" / "Post not found | …" and robots noindex,
   // the same values the server wrote into the 404 shell.
   usePageMeta(getPageMeta(route, locale, { notFound: true }));
+
+  // Once per mount: a new location key for the same path (clicking the
+  // link of this page again) and StrictMode's second effect run are not
+  // another visit.
+  const { key: locationKey, pathname } = useLocation();
+  const reported = useRef(false);
+  useEffect(() => {
+    if (reported.current) return;
+    reported.current = true;
+    track("not_found_viewed", notFoundViewedProps(pathname, locationKey));
+  }, [locationKey, pathname]);
 
   const isPost = (kind ?? variant) === "post";
   const key = isPost ? "post" : "page";
