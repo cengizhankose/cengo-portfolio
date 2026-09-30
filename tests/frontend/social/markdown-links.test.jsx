@@ -6,12 +6,21 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import PostMarkdown from "../../../src/pages/blog/PostMarkdown.jsx";
 import {
   classifyMarkdownHref,
   markdownComponents,
 } from "../../../src/pages/blog/markdownComponents.jsx";
+
+// Diagrams are not drawn here (the markdown tests own that); a stub keeps
+// the placeholder -> figure path working without the real library.
+vi.mock("mermaid", () => ({
+  default: {
+    initialize: () => {},
+    render: async (id) => ({ svg: `<svg id="${id}"></svg>` }),
+  },
+}));
 
 function Where() {
   return <output data-testid="where">{useLocation().pathname}</output>;
@@ -156,5 +165,33 @@ describe("links in a post", () => {
     expect(
       document.querySelector(".blog-content.markdown-body"),
     ).toHaveAttribute("data-analytics-location", "blog_body");
+  });
+});
+
+// Ledger items in this file's scope (W6-FE-markdown-mermaid review): the
+// `code` override draws only fenced blocks, and matches the language as
+// case-insensitively as diagramLabels.js counts it.
+describe("mermaid detection in markdownComponents", () => {
+  it("```Mermaid (capitalised) is drawn like ```mermaid, not left as <pre>", () => {
+    renderPost("```Mermaid\nflowchart TD\n  A-->B\n```");
+    expect(document.querySelector("pre")).toBeNull();
+    expect(
+      document.querySelector(".mermaid-placeholder, .mermaid-diagram"),
+    ).not.toBeNull();
+  });
+
+  it("an inline raw <code class=language-mermaid> stays code inside its paragraph", () => {
+    renderPost('Text <code class="language-mermaid">A-->B</code> more.');
+    const code = document.querySelector("p > code.language-mermaid");
+    expect(code).not.toBeNull();
+    expect(code.textContent).toBe("A-->B");
+    expect(
+      document.querySelector("p figure, p .mermaid-placeholder"),
+    ).toBeNull();
+  });
+
+  it("a normal code block keeps its <pre><code>", () => {
+    renderPost("```js\nconst a = 1;\n```");
+    expect(document.querySelector("pre > code.language-js")).not.toBeNull();
   });
 });

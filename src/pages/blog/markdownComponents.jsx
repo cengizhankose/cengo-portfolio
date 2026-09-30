@@ -25,7 +25,14 @@ import Mermaid from "./Mermaid.jsx";
 
 export const DiagramLabelContext = createContext({ labels: null, lang: "en" });
 
-const MERMAID = /(?:^|\s)language-mermaid(?:\s|$)/;
+// True inside the <pre> of a mermaid block (set by MarkdownPre): only a
+// fenced block becomes a diagram, never an inline <code class=
+// "language-mermaid"> from raw HTML (a <figure> cannot sit inside a <p>).
+const MermaidBlockContext = createContext(false);
+
+// Case-insensitive like diagramLabels.js, so ```Mermaid is drawn and
+// numbered the same way.
+const MERMAID = /(?:^|\s)language-mermaid(?:\s|$)/i;
 
 const classNames = (value) =>
   Array.isArray(value) ? value.join(" ") : String(value ?? "");
@@ -40,7 +47,8 @@ function isMermaidCode(node) {
 
 function MarkdownCode({ node, className, children, ...rest }) {
   const { labels, lang } = useContext(DiagramLabelContext);
-  if (MERMAID.test(classNames(className))) {
+  const inMermaidBlock = useContext(MermaidBlockContext);
+  if (inMermaidBlock && MERMAID.test(classNames(className))) {
     const chart = String(children).replace(/\n$/, "");
     const label = labels?.get({
       line: node?.position?.start?.line,
@@ -56,7 +64,13 @@ function MarkdownCode({ node, className, children, ...rest }) {
 }
 
 function MarkdownPre({ node, children, ...rest }) {
-  if (node?.children?.some(isMermaidCode)) return <>{children}</>;
+  if (node?.children?.some(isMermaidCode)) {
+    return (
+      <MermaidBlockContext.Provider value={true}>
+        {children}
+      </MermaidBlockContext.Provider>
+    );
+  }
   return <pre {...rest}>{children}</pre>;
 }
 
