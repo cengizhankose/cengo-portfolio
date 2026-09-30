@@ -288,7 +288,10 @@ describe("title builders (T-07)", () => {
 
   test("buildHomeTitle puts the name first", () => {
     expect(buildHomeTitle()).toBe(HOME_TITLE);
-    expect(buildHomeTitle(" Role ")).toBe("Cengizhan Köse | Role");
+    // The JS default parameter types `role` as the literal default; any
+    // string is accepted at runtime.
+    const withRole = buildHomeTitle as (role?: string) => string;
+    expect(withRole(" Role ")).toBe("Cengizhan Köse | Role");
   });
 });
 

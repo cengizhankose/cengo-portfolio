@@ -95,6 +95,7 @@ describe("every page component writes its meta (FE-25 risk guard)", () => {
     "src/pages/contact/index.jsx",
     "src/pages/blog/BlogHome.jsx",
     "src/pages/blog/BlogPost.jsx",
+    "src/pages/notfound/index.jsx",
   ];
 
   test.each(PAGE_COMPONENTS)(
@@ -105,6 +106,14 @@ describe("every page component writes its meta (FE-25 risk guard)", () => {
       expect(source).toMatch(/matchRoute\(/);
     },
   );
+
+  test("NotFound writes the not-found meta in the page's display language (FE-16)", () => {
+    const source = read(join(ROOT, "src/pages/notfound/index.jsx"));
+    expect(source).toMatch(
+      /usePageMeta\(getPageMeta\(route, locale, \{ notFound: true \}\)\)/,
+    );
+    expect(source).toMatch(/displayLocale\(route\)/);
+  });
 
   test("the blog post passes its data (post / notFound) to getPageMeta", () => {
     const source = read(join(ROOT, "src/pages/blog/BlogPost.jsx"));
