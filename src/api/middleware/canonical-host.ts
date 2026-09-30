@@ -12,6 +12,9 @@
 //   whatever host they use (SEC-30 step 3).
 // - localhost, IP literals and any unknown host pass through untouched, so
 //   local runs, container probes and the dev API are never redirected.
+// - The decision reads `Host` only, never `X-Forwarded-Host` (requestHost):
+//   a request whose Host is www is always served, so no header can make the
+//   canonical host redirect to itself.
 // - Registered after the security headers and the rate limit (SEC-30), so a
 //   redirect response carries the same headers and an /api flood on a
 //   non-canonical host is still limited.
@@ -41,19 +44,23 @@ export const CLOUDFLARE_HOSTS: ReadonlySet<string> = new Set([
 const PLATFORM_HOST_SUFFIX = ".outplane.app";
 
 /**
- * The host the client asked for, normalised: lower-case, no port, no trailing
- * dot, IPv6 brackets kept (`[::1]`). The first `X-Forwarded-Host` value wins
- * over `Host`, because a platform proxy that rewrites `Host` keeps the original
- * there; a client-supplied value cannot do more harm than sending that `Host`
- * straight to the origin (both only choose between "canonical" and "not").
- * Empty string when neither header is present.
+ * The host the request was sent to: the `Host` header only, normalised
+ * (lower-case, no port, no trailing dot, IPv6 brackets kept: `[::1]`).
+ * Empty string when it is missing.
+ *
+ * `X-Forwarded-Host` is never read. Cloudflare passes a client-sent value
+ * through to the origin and does not put it in its cache key, so letting it
+ * choose between "serve" and "redirect" would let one request store a
+ * redirect under a real www URL for every visitor (cache poisoning), and let a
+ * client on *.outplane.app claim a Cloudflare host to have its
+ * `CF-Connecting-IP` trusted. `Host` cannot be forged that way: Cloudflare
+ * routes and caches by it, and a request that skips Cloudflare is never
+ * cached there. If the Out Plane ingress is ever shown to rewrite `Host`, that
+ * needs its own explicit, documented handling here; until then the live check
+ * is `curl -sI "$OP_URL/about"` answering 301 (Host reached the app as sent).
  */
 export function requestHost(c: Context): string {
-  const raw =
-    c.req.header("x-forwarded-host")?.split(",")[0] ??
-    c.req.header("host") ??
-    "";
-  return normalizeHost(raw);
+  return normalizeHost(c.req.header("host") ?? "");
 }
 
 export function normalizeHost(raw: string): string {

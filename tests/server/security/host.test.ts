@@ -78,7 +78,7 @@ describe("apex -> www (SEO-03 / ANL-08 fallback)", () => {
     }
   });
 
-  test("host spelling variants: port, upper case, trailing dot, X-Forwarded-Host", async () => {
+  test("host spelling variants: port, upper case, trailing dot", async () => {
     for (const host of [
       "cengizhankose.com:443",
       "CengizHanKose.COM",
@@ -86,10 +86,14 @@ describe("apex -> www (SEO-03 / ANL-08 fallback)", () => {
     ]) {
       expect((await request("/about", host)).status).toBe(301);
     }
-    const viaProxy = await request("/about", "10.1.2.3:3000", {
-      headers: { "x-forwarded-host": "cengizhankose.com" },
-    });
-    expect(viaProxy.status).toBe(301);
+  });
+
+  test("the 301 carries no shared-cacheable header", async () => {
+    const res = await request("/about", "cengizhankose.com");
+    expect(res.status).toBe(301);
+    expect(res.headers.get("cache-control") ?? "").not.toMatch(
+      /public|s-maxage/i,
+    );
   });
 
   test("HEAD is 301; other methods get 308 so the method is kept", async () => {
@@ -128,12 +132,93 @@ describe("www is final (no loop, SEO-03 criterion 3 / ANL-08 criterion 3)", () =
       expect(res.headers.get("location")).toBeNull();
     }
   });
+});
 
-  test("an X-Forwarded-Host of www wins over an apex Host", async () => {
-    const res = await request("/", "cengizhankose.com", {
-      headers: { "x-forwarded-host": WWW },
+// Cloudflare forwards a client-sent X-Forwarded-Host and leaves it out of the
+// cache key: if it could turn a www request into a redirect, one request would
+// cache a self-redirect under a real asset URL for every visitor (review of
+// this package). The host class therefore comes from Host alone.
+describe("X-Forwarded-Host is ignored (no cache-poisoning self-redirect)", () => {
+  const FORGED = [
+    "cengizhankose.com",
+    OUTPLANE,
+    "foo.outplane.app",
+    "cengizhankose.com, www.cengizhankose.com",
+  ];
+
+  test("Host www + a forged apex/outplane X-Forwarded-Host: 200, no Location, on pages, assets and the API", async () => {
+    for (const forged of FORGED) {
+      for (const path of [
+        "/",
+        "/about?x=1",
+        "/assets/app-3f9a1c.js",
+        "/robots.txt",
+        "/api/posts",
+      ]) {
+        const res = await request(path, WWW, {
+          headers: { "x-forwarded-host": forged },
+        });
+        expect(res.status).toBe(200);
+        expect(res.headers.get("location")).toBeNull();
+      }
+    }
+  });
+
+  test("a forged www X-Forwarded-Host does not save the apex or the platform host from the redirect", async () => {
+    for (const host of ["cengizhankose.com", OUTPLANE]) {
+      const res = await request("/about", host, {
+        headers: { "x-forwarded-host": WWW },
+      });
+      expect(res.status).toBe(301);
+      expect(res.headers.get("location")).toBe(
+        "https://www.cengizhankose.com/about",
+      );
+    }
+  });
+
+  test("an unknown Host is served even when X-Forwarded-Host names the apex", async () => {
+    const res = await request("/about", "10.1.2.3:3000", {
+      headers: { "x-forwarded-host": "cengizhankose.com" },
     });
     expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  test("over a real socket (Bun.serve): Host www + X-Forwarded-Host apex on an asset is 200", async () => {
+    const server = Bun.serve({
+      fetch: app().fetch,
+      port: 0,
+      hostname: "127.0.0.1",
+    });
+    try {
+      for (const path of ["/assets/app-3f9a1c.js", "/robots.txt", "/"]) {
+        const res = await fetch(`http://127.0.0.1:${server.port}${path}`, {
+          redirect: "manual",
+          headers: { host: WWW, "x-forwarded-host": "cengizhankose.com" },
+        });
+        expect(res.status).toBe(200);
+        expect(res.headers.get("location")).toBeNull();
+        await res.arrayBuffer();
+      }
+    } finally {
+      await server.stop(true);
+    }
+  });
+
+  test("no server code reads X-Forwarded-Host", async () => {
+    const files = ["server.ts"];
+    for await (const file of new Bun.Glob("src/{api,server}/**/*.{ts,js}").scan(
+      REPO_ROOT,
+    )) {
+      files.push(file);
+    }
+    expect(files.length).toBeGreaterThan(10); // the scan really saw the server code
+    const reads: string[] = [];
+    for (const file of files) {
+      const text = await Bun.file(join(REPO_ROOT, file)).text();
+      if (/["']x-forwarded-host["']/i.test(text)) reads.push(file);
+    }
+    expect(reads).toEqual([]);
   });
 });
 

@@ -145,10 +145,16 @@ export class TokenBucketStore {
  * The client a request is counted against (T-08):
  *
  * 1. On the Cloudflare-proxied hosts (www, apex) `CF-Connecting-IP`, which
- *    Cloudflare sets to the visitor's address.
+ *    Cloudflare sets to the visitor's address. The host class comes from the
+ *    `Host` header only (requestHost); `X-Forwarded-Host` can never move a
+ *    request into this class.
  * 2. Everywhere else (the default *.outplane.app address skips Cloudflare, so
  *    anybody could send that header there, SEC-30), or when it is missing: the
  *    right-most `X-Forwarded-For` entry, the address the platform proxy saw.
+ *    This holds only while the Out Plane ingress appends to (or overwrites)
+ *    `X-Forwarded-For`; if it passed a client-sent value through untouched, a
+ *    client on *.outplane.app could pick its own bucket. Unverified, so it is
+ *    a live check (owner steps, next to S13).
  * 3. Otherwise the socket address (`hono/bun` getConnInfo).
  *
  * Values that are not IP addresses are ignored. IPv6 clients are grouped by

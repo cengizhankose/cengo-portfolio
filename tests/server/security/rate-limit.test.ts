@@ -237,30 +237,39 @@ describe("client key (T-08, SEC-10 criterion 3)", () => {
     );
   });
 
-  test("X-Forwarded-Host decides the host class exactly like Host (documented trust limit, S13)", async () => {
-    // A platform proxy that rewrites Host keeps the original in X-Forwarded-Host,
-    // so a www request must still be keyed by CF-Connecting-IP. A forged value
-    // gains nothing over sending `Host: www...` to the origin directly, which the
-    // app cannot tell apart either; only an origin IP allowlist (S13) closes that.
-    const { app } = limitedApp({ RL_READ_PER_MIN: "1" });
-    const req = (headers: Record<string, string>) =>
-      app.request("/api/posts", {
-        headers: { "x-forwarded-for": "198.51.100.40", ...headers },
+  test("X-Forwarded-Host www on *.outplane.app does not make CF-Connecting-IP trusted (limited by XFF)", async () => {
+    // Regression (review): the host class comes from Host only, so a client on
+    // the platform address cannot claim www and rotate CF-Connecting-IP.
+    const { app } = limitedApp();
+    const got: number[] = [];
+    for (let i = 0; i < 80; i++) {
+      const res = await app.request("/api/posts", {
+        headers: {
+          host: OUTPLANE,
+          "x-forwarded-host": WWW,
+          "cf-connecting-ip": `203.0.113.${i + 1}`,
+          "x-forwarded-for": "198.51.100.40",
+        },
       });
-    const viaProxy = { host: "10.1.2.3:3000", "x-forwarded-host": WWW };
-    expect(
-      (await req({ ...viaProxy, "cf-connecting-ip": "203.0.113.1" })).status,
-    ).toBe(200);
-    expect(
-      (await req({ ...viaProxy, "cf-connecting-ip": "203.0.113.2" })).status,
-    ).toBe(200);
-    // no X-Forwarded-Host: the platform address, keyed by XFF whatever CF-Connecting-IP says
-    expect(
-      (await req({ host: OUTPLANE, "cf-connecting-ip": "203.0.113.3" })).status,
-    ).toBe(301);
-    expect(
-      (await req({ host: OUTPLANE, "cf-connecting-ip": "203.0.113.4" })).status,
-    ).toBe(429);
+      got.push(res.status);
+    }
+    expect(got.slice(0, 60).every((s) => s === 301)).toBe(true); // still sent to www
+    expect(got.slice(60).every((s) => s === 429)).toBe(true);
+  });
+
+  test("an unknown Host with X-Forwarded-Host www is keyed by XFF, not CF-Connecting-IP", async () => {
+    const { app } = limitedApp({ RL_READ_PER_MIN: "1" });
+    const req = (cfIp: string) =>
+      app.request("/api/posts", {
+        headers: {
+          host: "10.1.2.3:3000",
+          "x-forwarded-host": WWW,
+          "cf-connecting-ip": cfIp,
+          "x-forwarded-for": "198.51.100.41",
+        },
+      });
+    expect((await req("203.0.113.1")).status).toBe(200);
+    expect((await req("203.0.113.2")).status).toBe(429);
   });
 
   test("IPv6 clients are grouped by /64", async () => {
@@ -468,6 +477,36 @@ describe("under Bun.serve (the production entry point)", () => {
       expect(got).toEqual([200, 200, 200, 429]);
       const health = await fetch(`http://127.0.0.1:${server.port}/health`);
       expect(health.status).toBe(200);
+    } finally {
+      await server.stop(true);
+    }
+  });
+
+  test("Host *.outplane.app + X-Forwarded-Host www + rotating CF-Connecting-IP: the socket address is the key", async () => {
+    const app = createApp({
+      queries: fakeQueries(),
+      env: { RL_READ_PER_MIN: "3" },
+    });
+    const server = Bun.serve({
+      fetch: app.fetch,
+      port: 0,
+      hostname: "127.0.0.1",
+    });
+    try {
+      const got: number[] = [];
+      for (let i = 0; i < 5; i++) {
+        const res = await fetch(`http://127.0.0.1:${server.port}/api/posts`, {
+          redirect: "manual",
+          headers: {
+            host: OUTPLANE,
+            "x-forwarded-host": WWW,
+            "cf-connecting-ip": `203.0.113.${i + 1}`,
+          },
+        });
+        got.push(res.status);
+        await res.arrayBuffer();
+      }
+      expect(got).toEqual([301, 301, 301, 429, 429]);
     } finally {
       await server.stop(true);
     }
