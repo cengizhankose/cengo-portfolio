@@ -6,7 +6,7 @@
 // tests run it with fakes or PGlite and no port.
 //
 // Order:
-//   requestId -> request logger -> [security headers] -> [/api rate limit]
+//   requestId -> request logger -> [security headers] -> /api rate limit
 //   -> canonical host -> /health -> /ready -> /api/posts -> /api/* JSON 404
 //   -> site (mountSite) -> notFound / onError (T-01 envelope)
 //
@@ -20,6 +20,12 @@ import { mountSite } from "../server/static";
 import { EMPTY_BUILD_INFO, type BuildInfo } from "./build-info";
 import { errorHandler, notFoundHandler } from "./errors";
 import { canonicalHost } from "./middleware/canonical-host";
+import {
+  rateLimit,
+  rateLimitSettingsFromEnv,
+  readBucketStore,
+  type TokenBucketStore,
+} from "./middleware/rate-limit";
 import { requestLogger } from "./middleware/request-logger";
 import { readyHandler } from "./ready";
 import { createPostsRouter } from "./routes/posts";
@@ -39,9 +45,17 @@ export interface CreateAppOptions {
   buildInfo?: BuildInfo;
   /** Graceful shutdown state (BE-21); /ready answers 503 while it is true. */
   isShuttingDown?: () => boolean;
-  /** Runtime settings read by the middleware below. Defaults to process.env. */
+  /**
+   * Runtime settings: RL_READ_PER_MIN, RATE_LIMIT_DISABLED (.env.example).
+   * Defaults to process.env.
+   */
   env?: Record<string, string | undefined>;
+  /** The /api token buckets (T-08); tests inject one with a fake clock. */
+  rateLimitStore?: TokenBucketStore;
 }
+
+/** Idle-bucket sweep of the rate limiter, besides the one done on every request. */
+const RATE_LIMIT_SWEEP_MS = 60_000;
 
 export function createApp({
   queries,
@@ -50,6 +64,7 @@ export function createApp({
   buildInfo = EMPTY_BUILD_INFO,
   isShuttingDown = () => false,
   env = process.env,
+  rateLimitStore,
 }: CreateAppOptions): Hono<AppEnv> {
   if (serveSpa && !distDir) {
     throw new Error("createApp: distDir is required when serveSpa is true");
@@ -66,7 +81,14 @@ export function createApp({
 
   // 3. [slot, W3 SEC-04/09/17/18/19] security headers: app.use("*", ...)
 
-  // 4. [slot, W3 SEC-10/BE-18] rate limit: app.use("/api/*", ...)
+  // 4. Read rate limit per client on /api/* (SEC-10/BE-18, T-08): /api, /api/
+  //    and unknown /api paths count too; /health and /ready are outside it.
+  const limits = rateLimitSettingsFromEnv(env);
+  if (limits.enabled) {
+    const store = rateLimitStore ?? readBucketStore(limits.perMinute);
+    setInterval(() => store.sweep(), RATE_LIMIT_SWEEP_MS).unref();
+    app.use("/api/*", rateLimit({ store }));
+  }
 
   // 4b. Fallback apex / *.outplane.app -> www redirect (SEO-03, ANL-08,
   //     SEC-30); the Cloudflare Redirect Rule is the primary one.
