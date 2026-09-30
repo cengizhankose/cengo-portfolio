@@ -1,3 +1,7 @@
 # https://www.robotstxt.org/robotstxt.html
+# /api/ stays crawlable on purpose: the blog loads its posts from /api/posts
+# and Googlebot makes that request while rendering (SEO-22).
 User-agent: *
 Disallow:
+
+Sitemap: https://www.cengizhankose.com/sitemap.xml
