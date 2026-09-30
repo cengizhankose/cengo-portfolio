@@ -3,10 +3,12 @@ import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import { Glob } from "bun";
 import { createApp, portFromEnv } from "../../../src/api/app";
-import { REPO_ROOT } from "../db/pglite";
-import { fakeQueries, SAMPLE_POST } from "./fake-queries";
+import { REPO_ROOT, fakeQueries, SAMPLE_POST, silenceLogs } from "../helpers";
 
 const DIST = join(REPO_ROOT, "tests/server/fixtures/dist");
+
+// Assertions are on responses; the request log is covered by logging.test.ts.
+silenceLogs();
 
 describe("createApp", () => {
   test("GET /health answers 200 without a port (BE-09 criterion 6)", async () => {

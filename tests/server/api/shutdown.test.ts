@@ -3,8 +3,7 @@
 import { describe, expect, test } from "bun:test";
 import { createApp } from "../../../src/api/app";
 import { createShutdown } from "../../../src/api/shutdown";
-import { REPO_ROOT } from "../db/pglite";
-import { captureLogs, fakeQueries } from "./fake-queries";
+import { REPO_ROOT, captureLogs, fakeQueries } from "../helpers";
 
 describe("createShutdown with a real Bun.serve (BE-21 criterion 3)", () => {
   test("in-flight request completes with 200, the next one cannot connect", async () => {
@@ -24,7 +23,7 @@ describe("createShutdown with a real Bun.serve (BE-21 criterion 3)", () => {
     const app = createApp({
       queries: fakeQueries({
         listPublishedPosts: async () => {
-          await Bun.sleep(1000); // slow query still running when SIGTERM arrives
+          await Bun.sleep(500); // slow query still running when SIGTERM arrives (at 150 ms)
           return [];
         },
       }),

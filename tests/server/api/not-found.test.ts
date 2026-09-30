@@ -3,11 +3,13 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import { createApp } from "../../../src/api/app";
-import { REPO_ROOT } from "../db/pglite";
-import { fakeQueries } from "./fake-queries";
+import { REPO_ROOT, fakeQueries, silenceLogs } from "../helpers";
 
 const DIST = join(REPO_ROOT, "tests/server/fixtures/dist");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+// Assertions are on responses; the request log is covered by logging.test.ts.
+silenceLogs();
 
 // Production shape: the site is mounted, so a miss here would otherwise get the shell.
 const app = createApp({

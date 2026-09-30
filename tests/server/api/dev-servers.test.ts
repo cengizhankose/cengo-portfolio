@@ -4,7 +4,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { networkInterfaces } from "node:os";
 import { join } from "node:path";
-import { REPO_ROOT } from "../db/pglite";
+import { REPO_ROOT } from "../helpers";
 
 type Proc = ReturnType<typeof Bun.spawn>;
 const running: Proc[] = [];
