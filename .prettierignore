@@ -1,0 +1,24 @@
+# Prettier scope (FE-22): source, config and test code. Generated output,
+# lockfiles, vendored/static assets and prose docs are left alone.
+
+# build output (tracked dist/ is produced by `vite build`)
+dist/
+build/
+coverage/
+
+# dependencies and lockfiles
+node_modules/
+bun.lock
+package-lock.json
+yarn.lock
+
+# drizzle-kit generated SQL + snapshots
+src/db/migrations/
+
+# prose / agent notes (written by many tasks; not code)
+*.md
+claudedocs/
+.claude/
+
+# static files served as-is
+public/.well-known/
