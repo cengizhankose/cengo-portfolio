@@ -1,10 +1,9 @@
 // BE-21: graceful shutdown. In-flight requests finish, new connections are
 // refused, the DB pool closes, exit 0; a hung step is cut off with exit 1.
-import { describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, test } from "bun:test";
 import { createApp } from "../../../src/api/app";
 import { createShutdown } from "../../../src/api/shutdown";
-import { REPO_ROOT } from "../db/pglite";
-import { captureLogs, fakeQueries } from "./fake-queries";
+import { REPO_ROOT, captureLogs, fakeQueries } from "../helpers";
 
 describe("createShutdown with a real Bun.serve (BE-21 criterion 3)", () => {
   test("in-flight request completes with 200, the next one cannot connect", async () => {
@@ -21,10 +20,17 @@ describe("createShutdown with a real Bun.serve (BE-21 criterion 3)", () => {
       },
       exit: (code) => steps.push(`exit ${code}`),
     });
+    // The slow query runs until the test releases it: SIGTERM is sent once the
+    // request is inside the handler, however loaded the machine (no timing race).
+    let entered!: () => void;
+    const queryStarted = new Promise<void>((resolve) => (entered = resolve));
+    let release!: () => void;
+    const queryGate = new Promise<void>((resolve) => (release = resolve));
     const app = createApp({
       queries: fakeQueries({
         listPublishedPosts: async () => {
-          await Bun.sleep(1000); // slow query still running when SIGTERM arrives
+          entered();
+          await queryGate;
           return [];
         },
       }),
@@ -35,21 +41,28 @@ describe("createShutdown with a real Bun.serve (BE-21 criterion 3)", () => {
 
     const { lines } = await captureLogs(async () => {
       const inflight = fetch(`${base}/api/posts`);
-      await Bun.sleep(150);
-      const done = lifecycle.shutdown("SIGTERM");
-      expect(lifecycle.isShuttingDown()).toBe(true);
-      // /ready flips to 503 at once (checked in-process; the socket is closing).
-      expect((await app.request("/ready")).status).toBe(503);
-      await Bun.sleep(50);
-      const late = await fetch(`${base}/health`).then(
-        (res) => `status ${res.status}`,
-        (error: { code?: string }) => `error ${error.code ?? "unknown"}`,
-      );
-      const res = await inflight;
-      expect(res.status).toBe(200);
-      expect(await res.json()).toEqual([]);
-      expect(late).toStartWith("error");
-      await done;
+      try {
+        await queryStarted;
+        const done = lifecycle.shutdown("SIGTERM");
+        expect(lifecycle.isShuttingDown()).toBe(true);
+        // /ready flips to 503 at once (checked in-process; the socket is closing).
+        expect((await app.request("/ready")).status).toBe(503);
+        await Bun.sleep(50);
+        // Still in flight: a new connection is refused meanwhile.
+        const late = await fetch(`${base}/health`).then(
+          (res) => `status ${res.status}`,
+          (error: { code?: string }) => `error ${error.code ?? "unknown"}`,
+        );
+        expect(late).toStartWith("error");
+        expect(steps).not.toContain("closeDb"); // the pool outlives the request
+        release();
+        const res = await inflight;
+        expect(res.status).toBe(200);
+        expect(await res.json()).toEqual([]);
+        await done;
+      } finally {
+        release();
+      }
     });
 
     expect(steps).toEqual(["stop", "stopped", "closeDb", "exit 0"]);
@@ -111,6 +124,13 @@ describe("createShutdown with a real Bun.serve (BE-21 criterion 3)", () => {
 // Local analogue of the docker stop criteria (BE-21 criteria 1-2): the real
 // server.ts process, SIGTERM, exit 0 well under 3 s with "shutdown complete".
 describe("server.ts process", () => {
+  // A failed assertion before the signal must not leave the server running.
+  const spawned: ReturnType<typeof Bun.spawn>[] = [];
+  afterAll(() => {
+    for (const proc of spawned)
+      if (proc.exitCode === null) proc.kill("SIGKILL");
+  });
+
   test.each(["SIGTERM", "SIGINT"] as const)(
     "%s -> exit 0 in < 3 s, last lines say shutdown complete",
     async (signal) => {
@@ -129,6 +149,7 @@ describe("server.ts process", () => {
         stdout: "pipe",
         stderr: "pipe",
       });
+      spawned.push(proc);
       const reader = proc.stdout.getReader();
       const decoder = new TextDecoder();
       let output = "";

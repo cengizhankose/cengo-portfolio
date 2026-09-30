@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createApp } from "../../../src/api/app";
 import { log } from "../../../src/api/log";
-import { captureLogs, fakeQueries } from "./fake-queries";
+import { captureLogs, fakeQueries } from "../helpers";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const savedLevel = process.env.LOG_LEVEL;

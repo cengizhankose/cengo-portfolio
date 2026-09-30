@@ -6,9 +6,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createApp } from "../../../src/api/app";
 import { readBuildInfo } from "../../../src/api/build-info";
-import { createPostQueries, type PostsDb } from "../../../src/db/queries/posts";
-import { REPO_ROOT } from "../db/pglite";
-import { captureLogs, fakeQueries } from "./fake-queries";
+import {
+  createPostQueries,
+  PING_TIMEOUT_MS,
+  type PostsDb,
+} from "../../../src/db/queries/posts";
+import { REPO_ROOT, captureLogs, fakeQueries, inCheckout } from "../helpers";
 
 const BUILD = { commit: "0123abc", buildTime: "2026-09-30T12:00:00.000Z" };
 
@@ -53,18 +56,54 @@ describe("/ready", () => {
     expect(health.status).toBe(200);
   });
 
-  test("a database that never answers -> 503 within the 2 s budget", async () => {
-    const hanging = {
-      execute: () => new Promise(() => {}),
-    } as unknown as PostsDb;
-    const app = createApp({ queries: createPostQueries(hanging) });
+  // The 2 s budget without 2 s of wall clock (BE-17 speed) and without
+  // bun:test's jest.advanceTimersByTime / getTimerCount: the builder gate runs
+  // on the image's Bun (1.3.3), which does not have them. Two halves instead:
+  // the real race with a short budget, then a hand-rolled clock that records
+  // the budget /ready arms and fires it on demand.
+  const hangingDb = () =>
+    ({ execute: () => new Promise(() => {}) }) as unknown as PostsDb;
+
+  test("ping() gives up once its budget runs out (real timer, short budget)", async () => {
     const started = performance.now();
-    const { result: res } = await captureLogs(() => app.request("/ready"));
-    const elapsed = performance.now() - started;
+    await expect(createPostQueries(hangingDb()).ping(25)).rejects.toThrow(
+      "database ping timed out after 25 ms",
+    );
+    expect(performance.now() - started).toBeGreaterThanOrEqual(20);
+  });
+
+  test("a database that never answers -> 503 once the 2 s budget runs out", async () => {
+    expect(PING_TIMEOUT_MS).toBe(2000);
+    const app = createApp({ queries: createPostQueries(hangingDb()) });
+    const armed: { ms: number | undefined; fire: () => void }[] = [];
+    const realSetTimeout = globalThis.setTimeout;
+    // Record instead of schedule; a long real timer stands in as the handle,
+    // so the code's unref() and clearTimeout() work as usual.
+    globalThis.setTimeout = ((fire: () => void, ms?: number) => {
+      armed.push({ ms, fire });
+      return realSetTimeout(() => {}, 60_000);
+    }) as unknown as typeof setTimeout;
+    let settled = false;
+    let pending: ReturnType<typeof captureLogs<Response>> | undefined;
+    try {
+      pending = captureLogs(() => app.request("/ready")).then((r) => {
+        settled = true;
+        return r;
+      });
+      // Let the handler reach the ping and arm its timer (Bun.sleep does
+      // not go through globalThis.setTimeout).
+      for (let i = 0; i < 50 && armed.length === 0; i++) await Bun.sleep(0);
+    } finally {
+      globalThis.setTimeout = realSetTimeout;
+    }
+    expect(armed.map((t) => t.ms)).toEqual([PING_TIMEOUT_MS]);
+    await Bun.sleep(20);
+    expect(settled).toBe(false); // nothing answers before the budget
+    armed[0].fire(); // the 2 s are up
+    const { result: res } = await pending;
     expect(res.status).toBe(503);
-    expect(elapsed).toBeGreaterThanOrEqual(1900);
-    expect(elapsed).toBeLessThan(3500);
-  }, 10_000);
+    expect(await res.json()).toEqual({ status: "not_ready", db: "error" });
+  });
 
   test("shutting down -> 503 without touching the database (BE-21 step 3)", async () => {
     let pinged = false;
@@ -136,14 +175,18 @@ describe("readBuildInfo", () => {
     });
   });
 
-  test("the Dockerfile writes build-info.json outside dist/ and ships it", async () => {
-    const dockerfile = await Bun.file(join(REPO_ROOT, "Dockerfile")).text();
-    expect(dockerfile).toMatch(
-      /date -u \+%Y-%m-%dT%H:%M:%SZ.*> build-info\.json/s,
-    );
-    expect(dockerfile).toContain(
-      "COPY --from=builder /app/build-info.json ./build-info.json",
-    );
-    expect(dockerfile).toContain('ARG GIT_COMMIT=""');
-  });
+  // The Docker build context has no Dockerfile (.dockerignore); runs locally and in CI.
+  test.skipIf(!inCheckout("Dockerfile"))(
+    "the Dockerfile writes build-info.json outside dist/ and ships it",
+    async () => {
+      const dockerfile = await Bun.file(join(REPO_ROOT, "Dockerfile")).text();
+      expect(dockerfile).toMatch(
+        /date -u \+%Y-%m-%dT%H:%M:%SZ.*> build-info\.json/s,
+      );
+      expect(dockerfile).toContain(
+        "COPY --from=builder /app/build-info.json ./build-info.json",
+      );
+      expect(dockerfile).toContain('ARG GIT_COMMIT=""');
+    },
+  );
 });

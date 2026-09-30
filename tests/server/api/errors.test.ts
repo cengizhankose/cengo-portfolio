@@ -15,8 +15,7 @@ import {
   notFoundHandler,
 } from "../../../src/api/errors";
 import type { AppEnv } from "../../../src/api/types";
-import { REPO_ROOT } from "../db/pglite";
-import { captureLogs, fakeQueries } from "./fake-queries";
+import { REPO_ROOT, captureLogs, fakeQueries } from "../helpers";
 
 const SECRETISH =
   "connect ECONNREFUSED db.internal.invalid:5432 password=hunter2";
