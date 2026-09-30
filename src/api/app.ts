@@ -5,16 +5,21 @@
 // createApp never imports src/db: the query object is injected (T-06), so
 // tests run it with fakes or PGlite and no port.
 //
-// Order (later waves fill the reserved slots, nothing else moves):
+// Order:
 //   requestId -> request logger -> [security headers] -> [/api rate limit]
-//   -> /health -> /ready -> /api/posts -> /api/* JSON 404 -> site (mountSite)
-//   -> notFound / onError (T-01 envelope)
+//   -> canonical host -> /health -> /ready -> /api/posts -> /api/* JSON 404
+//   -> site (mountSite) -> notFound / onError (T-01 envelope)
+//
+// Everything before /health is registered for every host (SEC-30): the
+// default *.outplane.app address gets the same headers, limit and 404 policy
+// as www, because none of it depends on Cloudflare.
 import { Hono } from "hono";
 import { requestId } from "hono/request-id";
 import type { PostQueries } from "../db/queries/posts";
 import { mountSite } from "../server/static";
 import { EMPTY_BUILD_INFO, type BuildInfo } from "./build-info";
 import { errorHandler, notFoundHandler } from "./errors";
+import { canonicalHost } from "./middleware/canonical-host";
 import { requestLogger } from "./middleware/request-logger";
 import { readyHandler } from "./ready";
 import { createPostsRouter } from "./routes/posts";
@@ -34,6 +39,8 @@ export interface CreateAppOptions {
   buildInfo?: BuildInfo;
   /** Graceful shutdown state (BE-21); /ready answers 503 while it is true. */
   isShuttingDown?: () => boolean;
+  /** Runtime settings read by the middleware below. Defaults to process.env. */
+  env?: Record<string, string | undefined>;
 }
 
 export function createApp({
@@ -42,6 +49,7 @@ export function createApp({
   distDir,
   buildInfo = EMPTY_BUILD_INFO,
   isShuttingDown = () => false,
+  env = process.env,
 }: CreateAppOptions): Hono<AppEnv> {
   if (serveSpa && !distDir) {
     throw new Error("createApp: distDir is required when serveSpa is true");
@@ -59,6 +67,10 @@ export function createApp({
   // 3. [slot, W3 SEC-04/09/17/18/19] security headers: app.use("*", ...)
 
   // 4. [slot, W3 SEC-10/BE-18] rate limit: app.use("/api/*", ...)
+
+  // 4b. Fallback apex / *.outplane.app -> www redirect (SEO-03, ANL-08,
+  //     SEC-30); the Cloudflare Redirect Rule is the primary one.
+  app.use("*", canonicalHost({ exemptPaths: [HEALTH_PATH, READY_PATH] }));
 
   // 5. Liveness: constant, no database.
   app.get(HEALTH_PATH, (c) =>
