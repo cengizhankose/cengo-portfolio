@@ -2,7 +2,9 @@
 //
 // Quality-net guards (FE-22, FE-31, SEC-27, T-02): the lint config really
 // rejects an inaccessible click target, and package.json keeps the agreed
-// scripts and dependency split. Pure Node checks, no DOM.
+// scripts and dependency split. Pure Node checks, no DOM. The probes take
+// their text as a prop: a literal would trip react/jsx-no-literals (FE-14,
+// covered in tests/frontend/i18n/extraction.test.js).
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { ESLint } from "eslint";
@@ -24,9 +26,9 @@ describe("ESLint config (FE-22)", () => {
   it("fails a click handler on a static <div> with jsx-a11y errors", async () => {
     const result = await lintSource(
       [
-        "export const Toggle = ({ onToggle }) => (",
+        "export const Toggle = ({ onToggle, label }) => (",
         '  <div className="nav_ac" onClick={onToggle}>',
-        "    theme",
+        "    {label}",
         "  </div>",
         ");",
         "",
@@ -47,9 +49,9 @@ describe("ESLint config (FE-22)", () => {
   it("accepts the same control written as a native <button>", async () => {
     const result = await lintSource(
       [
-        "export const Toggle = ({ onToggle }) => (",
+        "export const Toggle = ({ onToggle, label }) => (",
         '  <button type="button" onClick={onToggle}>',
-        "    theme",
+        "    {label}",
         "  </button>",
         ");",
         "",
