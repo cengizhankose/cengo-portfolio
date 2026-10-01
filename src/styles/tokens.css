@@ -24,21 +24,23 @@
    --text-muted     secondary text and placeholders, WCAG AA on --bg-color
                     (#a3a3a3 on #0c0c0c 7.75:1, #595959 on #fff 7.00:1;
                     DSG-04, DSG-21).
-   --border-color   hairline borders (08-design-plan: dark #3a3a3a, light
-                    #d4d4d4): the blog diagram frame (DSG-06), inline code and
-                    badge outlines (DSG-26, DSG-08). A quiet edge, not a
+   --border-color   hairline borders, 18% text over page (FE-01; was dark
+                    #3a3a3a, light #d4d4d4): the blog diagram frame (DSG-06),
+                    inline code and badge outlines (DSG-26, DSG-08). A quiet edge, not a
                     control boundary: the diagram frame has its own focus outline.
    Cursor ring (T-14, DSG-21): --cursor-ring-color / --cursor-ring-hover-color
    point at theme tokens and are resolved on <html>, so they follow
    data-theme without a second declaration (dark #a3a3a3 / #fff, light
-   #595959 / #0c0c0c, both >= 3:1 on --bg-color); --cursor-ring-size is its
+   #595959 / #000, both >= 3:1 on --bg-color); --cursor-ring-size is its
    diameter.
 
-   Palette (FE-01, claudedocs/design/design-plan.md): six named colours, and
-   every colour token above is exactly one of them. Ink #0c0c0c, Paper #fff,
-   Ash #a3a3a3, Slate #595959, Graphite #3a3a3a, Mist #d4d4d4. The two themes
-   swap Ink and Paper: the dark page is the light theme's text colour (the
-   light text was #000, a seventh black, until FE-01).
+   Palette (FE-01, claudedocs/design/design-plan.md): five named colours,
+   and every solid colour token is one of them: Ink #0c0c0c (the dark
+   page), Paper #fff, Black #000 (the light theme's text), Ash #a3a3a3 and
+   Slate #595959 (muted text, dark / light). The hairline is not a sixth
+   and seventh grey any more: --border-color is 18% of the text colour over
+   the page (dark ~#383838, light ~#d1d1d1; it was #3a3a3a / #d4d4d4), so it
+   follows the theme from one declaration.
 
    Layers (z-index): every stacking value on the site comes from this scale,
    lowest first. Bootstrap's .fixed-top is 1030, which is why the scale
@@ -102,7 +104,7 @@
   --surface-color: #0c0c0c;
   --text-color: #fff;
   --text-muted: #a3a3a3;
-  --border-color: #3a3a3a;
+  --border-color: color-mix(in srgb, var(--text-color) 18%, var(--bg-color));
   --cursor-ring-color: var(--text-muted);
   --cursor-ring-hover-color: var(--text-color);
   --cursor-ring-size: 32px;
@@ -134,7 +136,6 @@
   color-scheme: light;
   --bg-color: #ffffff;
   --surface-color: #ffffff;
-  --text-color: #0c0c0c;
+  --text-color: #000;
   --text-muted: #595959;
-  --border-color: #d4d4d4;
 }

@@ -126,20 +126,13 @@ describe("page frame (signature element)", () => {
 });
 
 describe("palette (FE-01 design plan §3)", () => {
-  const PALETTE = [
-    "#0c0c0c",
-    "#ffffff",
-    "#a3a3a3",
-    "#595959",
-    "#3a3a3a",
-    "#d4d4d4",
-  ];
+  const PALETTE = ["#0c0c0c", "#ffffff", "#000000", "#a3a3a3", "#595959"];
   const long = (hex) =>
     hex.length === 4
       ? `#${[...hex.slice(1)].map((c) => c + c).join("")}`
       : hex.toLowerCase();
 
-  it("maps every colour token of both themes to one of the six named colours", () => {
+  it("maps every solid colour token of both themes to one of the five named colours", () => {
     for (const selector of [":root", '[data-theme="light"]']) {
       const colours = Object.entries(tokens(selector)).filter(([, value]) =>
         value.startsWith("#"),
@@ -151,15 +144,16 @@ describe("palette (FE-01 design plan §3)", () => {
     }
   });
 
-  it("swaps ink and paper between the themes", () => {
-    const dark = tokens(":root");
-    const light = tokens('[data-theme="light"]');
-    expect(long(dark["--bg-color"])).toBe(long(light["--text-color"]));
-    expect(long(light["--bg-color"])).toBe(long(dark["--text-color"]));
+  it("derives the hairline from the theme instead of adding greys", () => {
+    expect(tokens(":root")["--border-color"]).toBe(
+      "color-mix(in srgb, var(--text-color) 18%, var(--bg-color))",
+    );
+    expect(tokens('[data-theme="light"]')).not.toHaveProperty("--border-color");
   });
 
-  it("names the six colours in the design plan", () => {
+  it("names the five colours and the hairline rule in the design plan", () => {
     for (const hex of PALETTE) expect(PLAN.toLowerCase()).toContain(hex);
+    expect(PLAN).toMatch(/color-mix\(in srgb, var\(--text-color\) 18%/);
   });
 });
 

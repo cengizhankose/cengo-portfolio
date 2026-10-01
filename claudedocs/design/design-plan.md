@@ -24,31 +24,36 @@ sorular #3). Önerilen yön ikisini birleştirir: **görünen dil korunur, onu t
 yerleşim yeniden yazılır.** Şablondan gelen header, hero, sosyal şerit ve halkalı düğme kiti
 kalkar; çerçeve ve tip eşleşmesi imza olarak kalır.
 
-## 3. Renk paleti (6 isimli hex)
+## 3. Renk paleti (5 isimli hex + türetilmiş kılçizgi)
 
-Site iki temalıdır (`<html data-theme>`, K-10). Her tema token'ı tam olarak bir palet rengine
-bağlıdır; vurgu rengi yoktur (08-design-plan Açık sorular #2: monokrom kalır).
+Site iki temalıdır (`<html data-theme>`, K-10). Her düz renk token'ı tam olarak bir palet
+rengine bağlıdır; vurgu rengi yoktur (08-design-plan Açık sorular #2: monokrom kalır).
 
 | Ad | Hex | Koyu temada | Açık temada |
 |---|---|---|---|
-| Mürekkep (Ink) | `#0c0c0c` | `--bg-color`, `--surface-color` | `--text-color` |
+| Mürekkep (Ink) | `#0c0c0c` | `--bg-color`, `--surface-color` | — |
 | Kâğıt (Paper) | `#ffffff` | `--text-color` | `--bg-color`, `--surface-color` |
+| Siyah (Black) | `#000000` | — | `--text-color` |
 | Kül (Ash) | `#a3a3a3` | `--text-muted` (7.75:1), imleç halkası | — |
 | Arduvaz (Slate) | `#595959` | — | `--text-muted` (7.00:1), imleç halkası |
-| Grafit (Graphite) | `#3a3a3a` | `--border-color` (kılçizgi) | — |
-| Sis (Mist) | `#d4d4d4` | — | `--border-color` (kılçizgi) |
 
-Değişiklik: açık temanın metin rengi `#000` idi; palete yedinci bir siyah girmesin diye
-Mürekkep oldu (`#0c0c0c` beyaz üstünde 19.4:1). İki tema artık aynı iki rengin yer
-değiştirmesidir: koyu temanın zemini açık temanın mürekkebidir.
+**Kılçizgi (`--border-color`)** artık ayrı iki gri değildir (`#3a3a3a` / `#d4d4d4` idi):
+`color-mix(in srgb, var(--text-color) 18%, var(--bg-color))`, yani metnin %18'i sayfanın
+üstünde. Tek bildirim iki temada da doğru tonu verir (koyu ≈ `#383838`, açık ≈ `#d1d1d1`;
+eskisinden göz ayırt edemez). Palet yedi hex'ten beşe iner.
+
+Değerlendirilip bırakılan: açık temanın metnini `#000` yerine Mürekkep `#0c0c0c` yapmak (iki
+temayı tam yer değiştirme yapardı). Blog diyagramlarının yayın akışı (`scripts/mermaid.*.json`,
+yayımlanmış SVG'ler) `#000000`'a bağlı; değişiklik bu paketin kapsamını aşıyor. Sahip isterse
+ayrı bir işte yapılır.
 
 Kurallar:
 
 - Renk yalnız `src/styles/tokens.css`'te yazılır, kurallar token okur (FE-20).
 - Durum rengi yoktur: aktif sayfa, aktif dil ve hover alt çizgi ve ağırlıkla anlatılır,
   hiçbir zaman yalnız renkle değil.
-- Metin kontrastı her iki temada ≥ 4.5:1, kılçizgi ve imleç halkası ≥ 3:1 değil, süs
-  (kılçizginin işlevi yoktur; odak halkası metin rengindedir).
+- Metin kontrastı her iki temada ≥ 4.5:1. Kılçizgi süstür (işlevi yoktur); odak halkası metin
+  rengindedir.
 
 ## 4. Tipografi
 
@@ -175,7 +180,7 @@ kısıtı, 23 karakter).
 
 Sistem imleci gizlenmez; yalnız fareli cihazda ve hareket azaltma kapalıyken takip eden bir
 halka çizilir. Çap `--cursor-ring-size`, renkler `--cursor-ring-color` /
-`--cursor-ring-hover-color` (Kül/Arduvaz → Kâğıt/Mürekkep).
+`--cursor-ring-hover-color` (Kül/Arduvaz → Kâğıt/Siyah).
 
 ## 7. İmza öğesi: 10 px sayfa çerçevesi
 
@@ -187,14 +192,14 @@ yoktur. Başka bir imza eklenmez (tek imza kuralı).
 
 | Kalıp | Sitede | Karar |
 |---|---|---|
-| #2 near-black zemin + tek parlak vurgu | Zemin near-black (`#0c0c0c`), vurgu yok | **Bilinçli**: vurgu rengi eklemiyoruz; near-black, iki temanın yer değiştirmesi için seçildi (koyu zemin = açık mürekkep). |
+| #2 near-black zemin + tek parlak vurgu | Zemin near-black (`#0c0c0c`), vurgu yok | **Bilinçli**: vurgu rengi eklemiyoruz; near-black saf siyahtan yumuşak, fotoğraf ve metinle sert kontrast yaratmıyor. "Tek parlak vurgu" yarısı yok. |
 | #3 kılçizgi + sıfır yarıçap "broadsheet" | Sıfır yarıçap her yerde; kılçizgiler blog diyagramı, rozet ve şerit ayırıcısında | **Bilinçli ama sınırlı**: sıfır yarıçap çerçeve imzasının devamı. Kılçizgi hero'da bir kez (kanıt satırının üstü) ve rayda bir kez; bölümleri ayırmak için çoğaltılmaz. |
 | #5 BÜYÜK HARF etiketler, `→` ekli linkler | Hero rol satırı BÜYÜK HARF + harf aralığıydı; ikincil CTA `→` taşıyor | **Alışkanlık → değişti**: rol satırı cümle düzenine döndü. `→` yalnız tek kanıt linkinde kalır (sayfada bir kez, `aria-hidden`), başka linke eklenmez. |
 | Ortada her şey | Hero metni sütununda ortalı bir kutuydu | **Değişti**: tek sol kenar, sütun içinde dikey ortalı. |
 | Hareketli süs (kayan halka katmanları) | Hero düğmesinde 3 katman | **Kaldırıldı**: tek düğme stili; hareket yalnız imleç halkası ve tek tur dönen satırda. |
 
-Aksesuar çıkarma turu: halka katmanları, header kutularının ayrı ayrı hover kutusu, menünün
-masaüstündeki tam ekran paneli ve dört ayrı çerçeve şeridi çıkarıldı (tek kutu).
+Aksesuar çıkarma turu: halka katmanları, menünün masaüstündeki tam ekran paneli, dört ayrı
+çerçeve şeridi (tek kutu oldu) ve iki ayrı kılçizgi grisi (tek türetilmiş ton oldu) çıkarıldı.
 
 ## 9. İlkeler
 
@@ -211,7 +216,7 @@ masaüstündeki tam ekran paneli ve dört ayrı çerçeve şeridi çıkarıldı 
 ## 10. Sahip onayı
 
 - [ ] Yön (monokrom editoryal, çerçeve imzası) onaylandı — tarih: ____ · not: ____
-- [ ] Palet (6 renk, açık tema metni `#0c0c0c`) onaylandı — tarih: ____
+- [ ] Palet (5 renk + türetilmiş kılçizgi) onaylandı — tarih: ____
 - [ ] Masaüstü nav ve künye sekmesi onaylandı — tarih: ____
 - [ ] README atıf metni ve LICENSE (MIT, "Copyright (c) 2021 Ubai Mutl" korunuyor) — hukuki karar
   sahibindir — tarih: ____
