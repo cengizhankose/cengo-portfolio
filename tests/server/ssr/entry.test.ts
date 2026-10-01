@@ -221,11 +221,14 @@ describe("the build (package.json, vite.config.js)", () => {
 
   // .dockerignore drops Dockerfile*: inside the image's builder gate the file
   // is absent, so this only runs in a checkout (W10-BE-docker-image)
-  test.skipIf(!inCheckout("Dockerfile"))("the production image copies dist/ (with dist/server) and all of src/", () => {
-    const dockerfile = read("Dockerfile");
-    expect(dockerfile).toMatch(/^COPY --from=builder \/app\/dist \.\/dist$/m);
-    expect(dockerfile).toMatch(/^COPY src \.\/src$/m);
-  });
+  test.skipIf(!inCheckout("Dockerfile"))(
+    "the production image copies dist/ (with dist/server) and all of src/",
+    () => {
+      const dockerfile = read("Dockerfile");
+      expect(dockerfile).toMatch(/^COPY --from=builder \/app\/dist \.\/dist$/m);
+      expect(dockerfile).toMatch(/^COPY src \.\/src$/m);
+    },
+  );
 });
 
 describe("runtime packages", () => {
