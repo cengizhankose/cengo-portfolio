@@ -294,10 +294,11 @@ export async function runSmoke(
       `found ${count(root, /<h1\b/gi)}`,
     );
 
-    if (path === "/") {
+    if (path === "/" || path === "/tr") {
+      // The home page in both languages (TR open since W11) preloads the hero.
       check(
         count(html, /rel="preload" as="image"/gi) === 1,
-        "/ has one hero image preload",
+        `${at} has one hero image preload`,
       );
     } else if (!isPost) {
       check(

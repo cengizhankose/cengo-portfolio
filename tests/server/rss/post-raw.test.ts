@@ -56,8 +56,8 @@ describe("a TR post, raw HTML ($POST)", () => {
     );
     const link = byline.querySelector("a")!;
     expect(link.getAttribute("rel")).toBe("author");
-    // TR static pages are closed: the EN About page.
-    expect(link.getAttribute("href")).toBe("/about");
+    // TR static pages are open since W11: the TR About page.
+    expect(link.getAttribute("href")).toBe("/tr/about");
   });
 
   test("exactly one aside.author-box with the name, the role and a Turkish bio of 60+ characters", () => {
@@ -69,7 +69,7 @@ describe("a TR post, raw HTML ($POST)", () => {
     expect(
       box.querySelector(".author-box__bio")!.textContent!.length,
     ).toBeGreaterThanOrEqual(60);
-    expect(box.querySelector('a[href="/about"]')).not.toBeNull();
+    expect(box.querySelector('a[href="/tr/about"]')).not.toBeNull();
     expect(
       [...box.querySelectorAll('a[rel~="me"]')].map((a) =>
         a.getAttribute("href"),

@@ -58,7 +58,7 @@ describe("About heading outline (SEO-13, FE-27, MKT-15)", () => {
     expect(
       screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
     ).toEqual([
-      "A bit about myself",
+      "My story",
       "Where I’ve worked and what I’ve won",
       "Work timeline",
       "Skills",

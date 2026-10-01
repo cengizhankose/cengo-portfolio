@@ -36,7 +36,7 @@ describe("SDK chunk not loaded", () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Contact me",
+      "Let’s work together",
     );
     await user.type(screen.getByLabelText("Name"), TYPED.name);
     await user.type(screen.getByLabelText("Email"), TYPED.email);

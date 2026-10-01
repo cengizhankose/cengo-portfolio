@@ -1,8 +1,8 @@
 // PERF-03 with the TR pages open (T-12, SEO-11 Adım B): the Turkish pages the
 // server draws hydrate without a mismatch too. The server side is drawn with
-// LIVE.static = ['en', 'tr'] (render-pages.ts, OPEN_TR); this file opens the
-// same language for the browser side by replacing the route table's LIVE with
-// ALL_LIVE (what that edit means once made).
+// the real route table (LIVE.static = ['en', 'tr'] since W11, render-pages.ts);
+// this file keeps the browser side explicit by replacing the table's LIVE with
+// ALL_LIVE (the same languages).
 import { act } from "@testing-library/react";
 import {
   afterEach,
@@ -50,7 +50,7 @@ const PAGES = [
 
 let serverHtml;
 beforeAll(() => {
-  serverHtml = drawPages(PAGES, { openTr: true });
+  serverHtml = drawPages(PAGES);
 }, 60_000);
 
 let errors;

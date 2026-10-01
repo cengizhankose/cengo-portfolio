@@ -94,7 +94,7 @@ describe("GET /rss.xml and /tr/rss.xml", () => {
     expect(self.getAttribute("type")).toBe("application/rss+xml");
   });
 
-  test("the TR channel: Turkish description, tr, its own self link; link stays the EN /blog while the TR pages are closed", async () => {
+  test("the TR channel: Turkish description, tr, its own self link; link is the TR /tr/blog now that the TR pages are open", async () => {
     const doc = parse(await (await appWith().request("/tr/rss.xml")).text());
     expect(text(doc, "channel > language")).toBe("tr");
     expect(text(doc, "channel > description")).toStartWith(
@@ -103,9 +103,9 @@ describe("GET /rss.xml and /tr/rss.xml", () => {
     expect(doc.getElementsByTagName("atom:link")[0].getAttribute("href")).toBe(
       "https://www.cengizhankose.com/tr/rss.xml",
     );
-    // LIVE.static has no 'tr' yet: /tr/blog is a 404, the channel must not point at it.
+    // LIVE.static has 'tr' since W11: /tr/blog is a page, the channel points at it.
     expect(text(doc, "channel > link")).toBe(
-      "https://www.cengizhankose.com/blog",
+      "https://www.cengizhankose.com/tr/blog",
     );
   });
 

@@ -41,6 +41,19 @@ describe.each(files)("%s", (name) => {
   });
 });
 
+test("the EN translation of the live post shares its translationKey (MKT-14)", async () => {
+  const en = await load(
+    "atlas-steward-system-that-catches-unfinished-work.en.md",
+  );
+  const tr = await load(`${LIVE_TR_SLUG}.tr.md`);
+  expect(en.frontmatter.lang).toBe("en");
+  expect(en.frontmatter.translationKey).toBe(tr.frontmatter.translationKey);
+  expect(en.frontmatter.slug).not.toBe(tr.frontmatter.slug);
+  expect(String(en.frontmatter.seoTitle).length).toBeLessThanOrEqual(
+    POST_TOPIC_MAX_LENGTH,
+  );
+});
+
 test("slugs are unique across content files", async () => {
   const slugs = await Promise.all(
     files.map(async (name) => (await load(name)).frontmatter.slug),
@@ -57,8 +70,8 @@ test("the live TR post keeps its language and gets a short seoTitle (SEO-10)", a
   expect(String(file.frontmatter.seoTitle).length).toBeLessThanOrEqual(
     POST_TOPIC_MAX_LENGTH,
   );
-  // No translation yet: the key is added together with the EN version (T-12).
-  expect(file.frontmatter).not.toHaveProperty("translationKey");
+  // MKT-14: the key is shared with the EN translation (T-12).
+  expect(file.frontmatter.translationKey).toBe("atlas-steward");
   expect(file.body.length).toBeGreaterThan(1000);
 });
 

@@ -76,11 +76,15 @@ describe("which chunk a route needs (chunkLoaderForRoute)", () => {
     );
   });
 
-  it("/tr/blog is the same chunk once the TR pages are open; closed, it costs nothing", () => {
-    expect(chunkLoaderForRoute(matchRoute("/tr/blog"))).toBeNull();
+  it("/tr/blog is the same chunk (TR pages open since W11); with the TR pages closed it costs nothing", () => {
+    expect(chunkLoaderForRoute(matchRoute("/tr/blog"))).toBe(
+      loaders.loadBlogHome,
+    );
     expect(chunkLoaderForRoute(matchRoute("/tr/blog", ALL_LIVE))).toBe(
       loaders.loadBlogHome,
     );
+    const closed = { static: ["en"], post: ["en", "tr"] };
+    expect(chunkLoaderForRoute(matchRoute("/tr/blog", closed))).toBeNull();
   });
 
   it("other pages, 404s and nothing need no chunk", () => {
@@ -134,7 +138,7 @@ const Links = () => (
   <nav>
     <Link to="/blog">Blog</Link>
     <Link to="/blog/hello-world">Hello link</Link>
-    <Link to="/tr/blog">TR blog (closed)</Link>
+    <Link to="/tr/blog">TR blog</Link>
     <Link to="/about">About</Link>
     <a href="https://example.org/blog/x">Elsewhere</a>
   </nav>
@@ -186,9 +190,18 @@ describe("the delegated listener (pointerover / focusin)", () => {
     await act(async () => {});
   });
 
-  it("a closed-language link, another page and another site cost no chunk", async () => {
+  it("the TR blog link loads BlogHome (TR pages open since W11)", async () => {
     renderLinks();
-    for (const name of ["TR blog (closed)", "About", "Elsewhere"]) {
+    fireEvent.pointerOver(screen.getByRole("link", { name: "TR blog" }));
+
+    expect(loaders.loadBlogHome).toHaveBeenCalledTimes(1);
+    expect(loaders.loadBlogPost).not.toHaveBeenCalled();
+    await act(async () => {});
+  });
+
+  it("another page and another site cost no chunk", async () => {
+    renderLinks();
+    for (const name of ["About", "Elsewhere"]) {
       fireEvent.pointerOver(screen.getByRole("link", { name }));
       fireEvent.focusIn(screen.getByRole("link", { name }));
     }

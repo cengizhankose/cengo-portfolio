@@ -17,6 +17,8 @@ import {
 import { ALL_LIVE, LIVE, matchRoute } from "../../../src/seo/routes.js";
 
 const WWW = "https://www.cengizhankose.com";
+// The route table as it was before W11 opened the TR pages (rollback shape).
+const EN_ONLY = { static: ["en"], post: ["en", "tr"] };
 
 // A published EN/TR pair sharing one translation_key, as the API returns it.
 const EN_POST = {
@@ -58,14 +60,14 @@ describe("language paths (T-12)", () => {
 
   test("links to static pages stay on live languages (staticLocale)", () => {
     expect(staticLocale("en")).toBe("en");
-    expect(staticLocale("tr")).toBe("en"); // TR pages open in W11
-    expect(staticLocale("tr", ALL_LIVE)).toBe("tr");
+    expect(staticLocale("tr")).toBe("tr"); // TR pages open since W11
+    expect(staticLocale("tr", EN_ONLY)).toBe("en");
     expect(staticLocale("de", ALL_LIVE)).toBe("en");
   });
 
-  test("the back link of the TR post is /blog until the TR pages open (step 6)", () => {
-    expect(localePath(staticLocale("tr"), "/blog")).toBe("/blog");
-    expect(localePath(staticLocale("tr", ALL_LIVE), "/blog")).toBe("/tr/blog");
+  test("the back link of the TR post is /tr/blog since the TR pages are open, /blog if they close (step 6)", () => {
+    expect(localePath(staticLocale("tr"), "/blog")).toBe("/tr/blog");
+    expect(localePath(staticLocale("tr", EN_ONLY), "/blog")).toBe("/blog");
   });
 });
 
@@ -75,10 +77,10 @@ describe("the language a page is shown in (displayLocale)", () => {
     expect(displayLocale(matchRoute("/tr/blog/x"))).toBe("tr");
   });
 
-  test("a 404 under /tr is EN until the TR pages open, TR afterwards (SEO-02 step 4)", () => {
-    expect(displayLocale(matchRoute("/tr/yok"))).toBe("en");
-    expect(displayLocale(matchRoute("/tr/about"))).toBe("en");
-    expect(displayLocale("/tr/yok", ALL_LIVE)).toBe("tr");
+  test("a 404 under /tr is TR since the TR pages are open, EN if they close (SEO-02 step 4)", () => {
+    expect(displayLocale(matchRoute("/tr/yok"))).toBe("tr");
+    expect(displayLocale(matchRoute("/tr/about"))).toBe("tr");
+    expect(displayLocale(matchRoute("/tr/yok", EN_ONLY), EN_ONLY)).toBe("en");
     expect(displayLocale(matchRoute("/nope"))).toBe("en");
   });
 
@@ -86,10 +88,11 @@ describe("the language a page is shown in (displayLocale)", () => {
     const route = matchRoute("/tr/yok");
     expect(
       getPageMeta(route, displayLocale(route), { notFound: true }),
-    ).toMatchObject({ title: "Page not found | Cengizhan Köse", lang: "en" });
-    expect(
-      getPageMeta(route, displayLocale(route, ALL_LIVE), { notFound: true }),
     ).toMatchObject({ title: "Sayfa bulunamadı | Cengizhan Köse", lang: "tr" });
+    const closed = matchRoute("/tr/yok", EN_ONLY);
+    expect(
+      getPageMeta(closed, displayLocale(closed, EN_ONLY), { notFound: true }),
+    ).toMatchObject({ title: "Page not found | Cengizhan Köse", lang: "en" });
   });
 
   test("a missing TR post gets the TR post-not-found meta (SEO-08)", () => {
@@ -175,11 +178,13 @@ describe("hreflang alternates (SEO-11 step 4)", () => {
     expect(alternatesFor("/blog/hello-world", { post })).toEqual([]);
   });
 
-  test("static pages: none while only EN is live", () => {
-    expect([...LIVE.static]).toEqual(["en"]);
+  test("static pages: none if only EN is live (rollback shape)", () => {
+    expect([...LIVE.static]).toEqual(["en", "tr"]); // open since W11
     for (const path of ["/", "/about", "/contact", "/blog"]) {
-      expect(alternatesFor(matchRoute(path))).toEqual([]);
-      expect(getPageMeta(matchRoute(path), "en").alternates).toEqual([]);
+      expect(alternatesFor(matchRoute(path, EN_ONLY), {}, EN_ONLY)).toEqual([]);
+      expect(
+        getPageMeta(matchRoute(path, EN_ONLY), "en", {}, EN_ONLY).alternates,
+      ).toEqual([]);
     }
   });
 
@@ -234,7 +239,8 @@ describe("canonical path of a route (SEO-02 step 3d, SEO-11)", () => {
 
   test("notfound has none", () => {
     expect(routePathname(matchRoute("/nope"))).toBeNull();
-    expect(routePathname(matchRoute("/tr/about"))).toBeNull();
+    expect(routePathname(matchRoute("/tr/about", EN_ONLY))).toBeNull();
+    expect(routePathname(matchRoute("/tr/yok"))).toBeNull();
     expect(routePathname(null)).toBeNull();
   });
 });

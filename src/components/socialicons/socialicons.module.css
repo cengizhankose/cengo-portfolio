@@ -4,7 +4,7 @@
    icon targets 8px apart (6 x 32 + 5 x 8 = 232px), then the caption, set
    vertically and read bottom-to-top, with its rule between the icons and
    the text. The caption uses writing-mode instead of a rotated box, so its
-   length (EN "Follow Me", TR "Takip et", or a longer text later) moves
+   length (EN "Find me elsewhere", TR "Beni başka yerlerde bul", or a longer text) moves
    nothing and cannot run into the icons.
 
    Below 992px the rail is part of the page flow: the caption above one row

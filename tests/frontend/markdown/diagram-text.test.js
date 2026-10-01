@@ -1,6 +1,7 @@
-// The diagram strings live next to the labels until the i18n dictionaries
-// take them over (handoff); until then the two languages must stay in step.
+// The diagram strings come from the i18n dictionaries (blog.diagram,
+// blog.diagramLoading; W6 handoff, done in W11).
 import { describe, expect, it } from "vitest";
+import { DICTIONARIES } from "../../../src/i18n/translate.js";
 import {
   DIAGRAM_TEXT,
   diagramText,
@@ -21,6 +22,15 @@ describe("diagramText", () => {
   it("names the diagram in the post's language (DSG-06: Diagram / Diyagram)", () => {
     expect(diagramText("en").diagram).toBe("Diagram");
     expect(diagramText("tr").diagram).toBe("Diyagram");
+  });
+
+  it("reads the dictionaries, so there is one source for each word", () => {
+    for (const lang of ["en", "tr"]) {
+      expect(diagramText(lang)).toEqual({
+        diagram: DICTIONARIES[lang]["blog.diagram"],
+        loading: DICTIONARIES[lang]["blog.diagramLoading"],
+      });
+    }
   });
 
   it("falls back to English for any other language", () => {

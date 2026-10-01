@@ -47,7 +47,9 @@ describe.each(files)("%s", (name) => {
     const firstText = lines.find((line) => line.trim() !== "---")!;
     expect(firstText).toContain("Cengizhan");
     expect(firstText).not.toMatch(/\[|\]/);
-    const sign = lines.filter((line) => line.startsWith("*Yazan:"));
+    // The sign-off is in the post's own language (T-12; the EN translation).
+    const mark = frontmatter.lang === "en" ? "*Written by" : "*Yazan:";
+    const sign = lines.filter((line) => line.startsWith(mark));
     expect(sign).toHaveLength(1);
     expect(sign[0]).toContain("Cengizhan Köse");
   });

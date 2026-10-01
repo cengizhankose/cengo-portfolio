@@ -60,8 +60,8 @@ describe("byline (SEO-16 criterion 2, MKT-17 criterion 2)", () => {
     );
     const link = within(byline).getByRole("link", { name: "Cengizhan Köse" });
     expect(link).toHaveAttribute("rel", "author");
-    // The TR static pages are closed: the About link stays on the EN page.
-    expect(link).toHaveAttribute("href", "/about");
+    // The TR static pages are open since W11: the About link is the TR page.
+    expect(link).toHaveAttribute("href", "/tr/about");
     expect(container.querySelectorAll(".blog-post-byline")).toHaveLength(1);
   });
 
@@ -98,7 +98,7 @@ describe("author box and post footer (SEO-16 criteria 1 and 3, MKT-07 criterion 
     expect(bio).toContain("Dört hackathon kazandı");
     expect(
       within(box).getByRole("link", { name: "Hikâyemi oku →" }),
-    ).toHaveAttribute("href", "/about");
+    ).toHaveAttribute("href", "/tr/about");
     const profiles = [...box.querySelectorAll('a[rel~="me"]')];
     expect(profiles.map((a) => a.getAttribute("href"))).toEqual([
       "https://www.linkedin.com/in/cengizhankose",

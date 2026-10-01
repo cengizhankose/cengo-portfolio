@@ -41,8 +41,8 @@ describe("the table (SEO-02 step 1)", () => {
     expect(Object.keys(LOCALE_PREFIX).sort()).toEqual([...LOCALES].sort());
   });
 
-  test("LIVE: EN everywhere, TR posts open (SEO-11 Adım A), TR pages not yet (Adım B)", () => {
-    expect(LIVE).toEqual({ static: ["en"], post: ["en", "tr"] });
+  test("LIVE: EN and TR everywhere (SEO-11 Adım A posts, Adım B pages, W11)", () => {
+    expect(LIVE).toEqual({ static: ["en", "tr"], post: ["en", "tr"] });
     expect(Object.isFrozen(LIVE)).toBe(true);
     expect(Object.isFrozen(LIVE.static)).toBe(true);
     expect(ALL_LIVE).toEqual({ static: ["en", "tr"], post: ["en", "tr"] });
@@ -110,14 +110,15 @@ describe("matchRoute: the /tr prefix and LIVE (SEO-02 step 7, SEO-11)", () => {
     expect(matchRoute("/tr/", ALL_LIVE).path).toBe("/");
   });
 
-  test("TR static pages are notfound while LIVE.static is EN only", () => {
-    expect(matchRoute("/tr")).toEqual({
+  test("TR static pages are notfound again if LIVE.static is closed to EN (rollback)", () => {
+    const EN_ONLY = { static: ["en"], post: ["en", "tr"] };
+    expect(matchRoute("/tr", EN_ONLY)).toEqual({
       type: "notfound",
       locale: "tr",
       path: "/",
     });
     for (const path of STATIC_PATHS.filter((p) => p !== "/")) {
-      expect(matchRoute(`/tr${path}`)).toEqual({
+      expect(matchRoute(`/tr${path}`, EN_ONLY)).toEqual({
         type: "notfound",
         locale: "tr",
         path,

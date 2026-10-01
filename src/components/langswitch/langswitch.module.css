@@ -3,7 +3,8 @@
    the height of .navAction (src/header)). The active language is marked by weight, an inset
    underline and aria-current together, never by colour alone; it has no
    fill, so the underline and the focus ring keep their contrast against the
-   header in both themes. */
+   header in both themes. The other language is 400, not 500, so the switcher
+   (now on every page, W11) costs no extra Raleway file; 700 is the active one. */
 .switcher ul {
   display: flex;
   gap: 2px;
@@ -20,7 +21,7 @@
   min-height: 44px;
   padding: 0 0.5rem;
   background: var(--bg-color);
-  font: 500 var(--fs-sm) / 1 var(--font-body);
+  font: 400 var(--fs-sm) / 1 var(--font-body);
   letter-spacing: 0.04em;
   text-decoration: none;
 }

@@ -101,6 +101,12 @@ describe("known SPA routes get the shell (T-11)", () => {
     "/blog",
     "/blog/some-post",
     "/tr/blog/some-post",
+    "/tr",
+    "/tr/about",
+    "/tr/portfolio",
+    "/tr/contact",
+    "/tr/blog",
+    "/tr/privacy",
   ])("%s -> 200 shell", async (path) => {
     const res = await get(path);
     expect(res.status).toBe(200);
@@ -116,10 +122,11 @@ describe("known SPA routes get the shell (T-11)", () => {
     ).toBe(304);
   });
 
-  // T-11 part 2 (W3, SEO-02): TR static pages stay 404 until LIVE.static
-  // opens 'tr' (SEO-11 Adım B); tests/server/seo/not-found.test.ts has the rest.
-  test.each(["/tr", "/tr/about", "/tr/blog"])(
-    "%s -> 404 noindex until the TR pages open",
+  // T-11 part 2 (W3, SEO-02): the TR static pages are open since W11
+  // (LIVE.static has 'tr', SEO-11 Adım B); an unknown path under /tr is still
+  // a 404 with noindex. tests/server/seo/not-found.test.ts has the rest.
+  test.each(["/tr/yok", "/tr/blog/Bad_Slug"])(
+    "%s -> 404 noindex (not a known TR route)",
     async (path) => {
       const res = await get(path);
       expect(res.status).toBe(404);

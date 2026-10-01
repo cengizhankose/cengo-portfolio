@@ -90,7 +90,7 @@ describe("site data blocked (real @emailjs/browser)", () => {
     renderContact();
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Contact me",
+      "Let’s work together",
     );
     for (const label of ["Name", "Email", "Project type", "Message"]) {
       expect(screen.getByLabelText(label)).toBeInstanceOf(HTMLElement);

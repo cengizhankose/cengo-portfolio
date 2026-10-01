@@ -126,7 +126,7 @@ describe("the written pages", () => {
     },
   );
 
-  test("the home page carries the hero preload once, in the head; the other pages carry none", () => {
+  test("each language's home page carries the hero preload once, in the head; the other pages carry none", () => {
     const counts = Object.fromEntries(
       written.map(({ url, file }) => [
         url,
@@ -139,15 +139,25 @@ describe("the written pages", () => {
       "/portfolio": 0,
       "/contact": 0,
       "/privacy": 0,
+      "/tr": 1,
+      "/tr/about": 0,
+      "/tr/portfolio": 0,
+      "/tr/contact": 0,
+      "/tr/privacy": 0,
     });
   });
 
-  test("the titles differ from page to page", () => {
-    const titles = written.map(
-      ({ file }) =>
-        /<title[^>]*>([^<]*)<\/title>/.exec(readFileSync(file, "utf8"))![1],
-    );
-    expect(new Set(titles).size).toBe(titles.length);
+  test("the titles differ from page to page within a language (the home title is the same name and role in both)", () => {
+    for (const trPages of [false, true]) {
+      const titles = written
+        .filter(({ url }) => url.startsWith("/tr") === trPages)
+        .map(
+          ({ file }) =>
+            /<title[^>]*>([^<]*)<\/title>/.exec(readFileSync(file, "utf8"))![1],
+        );
+      expect(titles).toHaveLength(5);
+      expect(new Set(titles).size).toBe(titles.length);
+    }
   });
 
   test("running it again on the same dist gives the same files (it reads the kept shell, not the home page)", async () => {

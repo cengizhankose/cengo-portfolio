@@ -69,22 +69,24 @@ describe("unknown paths (FE-16 criteria 1-3)", () => {
     expect(document.title).toBe(pages.notFound.en.title);
   });
 
-  it("a TR path is EN NotFound with EN links while the TR pages are closed", async () => {
+  it("an unknown TR path is the Turkish NotFound with TR links (TR pages open since W11)", async () => {
     renderAt("/tr/yok");
-    await screen.findByRole("heading", { level: 1, name: "Page not found" });
-    expect(within(main()).getByRole("link", { name: "Home" })).toHaveAttribute(
-      "href",
-      "/",
-    );
+    await screen.findByRole("heading", { level: 1, name: "Sayfa bulunamadı" });
+    expect(
+      within(main()).getByRole("link", { name: "Ana sayfa" }),
+    ).toHaveAttribute("href", "/tr");
     await waitFor(() => expect(robots()).toBe("noindex"));
-    expect(document.documentElement.lang).toBe("en");
+    expect(document.documentElement.lang).toBe("tr");
   });
 
-  it.each(["/tr", "/tr/about", "/tr/blog"])(
-    "%s (closed language) renders NotFound",
+  it.each(["/tr/about/team", "/tr/olmayan-sayfa", "/tr/blog/a/b"])(
+    "%s renders the Turkish NotFound",
     async (path) => {
       renderAt(path);
-      await screen.findByRole("heading", { level: 1, name: "Page not found" });
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Sayfa bulunamadı",
+      });
       await waitFor(() => expect(robots()).toBe("noindex"));
     },
   );
@@ -123,7 +125,7 @@ describe("NotFound copy", () => {
     expect(translate("de", "notFound.page.title")).toBe("Page not found");
   });
 
-  it("variant='post' on a TR post URL: TR heading, links to the live blog", async () => {
+  it("variant='post' on a TR post URL: TR heading, links to the Turkish blog", async () => {
     render(
       <MemoryRouter initialEntries={["/tr/blog/bu-yazi-yok"]}>
         <NotFound variant="post" />
@@ -132,7 +134,7 @@ describe("NotFound copy", () => {
     screen.getByRole("heading", { level: 1, name: "Yazı bulunamadı" });
     expect(screen.getByRole("link", { name: "Bloga dön" })).toHaveAttribute(
       "href",
-      "/blog",
+      "/tr/blog",
     );
     await waitFor(() =>
       expect(document.title).toBe("Yazı bulunamadı | Cengizhan Köse"),

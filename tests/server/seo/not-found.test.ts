@@ -81,21 +81,29 @@ describe("unknown page paths -> 404 + noindex (SEO-02, SEC-23)", () => {
   });
 });
 
-describe("TR pages are 404 until they open (SEO-02 step 7, SEO-11 Adım B)", () => {
-  test.each([
-    "/tr",
-    "/tr/",
-    "/tr/about",
-    "/tr/portfolio",
-    "/tr/contact",
-    "/tr/blog",
-  ])("%s -> 404, EN not-found shell", async (path) => {
-    const html = await expectNotFoundPage(await get(path), "en");
-    expect(html).toContain("Page not found | Cengizhan Köse");
+describe("TR pages are open since W11 (SEO-02 step 7, SEO-11 Adım B)", () => {
+  test.each(["/tr", "/tr/about", "/tr/portfolio", "/tr/contact", "/tr/blog"])(
+    "%s -> 200 shell, indexable",
+    async (path) => {
+      const res = await get(path);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("x-robots-tag")).toBeNull();
+      expect(await res.text()).not.toContain("Page not found");
+    },
+  );
+
+  test("/tr/ -> 301 /tr", async () => {
+    const res = await get("/tr/");
+    expect(res.status).toBe(301);
+    expect(res.headers.get("location")).toBe("/tr");
   });
 
-  test("/tr/this-page-does-not-exist -> 404 + noindex", async () => {
-    await expectNotFoundPage(await get("/tr/this-page-does-not-exist-7f3"));
+  test("/tr/this-page-does-not-exist -> 404 + noindex, the Turkish not-found title", async () => {
+    const html = await expectNotFoundPage(
+      await get("/tr/this-page-does-not-exist-7f3"),
+      "tr",
+    );
+    expect(html).toContain("Sayfa bulunamadı | Cengizhan Köse");
   });
 });
 
@@ -198,10 +206,10 @@ describe("one URL per page: 301 to the canonical spelling (SEO-02 step 3d)", () 
     }
   });
 
-  test("a spelling of a closed language is not redirected", async () => {
+  test("a spelling of an open language is redirected like an EN one (TR open since W11)", async () => {
     const res = await get("/TR/About");
-    expect(res.status).toBe(404);
-    expect(res.headers.get("location")).toBeNull();
+    expect(res.status).toBe(301);
+    expect(res.headers.get("location")).toBe("/tr/about");
   });
 });
 

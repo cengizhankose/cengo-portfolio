@@ -51,7 +51,7 @@ const Links = () => (
   <nav>
     <Link to="/blog">Blog</Link>
     <Link to="/blog/hello-world">Hello link</Link>
-    <Link to="/tr/blog">TR blog (closed)</Link>
+    <Link to="/tr/blog">TR blog</Link>
     <a href="https://example.org/blog/x">Elsewhere</a>
   </nav>
 );
@@ -97,8 +97,17 @@ describe("which links count (keysForRoute)", () => {
     expect(keysForRoute(matchRoute("/tr/blog/merhaba-dunya"))).toEqual([
       "/api/posts/merhaba-dunya",
     ]);
-    // Closed language, other pages, 404s: nothing.
-    expect(keysForRoute(matchRoute("/tr/blog"))).toEqual([]);
+    // The TR blog index (TR pages open since W11) asks the TR group first.
+    expect(keysForRoute(matchRoute("/tr/blog"))).toEqual([
+      "/api/posts?lang=tr",
+      "/api/posts?lang=en&missingIn=tr",
+    ]);
+    // Closed language (rollback), other pages, 404s: nothing.
+    expect(
+      keysForRoute(
+        matchRoute("/tr/blog", { static: ["en"], post: ["en", "tr"] }),
+      ),
+    ).toEqual([]);
     expect(keysForRoute(matchRoute("/about"))).toEqual([]);
     expect(keysForRoute(matchRoute("/blog/Bad_Slug"))).toEqual([]);
     expect(PREFETCH_SELECTOR).toBe("a[href*='/blog']");
@@ -160,16 +169,25 @@ describe("intent -> request (PERF-14 criterion 2)", () => {
     ]);
   });
 
-  it("no request for cached keys, closed languages, other sites or Save-Data", async () => {
+  it("hovering the TR blog link preloads the TR lists (TR pages open since W11)", async () => {
+    renderWithPrefetch("/blog");
+    await screen.findByRole("link", { name: "Hello world" });
+    fetchMock.mockClear();
+
+    fireEvent.pointerOver(screen.getByRole("link", { name: "TR blog" }));
+    expect(calls(fetchMock)).toEqual([
+      "/api/posts?lang=tr",
+      "/api/posts?lang=en&missingIn=tr",
+    ]);
+  });
+
+  it("no request for cached keys, other sites or Save-Data", async () => {
     renderWithPrefetch("/blog");
     await screen.findByRole("link", { name: "Hello world" });
     fetchMock.mockClear();
 
     // Already in the cache (the page just loaded them).
     fireEvent.pointerOver(screen.getByRole("link", { name: "Blog" }));
-    fireEvent.pointerOver(
-      screen.getByRole("link", { name: "TR blog (closed)" }),
-    );
     fireEvent.pointerOver(screen.getByRole("link", { name: "Elsewhere" }));
     expect(calls(fetchMock)).toEqual([]);
 

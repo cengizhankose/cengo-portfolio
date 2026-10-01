@@ -71,12 +71,12 @@ describe("theme toggle (DSG-02, FE-02)", () => {
 });
 
 describe("keyboard order", () => {
-  it("goes skip link -> logo -> theme toggle -> menu button", async () => {
+  it("goes skip link -> logo -> language switcher -> theme toggle -> menu button (TR open since W11)", async () => {
     const user = userEvent.setup();
     renderHeader();
 
     const stops = [];
-    for (let step = 0; step < 4; step += 1) {
+    for (let step = 0; step < 5; step += 1) {
       await user.tab();
       stops.push(
         document.activeElement.getAttribute("aria-label") ??
@@ -84,7 +84,13 @@ describe("keyboard order", () => {
       );
     }
 
-    expect(stops).toEqual(["Skip to content", "CENGO", "Dark theme", "Menu"]);
+    expect(stops).toEqual([
+      "Skip to content",
+      "CENGO",
+      "TR – Türkçe",
+      "Dark theme",
+      "Menu",
+    ]);
   });
 });
 

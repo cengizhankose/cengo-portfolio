@@ -1,32 +1,13 @@
-// Helper for tr-open.test.ts, run by Bun in its own process: the site as it
-// will be once the TR static pages are opened (SEO-11 Adım B, W11), which is
-// the single edit `static: ["en"]` -> `["en", "tr"]` in src/seo/routes.js. The
-// edit is applied while the module loads, so nothing on disk changes. Prerenders
+// Helper for tr-open.test.ts, run by Bun in its own process: the site with
+// the TR static pages open (LIVE.static = ["en", "tr"] since W11, SEO-11 Adım
+// B). Until W11 this helper applied that edit while src/seo/routes.js loaded;
+// the real table now says it, so nothing is patched. Prerenders
 // a copy of the fixture dist, serves it through the real site handler and
 // prints, as JSON, what each page answered.
 //
 //   bun tests/server/ssr/tr-open-prerender.ts <tmp dist dir>
-import { plugin } from "bun";
 import "../../frontend/css-arch/bun-css-modules";
 import { Hono } from "hono";
-
-plugin({
-  name: "open-tr-static-pages",
-  setup(build) {
-    build.onLoad(
-      { filter: /src[\\/]seo[\\/]routes\.js$/ },
-      async ({ path }) => {
-        const source = await Bun.file(path).text();
-        const opened = source.replace(
-          'static: Object.freeze(["en"])',
-          'static: Object.freeze(["en", "tr"])',
-        );
-        if (opened === source) throw new Error("LIVE.static changed shape");
-        return { contents: opened, loader: "js" };
-      },
-    );
-  },
-});
 
 const dist = process.argv[2];
 const { prerender } = await import("../../../scripts/prerender");

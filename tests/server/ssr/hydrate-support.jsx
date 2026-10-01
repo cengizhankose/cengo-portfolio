@@ -64,7 +64,7 @@ export const HYDRATION_MESSAGE =
 export const WIRE = (data) => JSON.parse(JSON.stringify(data));
 const keyOf = (url, data) => `${url}\u0000${JSON.stringify(data)}`;
 
-export function drawPages(pages, { openTr = false } = {}) {
+export function drawPages(pages) {
   const stdout = execFileSync(
     "bun",
     [join(import.meta.dirname, "render-pages.ts")],
@@ -72,7 +72,6 @@ export function drawPages(pages, { openTr = false } = {}) {
       input: JSON.stringify(pages.map(([url, data]) => [url, WIRE(data)])),
       encoding: "utf8",
       maxBuffer: 64 * 1024 * 1024,
-      env: { ...process.env, OPEN_TR: openTr ? "1" : "0" },
     },
   );
   const html = JSON.parse(stdout);

@@ -183,12 +183,23 @@ describe("route chunks are requested on their own route only", () => {
     expect(table.loadBlogHome).not.toHaveBeenCalled();
   });
 
-  it("a path the router answers with NotFound never loads a chunk (/tr/blog while the TR pages are closed)", async () => {
+  it("/tr/blog (TR pages open since W11) loads BlogHome only", async () => {
     const table = await freshRoutes();
     renderAt(table, "/tr/blog");
 
     expect(
-      await screen.findByRole("heading", { name: /not found/i }),
+      await screen.findByRole("heading", { level: 1, name: "Blog" }),
+    ).toBeInTheDocument();
+    expect(table.loadBlogHome).toHaveBeenCalledTimes(1);
+    expect(table.loadBlogPost).not.toHaveBeenCalled();
+  });
+
+  it("a path the router answers with NotFound never loads a chunk (/tr/blog/Bad_Slug is no post)", async () => {
+    const table = await freshRoutes();
+    renderAt(table, "/tr/blog/Bad_Slug");
+
+    expect(
+      await screen.findByRole("heading", { name: /sayfa bulunamadı/i }),
     ).toBeInTheDocument();
     await act(async () => {});
     expect(table.loadBlogHome).not.toHaveBeenCalled();

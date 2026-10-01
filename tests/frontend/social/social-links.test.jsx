@@ -221,10 +221,10 @@ describe("rail and menu footer on the page (DSG-30, SEO-24, MKT-23)", () => {
     expect(footer.querySelector(".copyright")).not.toBeNull();
   });
 
-  it("the rail keeps its caption (EN 'Follow Me' by default, prop wins)", () => {
+  it("the rail keeps its caption (EN 'Find me elsewhere' by default, prop wins)", () => {
     const { unmount } = render(<Socialicons />);
     expect(document.querySelector(`.${railStyles.rail} p`).textContent).toBe(
-      "Follow Me",
+      "Find me elsewhere",
     );
     unmount();
     render(<Socialicons followLabel="Custom" />);

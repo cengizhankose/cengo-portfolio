@@ -117,12 +117,12 @@ describe("missing post -> NotFound variant 'post' (SEO-08, FE-16 step 3)", () =>
     expect(document.head.querySelectorAll("title")).toHaveLength(1);
   });
 
-  it("/tr/blog/<missing>: 'Yazı bulunamadı', link to the live blog (/blog)", async () => {
+  it("/tr/blog/<missing>: 'Yazı bulunamadı', link to the Turkish blog (/tr/blog, open since W11)", async () => {
     renderAt("/tr/blog/bu-yazi-yok-seo-audit-7f3");
     await screen.findByRole("heading", { level: 1, name: "Yazı bulunamadı" });
     expect(screen.getByRole("link", { name: "Bloga dön" })).toHaveAttribute(
       "href",
-      "/blog",
+      "/tr/blog",
     );
     await waitFor(() =>
       expect(document.title).toBe("Yazı bulunamadı | Cengizhan Köse"),
@@ -171,16 +171,16 @@ describe("a post lives under its own language's path (SEO-11 Adım A)", () => {
     expect(heading.closest("article")).toHaveAttribute("lang", "en");
   });
 
-  it("the TR post: <html lang='tr'>, <article lang='tr'>, back link to /blog, no hreflang", async () => {
+  it("the TR post: <html lang='tr'>, <article lang='tr'>, back link to /tr/blog, no hreflang", async () => {
     renderAt("/tr/blog/sadece-turkce");
     const heading = await screen.findByRole("heading", {
       level: 1,
       name: "Sadece Türkçe",
     });
     expect(heading.closest("article")).toHaveAttribute("lang", "tr");
-    expect(screen.getByRole("link", { name: /Back to Blog/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Bloga dön/ })).toHaveAttribute(
       "href",
-      "/blog",
+      "/tr/blog",
     );
     await waitFor(() => expect(document.documentElement.lang).toBe("tr"));
     expect(document.title).toBe("Sadece Türkçe | Cengizhan Köse");
@@ -202,14 +202,19 @@ describe("a post lives under its own language's path (SEO-11 Adım A)", () => {
     expect(hreflangs()).toEqual(pair);
   });
 
-  it("leaving the post for /about: lang back to en, hreflang removed", async () => {
+  it("leaving the post for /about: lang back to en, hreflang is the About page's own pair", async () => {
     renderAt("/tr/blog/merhaba-dunya");
     await waitFor(() => expect(document.documentElement.lang).toBe("tr"));
     await waitFor(() => expect(hreflangs()).toHaveLength(3));
 
     await act(async () => navigate("/about"));
     await waitFor(() => expect(document.documentElement.lang).toBe("en"));
-    expect(hreflangs()).toEqual([]);
+    // The post's pair is gone; /about is paired with /tr/about (TR open since W11).
+    expect(hreflangs()).toEqual([
+      ["en", `${WWW}/about`],
+      ["tr", `${WWW}/tr/about`],
+      ["x-default", `${WWW}/about`],
+    ]);
   });
 });
 
@@ -229,7 +234,8 @@ describe("moving between posts", () => {
     await act(async () => navigate("/tr/blog/merhaba-dunya"));
 
     expect(screen.queryByRole("heading", { name: "Hello world" })).toBeNull();
-    expect(screen.getByText("Loading…")).toBeInTheDocument();
+    // The loading text follows the interface language of the page (TR).
+    expect(screen.getByText("Yükleniyor…")).toBeInTheDocument();
 
     await act(async () => release());
     await screen.findByRole("heading", { level: 1, name: "Merhaba dünya" });

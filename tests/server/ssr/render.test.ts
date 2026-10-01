@@ -57,13 +57,16 @@ describe("the static pages", () => {
     expect(html).not.toContain('rel="preload"');
   });
 
-  test("the language of a page is the URL's: the TR pages are closed, so /tr/about is the 404 page in English", async () => {
-    // LIVE.static is ['en'] until the TR pages open (SEO-11 Adım B); the
-    // client's LiveGate says the same, which is what hydration needs.
+  test("the language of a page is the URL's: /tr/about is the About page in Turkish, an unknown /tr path the Turkish 404 page", async () => {
+    // LIVE.static has 'tr' since W11 (SEO-11 Adım B); the client's LiveGate
+    // says the same, which is what hydration needs.
     const tr = await body("/tr/about");
-    expect(tr).toContain(" not-found");
+    expect(tr).not.toContain(" not-found");
     expect(tr).not.toBe(await body("/about"));
-    expect(h1Of(tr)).toContain("Page not found");
+    expect(tr).toContain('lang="tr"');
+    const missing = await body("/tr/yok-boyle-bir-sayfa");
+    expect(missing).toContain(" not-found");
+    expect(h1Of(missing)).toContain("Sayfa bulunamadı");
   });
 
   test("an unknown path is the NotFound page, with a link home", async () => {

@@ -95,7 +95,7 @@ describe("a route change ends with one of each tag", () => {
       titles: 1,
       descriptions: 1,
       canonicals: 1,
-      hreflang: 0,
+      hreflang: 3, // en, tr and x-default: the TR home is open since W11
       ogTitles: 1,
       ogUrls: 1,
       twitter: 1,

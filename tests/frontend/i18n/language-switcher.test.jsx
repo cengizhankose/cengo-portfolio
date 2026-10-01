@@ -261,8 +261,8 @@ describe("styles (DSG-19 step 7, criteria 3-4; checked on the CSS source)", () =
     );
   });
 
-  it("marks the current language by weight and underline, the other at 500", () => {
-    expect(rule(".item")).toMatch(/font:\s*500 /);
+  it("marks the current language by weight and underline, the other at 400", () => {
+    expect(rule(".item")).toMatch(/font:\s*400 /);
     expect(rule(".item[aria-current]")).toMatch(/font-weight:\s*700/);
     expect(rule(".item[aria-current]")).toMatch(
       /box-shadow:\s*inset 0 -2px 0 var\(--text-color\)/,

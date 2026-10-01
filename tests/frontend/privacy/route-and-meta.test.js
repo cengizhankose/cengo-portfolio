@@ -25,15 +25,21 @@ describe("the /privacy route", () => {
     expect(PAGE_ROUTES.map((route) => route.path)).toContain("/privacy");
   });
 
-  it("/privacy is a live static route; /tr/privacy waits for the TR flip", () => {
+  it("/privacy and /tr/privacy are live static routes (TR open since W11)", () => {
     expect(matchRoute("/privacy")).toMatchObject({
       type: "static",
       locale: "en",
       path: "/privacy",
     });
     expect(matchRoute("/privacy/")).toMatchObject({ type: "static" });
-    expect(LIVE.static).not.toContain("tr");
-    expect(matchRoute("/tr/privacy").type).toBe("notfound");
+    expect(LIVE.static).toContain("tr");
+    expect(matchRoute("/tr/privacy")).toMatchObject({
+      type: "static",
+      locale: "tr",
+    });
+    expect(
+      matchRoute("/tr/privacy", { static: ["en"], post: ["en", "tr"] }).type,
+    ).toBe("notfound");
     expect(matchRoute("/tr/privacy", ALL_LIVE)).toMatchObject({
       type: "static",
       locale: "tr",
@@ -61,17 +67,19 @@ describe("the /privacy meta", () => {
     expect(tr.lang).toBe("tr");
   });
 
-  it("is canonical under its own address, without hreflang until TR opens", () => {
+  it("is canonical under its own address, paired by hreflang since TR is open", () => {
     expect(canonicalUrl("/privacy", "en")).toBe(
       "https://www.cengizhankose.com/privacy",
     );
     expect(getPageMeta("/privacy", "en").canonical).toBe(
       "https://www.cengizhankose.com/privacy",
     );
-    expect(alternatesFor("/privacy")).toEqual([]);
+    expect(
+      alternatesFor("/privacy", {}, { static: ["en"], post: ["en"] }),
+    ).toEqual([]);
   });
 
-  it("pairs /privacy with /tr/privacy (en, tr, x-default) once TR is live", () => {
+  it("pairs /privacy with /tr/privacy (en, tr, x-default) with TR live", () => {
     const expected = [
       { hreflang: "en", href: "https://www.cengizhankose.com/privacy" },
       { hreflang: "tr", href: "https://www.cengizhankose.com/tr/privacy" },

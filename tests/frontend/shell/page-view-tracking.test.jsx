@@ -246,17 +246,28 @@ describe("unknown and closed routes", () => {
     expect(views()[0].postSlug).toBeUndefined();
   });
 
-  it("a path in a language that is not open yet is what the visitor sees: not_found, in the URL's ui_locale", () => {
+  it("a TR page is a page view of its own type, in the URL's ui_locale (TR open since W11)", () => {
     renderAt("/tr/about");
 
     expect(views()).toHaveLength(1);
     expect(views()[0]).toMatchObject({
       path: "/tr/about",
+      pageType: "about",
+      uiLocale: "tr",
+    });
+  });
+
+  it("an unknown TR path is not_found, in the URL's ui_locale", () => {
+    renderAt("/tr/yok");
+
+    expect(views()).toHaveLength(1);
+    expect(views()[0]).toMatchObject({
+      path: "/tr/yok",
       pageType: "not_found",
       uiLocale: "tr",
     });
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      /not found/i,
+      /bulunamadı/i,
     );
   });
 

@@ -113,6 +113,12 @@ const STATIC_COUNT = STATIC_PATHS.filter(
   (path) => !/\bnoindex\b/i.test(registry[path].en.robots ?? ""),
 ).length;
 
+// The static URLs of the live route table: the TR pages are open since W11, so
+// every static page is listed in both languages. EN_ONLY is the shape the table
+// had before (and has again if the TR pages are closed).
+const LIVE_STATIC = STATIC_COUNT * LIVE.static.length;
+const EN_ONLY = Object.freeze({ static: ["en"], post: [...LIVE.post] });
+
 describe("buildSitemap: document", () => {
   const xml = buildSitemap(pages, FIXTURE, ALL_LIVE);
 
@@ -147,13 +153,17 @@ describe("buildSitemap: document", () => {
 
   test("empty input still yields a valid document with the static pages", () => {
     const urls = parse(buildSitemap(pages, [], LIVE));
-    expect(locs(urls)).toHaveLength(STATIC_COUNT);
+    expect(locs(urls)).toHaveLength(LIVE_STATIC);
   });
 });
 
 describe("buildSitemap: which URLs", () => {
-  test("live route table: EN static pages only (the TR pages are still closed)", () => {
-    const urls = locs(parse(buildSitemap(pages, FIXTURE, LIVE)));
+  test("live route table: both languages (TR open since W11); EN pages only if it is closed", () => {
+    const live = locs(parse(buildSitemap(pages, [], LIVE)));
+    expect(live).toHaveLength(LIVE_STATIC);
+    expect(live).toContain(`${SITE_URL}/tr`);
+    expect(live).toContain(`${SITE_URL}/tr/about`);
+    const urls = locs(parse(buildSitemap(pages, FIXTURE, EN_ONLY)));
     const staticUrls = urls.filter((loc) => !loc.includes("/blog/"));
     expect(staticUrls).toHaveLength(STATIC_COUNT);
     expect(staticUrls).toContain(`${SITE_URL}/`);
@@ -173,7 +183,7 @@ describe("buildSitemap: which URLs", () => {
   });
 
   test("posts: own language path, TR posts under /tr/blog, total = static + posts", () => {
-    const urls = locs(parse(buildSitemap(pages, FIXTURE, LIVE)));
+    const urls = locs(parse(buildSitemap(pages, FIXTURE, EN_ONLY)));
     expect(urls).toContain(`${SITE_URL}/blog/hello-world`);
     expect(urls).toContain(`${SITE_URL}/blog/only-english`);
     expect(urls).toContain(`${SITE_URL}/tr/blog/merhaba-dunya`);
@@ -301,8 +311,8 @@ describe("buildSitemap: xhtml:link alternates", () => {
     expect(find(urls, `${SITE_URL}/blog/lonely`).alternates).toEqual([]);
   });
 
-  test("live route table (TR static pages closed): static pages have no alternates, post pairs still do", () => {
-    const live = parse(buildSitemap(pages, FIXTURE, LIVE));
+  test("EN-only route table (TR static pages closed): static pages have no alternates, post pairs still do", () => {
+    const live = parse(buildSitemap(pages, FIXTURE, EN_ONLY));
     for (const path of ["/", "/about", "/blog"]) {
       expect(find(live, `${SITE_URL}${path}`).alternates).toEqual([]);
     }
@@ -394,7 +404,7 @@ describe("GET /sitemap.xml through createApp", () => {
     expect(res.headers.get("x-robots-tag")).toBeNull();
     const urls = parse(await res.text());
     // fakeQueries: EN_POST, TR_POST (a pair) and TR_ONLY_POST
-    expect(urls).toHaveLength(STATIC_COUNT + 3);
+    expect(urls).toHaveLength(LIVE_STATIC + 3);
   });
 
   test("HEAD answers like GET without a body", async () => {
@@ -508,7 +518,7 @@ describe("the sitemap over the production schema (PGlite)", () => {
     expect(blog).toHaveLength(MANY + 2);
     expect(urls).toContain(`${SITE_URL}/blog/bulk-000`);
     expect(urls).toContain(`${SITE_URL}/blog/bulk-059`);
-    expect(urls).toHaveLength(STATIC_COUNT + MANY + 2);
+    expect(urls).toHaveLength(LIVE_STATIC + MANY + 2);
   });
 
   test("the post count equals the API's (per language): <loc> = static + /api/posts", async () => {
@@ -527,7 +537,7 @@ describe("the sitemap over the production schema (PGlite)", () => {
     };
     const total = (await api("en")) + (await api("tr"));
     const urls = locs(parse(await (await app.request(SITEMAP_PATH)).text()));
-    expect(urls).toHaveLength(STATIC_COUNT + total);
+    expect(urls).toHaveLength(LIVE_STATIC + total);
   });
 
   test("a post's lastmod is the same day as updatedAt in /api/posts/<slug>", async () => {

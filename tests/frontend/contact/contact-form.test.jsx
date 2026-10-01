@@ -437,7 +437,7 @@ describe("page semantics", () => {
       ),
     ).toEqual(["H1", "H2"]);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Contact me",
+      "Let’s work together",
     );
   });
 

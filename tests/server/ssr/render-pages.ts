@@ -5,31 +5,10 @@
 // share a process with a DOM (jsdom) when the client side is the one under
 // test: they would warn about each other's contexts.
 //
-// OPEN_TR=1 draws the site as it will be once the TR static pages are open
-// (SEO-11 Adım B): the one edit `static: ["en"]` -> `["en", "tr"]` in
-// src/seo/routes.js, applied while the module loads. Nothing on disk changes.
-import { plugin } from "bun";
+// The TR static pages are open in the real route table since W11 (SEO-11
+// Adım B: LIVE.static = ["en", "tr"]), so nothing is patched any more; the
+// OPEN_TR switch that applied that edit while src/seo/routes.js loaded is gone.
 import "../../frontend/css-arch/bun-css-modules";
-
-if (process.env.OPEN_TR === "1") {
-  plugin({
-    name: "open-tr-static-pages",
-    setup(build) {
-      build.onLoad(
-        { filter: /src[\\/]seo[\\/]routes\.js$/ },
-        async ({ path }) => {
-          const source = await Bun.file(path).text();
-          const opened = source.replace(
-            'static: Object.freeze(["en"])',
-            'static: Object.freeze(["en", "tr"])',
-          );
-          if (opened === source) throw new Error("LIVE.static changed shape");
-          return { contents: opened, loader: "js" };
-        },
-      );
-    },
-  });
-}
 
 // @ts-expect-error: a .jsx module without declarations (Bun compiles it).
 const { render } = await import("../../../src/entry-server.jsx");

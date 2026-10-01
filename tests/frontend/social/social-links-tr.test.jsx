@@ -56,7 +56,7 @@ describe("TR pages live", () => {
       expect(name.endsWith("(yeni sekmede açılır)")).toBe(true);
     });
     expect(document.querySelector(`.${railStyles.rail} p`).textContent).toBe(
-      "Takip et",
+      "Beni başka yerlerde bul",
     );
   });
 
