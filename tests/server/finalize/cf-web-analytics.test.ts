@@ -151,6 +151,18 @@ describe("the privacy notice (EN and TR)", () => {
     });
   }
 
+  test("off: the whole notice no longer mentions Cloudflare Web Analytics", async () => {
+    for (const lang of ["en", "tr"] as const) {
+      process.env.VITE_CF_WEB_ANALYTICS = "off";
+      const module = (await import(
+        `../../../src/content/${lang}/privacy.js?text=off-${lang}`
+      )) as { default: unknown };
+      expect(JSON.stringify(module.default), lang).not.toContain(
+        "Cloudflare Web Analytics",
+      );
+    }
+  });
+
   test("EN and TR keep the same ids in the same order under both settings", async () => {
     for (const flag of [undefined, "off"]) {
       const en = (await processors("en", flag)).map((entry) => entry.id);

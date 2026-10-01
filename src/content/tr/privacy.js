@@ -135,7 +135,8 @@ export default {
     complaint:
       "Ayrıca Türkiye’de Kişisel Verileri Koruma Kurumu’na (KVKK) ya da ülkendeki veri koruma otoritesine şikâyette bulunabilirsin.",
   },
-  changes:
-    "Yukarıdakilerden biri değişirse, örneğin Cloudflare Web Analytics kapatıldığında, bu sayfayı ve tarihini güncellerim.",
+  changes: cloudflareBeaconOn
+    ? "Yukarıdakilerden biri değişirse, örneğin Cloudflare Web Analytics kapatıldığında, bu sayfayı ve tarihini güncellerim."
+    : "Yukarıdakilerden biri değişirse, bu sayfayı ve tarihini güncellerim.",
   privacyProcessors,
 };

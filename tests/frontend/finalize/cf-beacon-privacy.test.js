@@ -34,3 +34,21 @@ describe.each(["en", "tr"])("privacy processors (%s)", (lang) => {
     }
   });
 });
+
+describe.each(["en", "tr"])("privacy text (%s)", (lang) => {
+  async function text(flag) {
+    vi.resetModules();
+    if (flag === undefined) vi.unstubAllEnvs();
+    else vi.stubEnv("VITE_CF_WEB_ANALYTICS", flag);
+    const module = await import(`../../../src/content/${lang}/privacy.js`);
+    return JSON.stringify(module.default);
+  }
+
+  it("mentions Cloudflare Web Analytics by default", async () => {
+    expect(await text(undefined)).toContain("Cloudflare Web Analytics");
+  });
+
+  it("does not mention it anywhere once the flag is off (T-09 criterion)", async () => {
+    expect(await text("off")).not.toContain("Cloudflare Web Analytics");
+  });
+});

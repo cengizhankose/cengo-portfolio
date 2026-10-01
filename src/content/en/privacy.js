@@ -148,7 +148,8 @@ export default {
     complaint:
       "You can also complain to the Personal Data Protection Authority (KVKK) in Türkiye or to the data protection authority of your country.",
   },
-  changes:
-    "If something above changes, for example when Cloudflare Web Analytics is switched off, I update this page and its date.",
+  changes: cloudflareBeaconOn
+    ? "If something above changes, for example when Cloudflare Web Analytics is switched off, I update this page and its date."
+    : "If something above changes, I update this page and its date.",
   privacyProcessors,
 };
