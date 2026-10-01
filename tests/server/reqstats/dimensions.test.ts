@@ -74,6 +74,7 @@ describe("isBotUserAgent", () => {
     ["Go-http-client/2.0"],
     ["Mozilla/5.0 HeadlessChrome/120"],
     ["Slackbot-LinkExpanding 1.0"],
+    ["externalhit_uatext/1.1 (link preview crawler)"],
     [""],
     [undefined],
   ])("bot: %p", (ua) => {

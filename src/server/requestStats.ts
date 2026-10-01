@@ -99,7 +99,7 @@ export function countryOf(header: string | undefined, host: HostGroup): string {
 }
 
 const BOT_UA =
-  /bot|crawl|spider|slurp|scrap|headless|lighthouse|pingdom|gtmetrix|monitor|uptime|preview|facebookexternalhit|embedly|curl\/|wget|python|go-http|java\/|okhttp|libwww|httpclient|axios|node-fetch|undici|postman/i;
+  /bot|crawl|spider|slurp|scrap|headless|lighthouse|pingdom|gtmetrix|monitor|uptime|preview|externalhit|embedly|curl\/|wget|python|go-http|java\/|okhttp|libwww|httpclient|axios|node-fetch|undici|postman/i;
 
 /** Coarse bot flag from the user agent; an empty or missing one counts as a bot. */
 export function isBotUserAgent(userAgent: string | undefined): boolean {
