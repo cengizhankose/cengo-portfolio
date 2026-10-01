@@ -1,17 +1,17 @@
-/* Site header (FE-01, DSG-18, DSG-22; layout in
-   claudedocs/design/design-plan.md §6.1).
+/* Site header (FE-01, DSG-22; layout in claudedocs/design/design-plan.md
+   §6.1, revised by the owner on 2026-10-01).
 
-   The header is a strip under the page frame. Its controls are tabs: boxes
-   of the surface colour, --header-height tall, 2px apart, hanging from the
-   frame. At the top of the page the strip itself is clear, so the hero
-   under it is unchanged; once the page scrolls the whole strip takes the
-   page background and no text runs between the tabs (.isScrolled).
+   The header is a strip under the page frame: the brand on the left, the
+   language switcher, the theme toggle and the menu button on the right.
+   Its controls are tabs: boxes of the surface colour, --header-height tall,
+   2px apart, hanging from the frame. At the top of the page the strip itself
+   is clear, so the hero under it is unchanged; once the page scrolls the
+   whole strip takes the page background and no text runs between the tabs
+   (.isScrolled).
 
-   Below 992px: brand left, language / theme / menu right; the navigation is
-   the full-screen panel the menu button opens (FE-11). From 992px: the same
-   navigation is a row of tabs before the language switcher and the menu
-   button is gone. The active page is underlined and carries
-   aria-current="page" at every width. */
+   The navigation is the full-screen panel the menu button opens (FE-11), at
+   every width; the active page is underlined and carries
+   aria-current="page" (DSG-18). */
 .siteHeader {
   position: fixed;
   inset: 0 0 auto;
@@ -106,8 +106,7 @@ button.navAction:hover svg {
   margin-left: auto;
 }
 
-/* The navigation below 992px: a full-screen panel that slides down from the
-   top. Hidden (and so out of the tab order) until the menu button opens it;
+/* The navigation: a full-screen panel that slides down from the top. Hidden (and so out of the tab order) until the menu button opens it;
    it keeps its visibility until the slide-up ends. */
 .siteNavigation {
   position: fixed;
@@ -180,8 +179,8 @@ button.navAction:hover svg {
   outline-offset: 4px;
 }
 
-/* The colophon below 992px: the foot of the open panel, profiles first,
-   then privacy and the copyright line. Shown with the panel only. */
+/* The colophon: the foot of the open panel, profiles first, then privacy
+   and the copyright line. Shown with the panel only. */
 .menuFooter {
   position: fixed;
   inset: auto 0 0;
@@ -248,70 +247,13 @@ button.navAction:hover svg {
   }
 }
 
+/* From 992px the panel keeps the full-screen menu (owner decision
+   2026-10-01: the hamburger menu at every width, as before the redesign;
+   the desktop row of tabs was dropped). The links start a third of the way
+   across, the colophon spans the foot of the panel. */
 @media (min-width: 992px) {
-  .menuButton {
-    display: none;
-  }
-
-  /* The navigation becomes the row of tabs left of the language switcher. */
-  .siteNavigation {
-    position: static;
-    margin-left: auto;
-    overflow: visible;
-    visibility: visible;
-  }
-
-  .menuPanel {
-    height: auto;
-    overflow: visible;
-    background: none;
-    transform: none;
-    transition: none;
-  }
-
   .menuList {
-    flex-direction: row;
-    gap: 2px;
-    padding: 0;
-  }
-
-  .navLink {
-    display: inline-flex;
-    align-items: center;
-    height: var(--header-height);
-    padding: 0 var(--space-3);
-    background: var(--surface-color);
-    font-size: var(--fs-md);
-    line-height: 1;
-  }
-
-  .navLink:hover,
-  .navLink[aria-current="page"] {
-    text-underline-offset: 6px;
-  }
-
-  .controls {
-    margin-left: 0;
-  }
-
-  /* From here the side rail shows the profiles; the colophon is a tab that
-     hangs from the bottom edge of the frame, at the right, so the privacy
-     page stays one click away without the menu button. It is the last
-     stop of the header in the tab order. */
-  .footerSocial {
-    display: none;
-  }
-
-  .menuFooter {
-    inset: auto calc(var(--frame-size) + var(--space-5)) var(--frame-size) auto;
-    padding: 0 var(--space-2);
-    visibility: visible;
-  }
-
-  /* Inset outlines along the frame, like the tabs at the top. */
-  .siteNavigation a:focus-visible,
-  .menuFooter a:focus-visible {
-    outline-offset: -2px;
+    padding: 12vh calc(var(--frame-size) + var(--space-4)) 9rem 33.3333%;
   }
 }
 

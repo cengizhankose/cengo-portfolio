@@ -9,14 +9,8 @@ import { LanguageSwitcher } from "../components/langswitch";
 import SocialLinks from "../components/SocialLinks.jsx";
 import { useLocalePath, useT, useUiLocale } from "../i18n";
 import { LOCATIONS } from "../lib/analytics/events.js";
-import { useMediaQuery } from "../lib/useMediaQuery.js";
 
 const MENU_ID = "site-navigation";
-
-// From this width the navigation is the row of tabs in the header bar and
-// the menu button is hidden (DSG-18); it matches the 992px breakpoint in
-// ./header.module.css.
-const DESKTOP_QUERY = "(min-width: 992px)";
 
 // Past this many pixels of scroll the header strip takes the page background
 // (DSG-22). At the top of the page it stays clear, so the hero under it does
@@ -25,8 +19,7 @@ const SCROLLED_AFTER = 4;
 
 // Scroll state, read with useSyncExternalStore: the server (and the
 // hydrating first render) sees the page at the top, the browser then
-// re-renders with its real value, without a hydration mismatch. The width is
-// read the same way by the one media query hook (src/lib/useMediaQuery.js).
+// re-renders with its real value, without a hydration mismatch.
 const subscribeScroll = (onChange) => {
   window.addEventListener("scroll", onChange, { passive: true });
   return () => window.removeEventListener("scroll", onChange);
@@ -100,15 +93,14 @@ function skipToMain(event) {
   main.focus();
 }
 
-// The header bar (FE-01, DSG-18, DSG-22): brand, the one navigation,
+// The header bar (FE-01, DSG-18, DSG-22): brand, the navigation panel,
 // language switcher, theme toggle, menu button, then the colophon.
-//   - One <nav> for every width. From 992px it is a row of tabs in the bar;
-//     below, the same element is the full-screen panel the menu button opens
-//     (FE-11). NavLink marks the current page with aria-current="page".
-//   - DOM order = Tab order = visual order (logo, sections, language, theme).
-//   - The colophon (profiles, privacy, copyright) closes the header: the foot
-//     of the open panel below 992px, a tab on the bottom edge of the page
-//     frame from 992px (claudedocs/design/design-plan.md §6.1).
+//   - The navigation is the full-screen panel the menu button opens (FE-11),
+//     at every width (owner decision 2026-10-01: the hamburger menu as before
+//     the redesign, no desktop row of tabs). NavLink marks the current page
+//     with aria-current="page".
+//   - The colophon (profiles, privacy, copyright) is the foot of the open
+//     panel.
 const Headermain = () => {
   const { pathname } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
@@ -120,7 +112,6 @@ const Headermain = () => {
     readScrolled,
     onServer,
   );
-  const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const t = useT();
   const lp = useLocalePath();
   // Header, menu and footer speak the interface language (DSG-19 uiLang),
@@ -135,11 +126,6 @@ const Headermain = () => {
     setMenuPathname(pathname);
     setIsOpen(false);
   }
-
-  // The menu exists below 992px only: a window widened past it while the
-  // menu is open closes the menu, so the page is not left inert and locked
-  // behind a panel that is no longer drawn.
-  if (isOpen && isDesktop) setIsOpen(false);
 
   // Choosing the page that is already open changes no route, so the
   // route-change focus in routes.jsx does not run and focus would drop to
@@ -264,8 +250,7 @@ const Headermain = () => {
 
         <div className={styles.menuFooter}>
           {/* Same K-11 list and order as the side rail (DSG-30); the visible
-              text is the channel's brand name. Below 992px only: from there
-              the rail shows the profiles. */}
+              text is the channel's brand name. */}
           <SocialLinks
             variant="text"
             locale={uiLocale}

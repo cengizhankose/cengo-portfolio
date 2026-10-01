@@ -47,6 +47,7 @@ export default [
     year: 2025,
     place: "2nd place",
     project: "Avenrise",
+    url: "https://www.linkedin.com/feed/update/urn:li:activity:7310203306436395008/",
   },
   {
     id: "istanhack-2024",

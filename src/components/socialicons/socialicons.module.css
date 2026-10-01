@@ -1,14 +1,14 @@
 /* Side rail of social profile links (K-11; DSG-12, DSG-30, FE-01; layout in
    claudedocs/design/design-plan.md §6.3).
 
-   From 992px: a column fixed at the left edge, centred on the viewport
+   From 1280px: a column fixed at the left edge, centred on the viewport
    height. Six --space-5 (32px) icon targets, --space-2 apart
    (6 x 32 + 5 x 8 = 232px), a 40px hairline, then the caption set
    vertically and read from the bottom up. The caption uses writing-mode,
    not a rotated box, so its length (EN "Find me elsewhere", TR "Beni başka
    yerlerde bul") moves nothing and never runs into the icons.
 
-   Below 992px the rail is part of the page flow: the caption, its hairline
+   Below 1280px the rail is part of the page flow: the caption, its hairline
    turned flat, then one row of icons (232px: one line at 375px). */
 .rail {
   position: fixed;
@@ -77,7 +77,7 @@
   background-color: var(--text-color);
 }
 
-@media (max-width: 991px) {
+@media (max-width: 1279.98px) {
   .rail {
     position: static;
     width: auto;

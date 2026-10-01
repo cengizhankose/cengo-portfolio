@@ -5,8 +5,7 @@
 //     own path.
 //   - DOM order = Tab order = visual order: brand, sections, language,
 //     theme, menu button, then the colophon.
-//   - The strip gets its background class once the page has scrolled, and a
-//     window widened to the desktop layout closes an open menu.
+//   - The strip gets its background class once the page has scrolled.
 // jsdom loads no CSS: the width-dependent rules are checked on the source in
 // ./header-css.test.js, and were measured in Chrome for the package report.
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
@@ -146,36 +145,7 @@ describe("strip background on scroll (DSG-22 steps 1-2)", () => {
   });
 });
 
-describe("menu and the desktop layout", () => {
-  it("closes an open menu when the window reaches 992px", () => {
-    const listeners = new Set();
-    let matches = false;
-    vi.stubGlobal("matchMedia", (query) => ({
-      get matches() {
-        return query === "(min-width: 992px)" ? matches : false;
-      },
-      media: query,
-      addEventListener: (_type, fn) => listeners.add(fn),
-      removeEventListener: (_type, fn) => listeners.delete(fn),
-    }));
-    renderHeader("/about");
-    const button = screen.getByRole("button", { name: EN["nav.menu"] });
-
-    fireEvent.click(button);
-    expect(button).toHaveAttribute("aria-expanded", "true");
-    expect(document.body).toHaveClass("scroll-locked");
-
-    act(() => {
-      matches = true;
-      for (const fn of listeners) fn();
-    });
-    expect(button).toHaveAttribute("aria-expanded", "false");
-    expect(document.body).not.toHaveClass("scroll-locked");
-    expect(document.getElementById("site-navigation")).not.toHaveClass(
-      styles.menuOpen,
-    );
-  });
-
+describe("menu", () => {
   it("puts the open state on the header too, for the colophon", () => {
     const { header } = renderHeader("/");
     fireEvent.click(screen.getByRole("button", { name: EN["nav.menu"] }));

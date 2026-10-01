@@ -13,8 +13,7 @@ html {
 
 /* The body clears the fixed header at the top and keeps the content inside
    the page frame at the sides (the frame itself is drawn once, in
-   src/header: FE-20 step 6, FE-01). From 992px the colophon tab hangs from
-   the bottom edge of the frame, so the end of every page stays clear of it. */
+   src/header: FE-20 step 6, FE-01). */
 body {
   height: 100%;
   margin: 0;
@@ -26,12 +25,6 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-@media (min-width: 992px) {
-  body {
-    padding-bottom: calc(var(--frame-size) + var(--space-5));
-  }
 }
 
 ul {

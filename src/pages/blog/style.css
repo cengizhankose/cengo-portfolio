@@ -555,7 +555,7 @@
 /* On a wide screen the frame grows past the 760px text column (centred on
    it), up to the width of the widest diagram, so most diagrams fit without
    scrolling. The 8rem keeps it inside the page frame and clear of the fixed
-   "Find me elsewhere" strip (src/components/socialicons, visible from 992px, right
+   "Find me elsewhere" strip (src/components/socialicons, fixed from 1280px, right
    edge at x=50): the frame's left edge is 4rem from the window edge, so a
    1024-1440px window no longer puts the frame's border under the icons. */
 @media (min-width: 900px) {

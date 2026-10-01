@@ -162,12 +162,16 @@ describe("hackathon archive and talks (MKT-04, MKT-15)", () => {
     expect(items[0].textContent).toContain("ConvoAI World Istanbul");
     expect(items[8].textContent).toContain("Game Pair");
     expect(container.textContent).not.toMatch(/IstanHack/);
-    // Eight records have public evidence and are links; MultiversX is text.
-    expect(archive.querySelectorAll("a")).toHaveLength(8);
+    // Every visible record has public evidence and is a link; MultiversX
+    // links the owner's post (supplied 2026-10-01).
+    expect(archive.querySelectorAll("a")).toHaveLength(9);
     const multiversx = [...items].find((li) =>
       li.textContent.includes("MultiversX"),
     );
-    expect(multiversx.querySelector("a")).toBeNull();
+    expect(multiversx.querySelector("a")).toHaveAttribute(
+      "href",
+      "https://www.linkedin.com/feed/update/urn:li:activity:7310203306436395008/",
+    );
     expect(multiversx.textContent).toContain("Avenrise");
   });
 

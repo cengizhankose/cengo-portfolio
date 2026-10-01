@@ -88,6 +88,8 @@ hariç: daire).
 
 ### 6.1 Header (DSG-18, DSG-19, DSG-22)
 
+> **Sahip revizyonu (2026-10-01, K-13):** masaüstü sekme menüsü kaldırıldı; navigasyon her genişlikte hamburger + tam ekran panel (redesign öncesi düzen). Aşağıdaki masaüstü wireframe'i yalnız tarihçe; aria-current ve kaydırma zemini geçerli. Sosyal şerit 1280px'ten itibaren sabit.
+
 Masaüstü (≥ 992 px): sekmeler çerçeveden sarkan kutulardır. Logo solda, sağ grupta sırasıyla
 nav, dil değiştirici, tema düğmesi. Menü düğmesi yok.
 

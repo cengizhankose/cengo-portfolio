@@ -298,11 +298,11 @@ describe.each(LANGS)("proof and awards archive, %s (MKT-04)", (lang) => {
     ).toEqual(["istanhack-2024"]);
     const visible = awards.filter((award) => !award.hidden);
     expect(visible).toHaveLength(9);
-    // MultiversX: the inputs file has only a feed id with an unverified URN
-    // type (§5 #4), so it stays text until the owner supplies a URL.
+    // Every visible record links its public evidence; MultiversX got the
+    // owner's post on 2026-10-01 (§5 #4).
     expect(
       visible.filter((award) => !award.url).map((award) => award.id),
-    ).toEqual(["multiversx-2025"]);
+    ).toEqual([]);
     for (const award of awards) {
       expect(award.event && award.year && award.place, award.id).toBeTruthy();
     }

@@ -3,8 +3,8 @@
 // FE-01 / DSG-18 / DSG-22, checked on the stylesheet sources (jsdom loads no
 // CSS; the same criteria were measured in headless Chrome at 1440, 992, 991
 // and 375px for the package report):
-//   - from 992px the navigation is a static row of tabs and the menu button
-//     is gone; below it the navigation is the hidden full-screen panel
+//   - the navigation is the hidden full-screen panel the menu button opens,
+//     at every width (owner decision 2026-10-01; no desktop row of tabs)
 //   - the current page is underlined, the other links are not
 //   - the strip is clear at the top and takes the page background once
 //     scrolled; html scroll-padding-top is the header offset, 70px
@@ -23,8 +23,8 @@ const PLAN = read("claudedocs/design/design-plan.md");
 // Custom properties of one tokens.css rule, as written.
 const tokens = (selector) => declared(TOKENS, selector);
 
-describe("desktop navigation (DSG-18 criteria 1-2)", () => {
-  it("is a hidden full-screen panel below 992px", () => {
+describe("navigation panel at every width (owner decision 2026-10-01)", () => {
+  it("is a hidden full-screen panel that the menu button opens", () => {
     expect(declared(HEADER, ".siteNavigation")).toMatchObject({
       position: "fixed",
       inset: "0",
@@ -34,23 +34,12 @@ describe("desktop navigation (DSG-18 criteria 1-2)", () => {
     expect(declared(HEADER, ".menuButton")).toEqual({});
   });
 
-  it("becomes a visible row of tabs from 992px, and the menu button goes", () => {
-    expect(declared(HEADER, ".siteNavigation", DESKTOP)).toMatchObject({
-      position: "static",
-      visibility: "visible",
-    });
-    expect(declared(HEADER, ".menuPanel", DESKTOP)).toMatchObject({
-      transform: "none",
-    });
-    expect(declared(HEADER, ".menuList", DESKTOP)).toMatchObject({
-      "flex-direction": "row",
-    });
-    expect(declared(HEADER, ".navLink", DESKTOP)).toMatchObject({
-      height: "var(--header-height)",
-      background: "var(--surface-color)",
-    });
-    expect(declared(HEADER, ".menuButton", DESKTOP)).toEqual({
-      display: "none",
+  it("stays the panel from 992px: no row of tabs, the menu button stays", () => {
+    expect(declared(HEADER, ".siteNavigation", DESKTOP)).toEqual({});
+    expect(declared(HEADER, ".menuPanel", DESKTOP)).toEqual({});
+    expect(declared(HEADER, ".menuButton", DESKTOP)).toEqual({});
+    expect(declared(HEADER, ".menuList", DESKTOP)).toEqual({
+      padding: "12vh calc(var(--frame-size) + var(--space-4)) 9rem 33.3333%",
     });
   });
 });

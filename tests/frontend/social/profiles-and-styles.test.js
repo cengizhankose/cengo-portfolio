@@ -168,7 +168,7 @@ const rule = (...args) => Object.assign({}, ...rules(...args));
 describe("rail and menu footer CSS (DSG-12)", () => {
   const rail = read("src/components/socialicons/socialicons.module.css");
   const header = read("src/header/header.module.css");
-  const MOBILE = "max-width: 991px";
+  const MOBILE = "max-width: 1279.98px";
 
   // FE-01: the sizes are spacing tokens: --space-4 24px, --space-5 32px,
   // --space-2 8px (src/styles/tokens.css).
@@ -204,7 +204,7 @@ describe("rail and menu footer CSS (DSG-12)", () => {
     expect(rule(rail, ".rail")).not.toHaveProperty("height");
   });
 
-  it("rail below 992px: in the flow, icons in one wrapping row, targets stay 32px", () => {
+  it("rail below 1280px: in the flow, icons in one wrapping row, targets stay 32px", () => {
     expect(rule(rail, ".rail", MOBILE)).toMatchObject({
       position: "static",
     });
