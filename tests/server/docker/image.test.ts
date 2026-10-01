@@ -179,6 +179,14 @@ describe.skipIf(!inCheckout("Dockerfile"))("Dockerfile", () => {
     expect(pkg.devDependencies["@types/bun"]).toBe(version);
   });
 
+  test("production states the database TLS mode: verify-full (SEC-22, BE-13)", async () => {
+    const prod = instructions(stage(await read("Dockerfile"), "production"));
+    expect(prod).toContain("ENV PG_SSL_MODE=verify-full");
+    expect(
+      prod.some((l) => /PG_SSL_MODE=(require|disable|prefer)/.test(l)),
+    ).toBe(false);
+  });
+
   test("production is the LAST stage (Out Plane builds the last stage; SEC-13)", async () => {
     const froms = (await read("Dockerfile")).match(/^FROM .*$/gm) ?? [];
     expect(froms.at(-1)).toMatch(/ AS production$/);

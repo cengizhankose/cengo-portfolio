@@ -65,6 +65,12 @@ RUN bun install --frozen-lockfile --production --omit=peer
 FROM ${BUN_IMAGE} AS production
 WORKDIR /app
 ENV NODE_ENV=production
+# SEC-22 / BE-13: the database TLS mode is stated in the image. verify-full
+# (certificate chain + host name, system CA) also overrides a weaker sslmode
+# left in the platform's connection URL, so a production start never skips
+# certificate verification. A PG_SSL_MODE in the Out Plane env (e.g. the
+# documented, temporary `require` fallback) still wins over this line.
+ENV PG_SSL_MODE=verify-full
 COPY --from=deps-prod /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/build-info.json ./build-info.json
