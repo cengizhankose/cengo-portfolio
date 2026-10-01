@@ -98,7 +98,14 @@ describe.each([
   it("starts the page outline with the h1 and has no other hero heading", () => {
     renderHome(path);
 
-    expect(headings()).toEqual(["H1"]);
+    // The hero is #home; the sections below it (MKT-03) have their own h2s.
+    expect(
+      [...document.querySelectorAll("#home h1, #home h2, #home h3")].map(
+        (heading) => heading.tagName,
+      ),
+    ).toEqual(["H1"]);
+    expect(headings()[0]).toBe("H1");
+    expect(document.querySelectorAll("h1")).toHaveLength(1);
     expect(document.querySelectorAll("#home h2")).toHaveLength(0);
   });
 

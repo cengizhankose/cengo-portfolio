@@ -2,7 +2,7 @@
 // in both languages. The TR pages are not live yet (LIVE.static = ['en']), so
 // the route table is mocked as after SEO-11 Adım B to render /tr. Analytics is
 // mocked: the test reads what the buttons would send.
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -88,8 +88,13 @@ describe.each([
       expect(ring).toHaveAttribute("aria-hidden", "true");
       expect(ring.textContent).toBe("");
     }
-    // The accessible name is the label only.
-    expect(screen.getByRole("link", { name: t("cta.primary") })).toBe(button);
+    // The accessible name is the label only. (The closing call to action of
+    // the page, MKT-03, reuses the label further down: look in the hero.)
+    expect(
+      within(document.getElementById("home")).getByRole("link", {
+        name: t("cta.primary"),
+      }),
+    ).toBe(button);
   });
 
   it("MKT-19: the second path is an evidence link to the portfolio, not a second button", () => {
@@ -220,10 +225,13 @@ describe.each([
     expect(track).toHaveBeenLastCalledWith("cta_clicked", {
       cta_id: "hero_portfolio",
     });
-    expect(track).toHaveBeenCalledTimes(2);
+    // The below-the-fold blocks (MKT-03, SEO-17) may report their own events
+    // (a list request that fails in jsdom); the CTAs sent exactly two.
+    const clicks = track.mock.calls.filter(([name]) => name === "cta_clicked");
+    expect(clicks).toHaveLength(2);
 
     // sanitizeProps keeps both ids: they are not dropped as unknown values.
-    for (const [name, props] of track.mock.calls) {
+    for (const [name, props] of clicks) {
       expect(sanitizeProps(name, props)).toEqual(props);
     }
   });

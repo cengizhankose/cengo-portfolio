@@ -172,12 +172,8 @@ describe("stable service ids (ANL-19 step 3, W2-ANL handoff)", () => {
   const ids = (list) => list.map((service) => service.id);
 
   it("EN services have the agreed unique ids", () => {
-    expect(ids(CONTENT.en.services)).toEqual([
-      "mobile_app_dev",
-      "management",
-      "fullstack_web",
-      "ui_ux",
-    ]);
+    // MKT-13: the ids are the contact form's project types.
+    expect(ids(CONTENT.en.services)).toEqual(["mobile", "web", "ai", "lead"]);
   });
 
   it("TR services carry the same ids at the same positions", () => {

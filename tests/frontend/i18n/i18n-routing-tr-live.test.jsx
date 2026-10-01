@@ -102,8 +102,10 @@ describe("with the TR pages live", () => {
     const main = within(screen.getByRole("main"));
     // W7-MKT-hero-contact-conversion (MKT-19): one button to the contact
     // page and an evidence link to the portfolio.
+    // The closing call to action (MKT-03) repeats the label: the hero's
+    // button comes first.
     expect(
-      await main.findByRole("link", { name: TR["cta.primary"] }),
+      (await main.findAllByRole("link", { name: TR["cta.primary"] }))[0],
     ).toHaveAttribute("href", "/tr/contact");
     expect(
       main.getByRole("link", { name: TR["cta.secondary"] }),
