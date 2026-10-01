@@ -1,11 +1,13 @@
 // @vitest-environment node
 //
-// The card image pipeline (FE-04 step 9, DSG-08 step 7, DSG-29): the three
-// presets of scripts/images/build-responsive.ts, run here on a synthetic
-// screenshot in a temporary directory (the owner's real screenshots are not in
-// the repository yet). Checks: 16:10 crop at 480/800/1280, AVIF + WebP under
-// the 150 KB budget, the file names the card's <picture> asks for, and the
-// refusals (upscaling, a file that cannot fit the budget).
+// The portfolio image pipeline (FE-04 step 9, DSG-08 step 7, DSG-29, W13):
+// the case presets and the podium presets of
+// scripts/images/build-responsive.ts, run here on synthetic pictures in a
+// temporary directory (the committed masters and outputs are checked in
+// registry.test.js and awards.test.js). Checks: 16:10 crop at 480/800/1280
+// and square podiums at 320/640, AVIF + WebP under their budgets, the file
+// names the <picture> elements ask for, and the refusals (upscaling, a file
+// that cannot fit the budget).
 import {
   existsSync,
   mkdirSync,
@@ -25,6 +27,12 @@ import {
   outputHeight,
   planVariants,
 } from "../../../scripts/images/build-responsive.ts";
+import { AWARD_RECORDS } from "../../../src/content/awards.js";
+import {
+  AWARD_IMAGE,
+  awardSrc,
+  awardWidths,
+} from "../../../src/pages/portfolio/awardImage.js";
 import {
   PROJECT_IMAGE,
   projectImageName,
@@ -52,8 +60,13 @@ async function writeSource(relative, width, height) {
   </svg>`;
   const file = join(root, relative);
   mkdirSync(dirname(file), { recursive: true });
-  await sharp(Buffer.from(svg)).png().toFile(file);
+  const image = sharp(Buffer.from(svg));
+  await (
+    relative.endsWith(".jpg") ? image.jpeg({ quality: 92 }) : image.png()
+  ).toFile(file);
 }
+
+const PODIUMS = AWARD_RECORDS.filter((record) => record.image);
 
 beforeAll(() => {
   root = mkdtempSync(join(tmpdir(), "cengo-cover-test-"));
@@ -68,7 +81,7 @@ describe("presets (scripts/images/build-responsive.ts)", () => {
     (preset, name) => {
       const spec = PRESETS[preset];
       expect(spec).toMatchObject({
-        source: `scripts/images/sources/${name}.png`,
+        source: `scripts/images/sources/projects/${name}.jpg`,
         outDir: "public/img/projects",
         name,
         version: PROJECT_IMAGE.version,
@@ -105,6 +118,42 @@ describe("presets (scripts/images/build-responsive.ts)", () => {
     expect(PROJECT_IMAGE.width / PROJECT_IMAGE.height).toBe(1.6);
   });
 
+  it("has one square podium preset per award record with a photo (W13)", () => {
+    expect(PODIUMS.length).toBeGreaterThan(0);
+    for (const { image } of PODIUMS) {
+      const spec = PRESETS[`award-${image.name}`];
+      expect(spec, image.name).toMatchObject({
+        source: `scripts/images/sources/awards/${image.name}.jpg`,
+        outDir: "public/img/awards",
+        name: image.name,
+        version: AWARD_IMAGE.version,
+        aspect: [1, 1],
+        maxBytes: 80 * 1024,
+      });
+      expect(spec.formats).toBe(COVER_FORMATS);
+      expect(spec.widths).toEqual(awardWidths(image));
+      const plan = planVariants(spec).map((variant) => variant.file);
+      const asked = awardWidths(image).flatMap((width) =>
+        ["avif", "webp"].map(
+          (ext) => `public${awardSrc(image.name, width, ext)}`,
+        ),
+      );
+      expect(plan.sort()).toEqual(asked.sort());
+    }
+    // A record without a photo has no preset.
+    const names = PODIUMS.map((record) => `award-${record.image.name}`);
+    expect(
+      Object.keys(PRESETS).filter((key) => key.startsWith("award-")),
+    ).toEqual(names);
+  });
+
+  it("a podium photo smaller than the default set lists its own widths, never upscaled", () => {
+    expect(AWARD_IMAGE.widths).toEqual([320, 640]);
+    const own = PODIUMS.filter((record) => record.image.widths);
+    expect(own.map((record) => record.id)).toEqual(["hackstellar-2025"]);
+    expect(awardWidths(own[0].image)).toEqual([320, 448]);
+  });
+
   it("rejects a malformed spec", () => {
     const base = PRESETS["portfolio-farmin"];
     expect(() => planVariants({ ...base, aspect: [16, 0] })).toThrow(/aspect/);
@@ -119,7 +168,11 @@ describe("building a cover", () => {
   it(
     "writes six files at 480/800/1280, cropped to 16:10 and under 150 KB",
     async () => {
-      await writeSource("scripts/images/sources/salesgym.png", 1800, 1100);
+      await writeSource(
+        "scripts/images/sources/projects/salesgym.jpg",
+        1800,
+        1100,
+      );
 
       const built = await buildResponsive(PRESETS["portfolio-salesgym"], root);
 
@@ -204,7 +257,11 @@ describe("building a cover", () => {
   it(
     "an exact 1280x800 capture is accepted (the effort screenshot)",
     async () => {
-      await writeSource("scripts/images/sources/effort-lab.png", 1280, 800);
+      await writeSource(
+        "scripts/images/sources/projects/effort-lab.jpg",
+        1280,
+        800,
+      );
       const built = await buildResponsive(
         PRESETS["portfolio-effort-lab"],
         root,
@@ -212,6 +269,45 @@ describe("building a cover", () => {
       expect(
         built.map((variant) => variant.width).sort((a, b) => a - b),
       ).toEqual([480, 480, 800, 800, 1280, 1280]);
+    },
+    SLOW,
+  );
+});
+
+describe("building a podium photo (W13)", () => {
+  it(
+    "writes a square AVIF + WebP per width, under 80 KB, without metadata",
+    async () => {
+      const spec = PRESETS["award-teknasyon-2022"];
+      await writeSource(spec.source, 900, 1200);
+
+      const built = await buildResponsive(spec, root);
+
+      expect(
+        built.map((variant) => variant.width).sort((a, b) => a - b),
+      ).toEqual([320, 320, 640, 640]);
+      for (const variant of built) {
+        const file = join(root, variant.file);
+        expect(statSync(file).size, variant.file).toBeLessThanOrEqual(
+          AWARD_IMAGE.maxBytes,
+        );
+        const info = imageInfo(readFileSync(file));
+        expect(info.width).toBe(variant.width);
+        expect(info.height).toBe(variant.width);
+        expect(info.exif).toBeFalsy();
+      }
+    },
+    SLOW,
+  );
+
+  it(
+    "refuses a podium source smaller than its largest width",
+    async () => {
+      const spec = PRESETS["award-hackstellar-2025"];
+      await writeSource(spec.source, 400, 400);
+      await expect(buildResponsive(spec, root)).rejects.toThrow(
+        /400px wide; 448w would be upscaled/,
+      );
     },
     SLOW,
   );
@@ -225,12 +321,15 @@ describe("the command line (W6 review handoff)", () => {
     );
     expect(source).toMatch(/Object\.hasOwn\(PRESETS, name\)/);
     expect(Object.hasOwn(PRESETS, "constructor")).toBe(false);
-    expect(Object.keys(PRESETS).sort()).toEqual([
-      "hero",
-      "portfolio-effort-lab",
-      "portfolio-farmin",
-      "portfolio-salesgym",
-    ]);
+    expect(Object.keys(PRESETS).sort()).toEqual(
+      [
+        "hero",
+        "portfolio-effort-lab",
+        "portfolio-farmin",
+        "portfolio-salesgym",
+        ...PODIUMS.map((record) => `award-${record.image.name}`),
+      ].sort(),
+    );
   });
 });
 

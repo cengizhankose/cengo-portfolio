@@ -122,6 +122,10 @@ describe("/tr/about", () => {
         name: "2021’den bu yana 10 podyum → Tümünü gör",
       }),
     ).toHaveAttribute("href", "/tr/about#awards");
+    // W13: the archive points to the podiums with photos on /tr/portfolio.
+    expect(
+      screen.getByRole("link", { name: /Fotoğraflarıyla portfolyoda gör/ }),
+    ).toHaveAttribute("href", "/tr/portfolio#awards");
   });
 
   it("ends on the Turkish call to action pointing at /tr/contact", () => {

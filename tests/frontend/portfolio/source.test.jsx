@@ -28,7 +28,8 @@ describe("one click, one event (ANL-09 / ANL-11)", () => {
     const projectLinks = [
       ...document.querySelectorAll('a[data-track="project"]'),
     ];
-    expect(projectLinks).toHaveLength(9);
+    // 5 case links, 9 podium evidence links (W13), 3 repos.
+    expect(projectLinks).toHaveLength(17);
     for (const link of projectLinks) {
       expect(
         outboundProps(link, options),
@@ -47,11 +48,50 @@ describe("one click, one event (ANL-09 / ANL-11)", () => {
 });
 
 describe("portfolio stylesheet (DSG-08 step 9, DSG-25)", () => {
-  it("lays the cards out as an auto-fill grid of 18rem columns with a 2rem gap", () => {
-    expect(declared(css, ".projectGrid")).toMatchObject({
+  it("lays the cases out one per row, screenshot beside the text from 992px on alternating sides (W13)", () => {
+    expect(declared(css, ".cases")).toMatchObject({ display: "grid" });
+    expect(declared(css, ".card", "(min-width: 992px)")).toMatchObject({
+      "grid-template-columns": "7fr 5fr",
+    });
+    expect(
+      declared(css, ".cases > li:nth-child(even) .card", "(min-width: 992px)"),
+    ).toMatchObject({ "grid-template-columns": "5fr 7fr" });
+    expect(
+      declared(
+        css,
+        ".cases > li:nth-child(even) .cardMedia",
+        "(min-width: 992px)",
+      ),
+    ).toMatchObject({ order: "1" });
+    // The screenshot stays in view below the fixed header while the text
+    // scrolls past it, only where it sits beside the text.
+    expect(declared(css, ".cardMedia", "(min-width: 992px)")).toMatchObject({
+      position: "sticky",
+    });
+    expect(declared(css, ".cardMedia").position).toBeUndefined();
+  });
+
+  it("shows the podiums as thumbnails beside the text, three a row from 768px (W13)", () => {
+    expect(declared(css, ".award")).toMatchObject({
       display: "grid",
-      "grid-template-columns": "repeat(auto-fill, minmax(18rem, 1fr))",
-      gap: "2rem",
+      "grid-template-columns": "6.5rem 1fr",
+      "align-content": "start",
+    });
+    expect(declared(css, ".awardGrid", "(min-width: 768px)")).toMatchObject({
+      "grid-template-columns": "repeat(3, 1fr)",
+    });
+    expect(declared(css, ".award", "(min-width: 768px)")).toMatchObject({
+      "grid-template-columns": "1fr",
+    });
+    expect(declared(css, ".awardMedia")).toMatchObject({ "aspect-ratio": "1" });
+    expect(declared(css, ".awardMedia img")).toMatchObject({
+      "object-fit": "cover",
+    });
+    // The numeral of a podium without a photo is set in the display face.
+    expect(declared(css, ".awardRank")).toMatchObject({
+      "font-family": "var(--font-display)",
+      "font-synthesis": "none",
+      fill: "var(--text-muted)",
     });
   });
 
@@ -71,15 +111,10 @@ describe("portfolio stylesheet (DSG-08 step 9, DSG-25)", () => {
     expect(badge.color).toBe("var(--text-color)");
   });
 
-  it("moves the image on hover only when motion is allowed, and never uses transition: all", () => {
+  it("never moves an image on hover (it is not a link) and never uses transition: all", () => {
     expect(css).not.toMatch(/transition:\s*all/);
-    const gated = declared(
-      css,
-      ".card:hover .cardMedia img",
-      "(prefers-reduced-motion: no-preference)",
-    );
-    expect(gated.transform).toBe("scale(1.03)");
-    expect(declared(css, ".card:hover .cardMedia img")).toEqual({});
+    expect(css).not.toMatch(/:hover/);
+    expect(css).not.toMatch(/transform/);
   });
 
   it("uses only theme tokens for colour, so both themes read the same", () => {
@@ -95,6 +130,7 @@ describe("source hygiene", () => {
     for (const file of [
       "src/pages/portfolio/index.jsx",
       "src/pages/portfolio/ProjectCard.jsx",
+      "src/pages/portfolio/Awards.jsx",
     ]) {
       const source = read(file);
       expect(source, file).not.toMatch(/href=["']#["']/);
@@ -113,8 +149,11 @@ describe("source hygiene", () => {
       "src/pages/about/index.jsx",
       "src/header/index.jsx",
       "src/content/projects.js",
+      "src/content/awards.js",
       "src/content/en/projects.js",
       "src/content/tr/projects.js",
+      "src/content/en/awards.js",
+      "src/content/tr/awards.js",
       "src/content/en/featuredRepos.js",
       "src/content/tr/featuredRepos.js",
       "src/seo/pages/portfolio.js",

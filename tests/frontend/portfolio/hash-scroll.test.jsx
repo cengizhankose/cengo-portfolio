@@ -75,6 +75,14 @@ describe("portfolio hash scroll", () => {
     expect(scrollIntoView.mock.contexts[0].id).toBe("project-salesgym");
   });
 
+  it("lands on the hackathon podiums from the About page's #awards link (W13)", () => {
+    renderAt("/portfolio#awards");
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView.mock.contexts[0].id).toBe("awards");
+    expect(scrollIntoView.mock.contexts[0].tagName).toBe("SECTION");
+  });
+
   it("jumps instead of scrolling smoothly when the visitor prefers reduced motion", () => {
     reduced = true;
     renderAt("/portfolio#project-effort_lab");

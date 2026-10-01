@@ -11,6 +11,7 @@ export default {
   skills: "Skills",
   services: "Services",
   awards: "Hackathons and awards",
+  awardsPhotos: "See them with photos in the portfolio",
   talks: "Talks and workshops",
   cta: {
     title: "Let’s work together",

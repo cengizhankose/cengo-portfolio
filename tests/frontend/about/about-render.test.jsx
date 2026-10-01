@@ -175,6 +175,18 @@ describe("hackathon archive and talks (MKT-04, MKT-15)", () => {
     expect(multiversx.textContent).toContain("Avenrise");
   });
 
+  it("points from the archive to the podiums with photos on the portfolio (W13)", () => {
+    const { container } = renderAbout();
+
+    const link = within(container.querySelector("#awards")).getByRole("link", {
+      name: /See them with photos in the portfolio/,
+    });
+    expect(link).toHaveAttribute("href", "/portfolio#awards");
+    // Outside the list: the archive keeps its nine evidence links.
+    expect(link.closest("ol")).toBeNull();
+    expect(link.querySelector('[aria-hidden="true"]').textContent).toBe("→");
+  });
+
   it("links every talk to its post", () => {
     const { container } = renderAbout();
 

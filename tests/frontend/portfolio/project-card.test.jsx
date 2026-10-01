@@ -5,6 +5,7 @@ import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import ProjectCard, {
+  FACTS,
   MAX_TAGS,
 } from "../../../src/pages/portfolio/ProjectCard.jsx";
 import {
@@ -28,8 +29,9 @@ const text = {
   id: "salesgym",
   title: "Title",
   awardLabel: "1st place · Event · 2026",
+  summary: "One sentence",
   problem: "P",
-  role: "R",
+  built: "B",
   result: "S",
   imageAlt: "A screen with a video call",
   cta: { repo: "View the code" },
@@ -74,6 +76,11 @@ describe("card image", () => {
     expect(img).toHaveAttribute("alt", text.imageAlt);
     expect(img).toHaveAttribute("loading", "lazy");
     expect(img).toHaveAttribute("decoding", "async");
+  });
+
+  it("loads the first case's image at once (eager), the others lazily", () => {
+    const { container } = renderCard({ eager: true });
+    expect(container.querySelector("img")).toHaveAttribute("loading", "eager");
   });
 
   it("is a text card when the record has no image", () => {
@@ -124,6 +131,34 @@ describe("badge and tags", () => {
         .getAllByRole("listitem")
         .map((li) => li.textContent),
     ).toEqual(["A", "B", "C", "D", "E"]);
+  });
+});
+
+describe("text (W13)", () => {
+  it("numbers the case (decoration), then summary and problem / what I built / result", () => {
+    const { container } = renderCard({ position: 2 });
+    const number = container.querySelector(`.${portfolioStyles.cardIndex}`);
+    expect(number.textContent).toBe("02");
+    expect(number).toHaveAttribute("aria-hidden", "true");
+    expect(
+      container.querySelector(`.${portfolioStyles.cardSummary}`).textContent,
+    ).toBe("One sentence");
+    expect(FACTS).toEqual(["problem", "built", "result"]);
+    expect(
+      [...container.querySelectorAll("dt")].map((dt) => dt.textContent),
+    ).toEqual(["Problem", "What I built", "Result"]);
+    expect(
+      [...container.querySelectorAll("dd")].map((dd) => dd.textContent),
+    ).toEqual(["P", "B", "S"]);
+  });
+
+  it("leaves the summary out when a case has none", () => {
+    const { container } = renderCard({
+      text: { ...text, summary: undefined },
+    });
+    expect(
+      container.querySelector(`.${portfolioStyles.cardSummary}`),
+    ).toBeNull();
   });
 });
 

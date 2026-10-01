@@ -181,6 +181,12 @@ export const About = () => {
                 </li>
               ))}
           </ol>
+          {/* The same podiums with their photos and stories (W13). */}
+          <p className="mt-3 mb-0">
+            <Link to={`${lp("/portfolio")}#awards`}>
+              {t("about.awardsPhotos")} <span aria-hidden="true">→</span>
+            </Link>
+          </p>
         </Col>
       </Row>
       {INTRO_REEL.published && (
