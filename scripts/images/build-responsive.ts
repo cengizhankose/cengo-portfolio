@@ -17,12 +17,18 @@
  *         (names, widths and version come from src/pages/home/heroImage.js,
  *         the same module the home page's <picture> reads)
  *   portfolio-salesgym | portfolio-farmin | portfolio-effort-lab
- *         scripts/images/sources/<name>.png -> public/img/projects/
+ *         scripts/images/sources/projects/<name>.jpg -> public/img/projects/
  *         <name>-v1-{480,800,1280}.{avif,webp}, cropped to 16:10, each file
  *         at most 150 KB (FE-04, DSG-08; names, widths and the budget come
- *         from src/pages/portfolio/projectImage.js). The sources are the
- *         owner's own screenshots, downloaded once (00-icerik-girdileri.md
- *         section 9).
+ *         from src/pages/portfolio/projectImage.js). The masters are 1280x800
+ *         crops of the projects' own README screenshots (SalesGym, Farmin)
+ *         and of the live comparison site (Effort Lab), W13.
+ *   award-<name>  (one per record with an image in src/content/awards.js)
+ *         scripts/images/sources/awards/<name>.jpg -> public/img/awards/
+ *         <name>-v1-{320,640}.{avif,webp} (or the record's own widths),
+ *         square, each file at most 80 KB (src/pages/portfolio/awardImage.js).
+ *         The masters are square crops of the photos in the owner's own
+ *         LinkedIn award posts, at the largest output size (W13).
  *
  * Add a preset for another image set instead of passing paths on the command
  * line, so each set is reproducible.
@@ -34,7 +40,12 @@
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { AWARD_RECORDS } from "../../src/content/awards.js";
 import { HERO_IMAGE } from "../../src/pages/home/heroImage.js";
+import {
+  AWARD_IMAGE,
+  awardWidths,
+} from "../../src/pages/portfolio/awardImage.js";
 import {
   PROJECT_IMAGE,
   projectImageName,
@@ -104,9 +115,10 @@ export const PHOTO_FORMATS: readonly FormatSpec[] = Object.freeze([
 ]);
 
 /**
- * Encoder settings for the portfolio covers (DSG-08, FE-04): AVIF and WebP
- * only (every browser that shows a card image supports WebP). The starting
- * qualities are the photo ones; maxBytes steps them down for busy screenshots.
+ * Encoder settings for the portfolio images, case screenshots and podium
+ * photos (DSG-08, FE-04, W13): AVIF and WebP only (every browser that shows
+ * them supports WebP). The starting qualities are the photo ones; maxBytes
+ * steps them down for busy pictures.
  */
 export const COVER_FORMATS: readonly FormatSpec[] = Object.freeze([
   { format: "avif", quality: () => 55 },
@@ -120,7 +132,7 @@ const QUALITY_STEP = 5;
 const coverPreset = (id: string): ResponsiveSpec => {
   const name = projectImageName(id);
   return {
-    source: `scripts/images/sources/${name}.png`,
+    source: `scripts/images/sources/projects/${name}.jpg`,
     outDir: join("public", PROJECT_IMAGE.dir),
     name,
     version: PROJECT_IMAGE.version,
@@ -131,10 +143,34 @@ const coverPreset = (id: string): ResponsiveSpec => {
   };
 };
 
+interface AwardImage {
+  name: string;
+  widths?: readonly number[];
+}
+
+const awardPreset = (image: AwardImage): ResponsiveSpec => ({
+  source: `scripts/images/sources/awards/${image.name}.jpg`,
+  outDir: join("public", AWARD_IMAGE.dir),
+  name: image.name,
+  version: AWARD_IMAGE.version,
+  widths: awardWidths(image),
+  formats: COVER_FORMATS,
+  aspect: [1, 1],
+  maxBytes: AWARD_IMAGE.maxBytes,
+});
+
+// One preset per award record with a photo (src/content/awards.js).
+const AWARD_PRESETS: Record<string, ResponsiveSpec> = Object.fromEntries(
+  (AWARD_RECORDS as readonly { image: AwardImage | null }[])
+    .flatMap(({ image }) => (image ? [image] : []))
+    .map((image) => [`award-${image.name}`, awardPreset(image)]),
+);
+
 export const PRESETS: Readonly<Record<string, ResponsiveSpec>> = Object.freeze({
   "portfolio-salesgym": coverPreset("salesgym"),
   "portfolio-farmin": coverPreset("farmin"),
   "portfolio-effort-lab": coverPreset("effort_lab"),
+  ...AWARD_PRESETS,
   hero: {
     source: "scripts/images/sources/cengizhan-kose.jpg",
     outDir: join("public", HERO_IMAGE.dir),
