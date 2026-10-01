@@ -332,12 +332,13 @@ describe("withCache: the cached PostQueries (T-06, T-12)", () => {
     expect(cache.keys()).toEqual([`post:${SAMPLE_POST.slug}`]);
   });
 
-  test("ping is never cached: every /ready asks the database", async () => {
+  // The wrapper never caches ping. /ready itself keeps a result for 1.5 s and
+  // shares one in-flight ping (src/api/ready.ts), so the wrapper is asked
+  // directly here; the handler's cache is tested in tests/server/api/ready.test.ts.
+  test("ping is never cached: every call asks the database", async () => {
     const { base, pings } = recordingQueries();
-    const app = createApp({ queries: withCache(base), env: NO_LIMIT });
-    for (let i = 0; i < 3; i++) {
-      expect((await app.request("/ready")).status).toBe(200);
-    }
+    const queries = withCache(base);
+    for (let i = 0; i < 3; i++) await queries.ping();
     expect(pings()).toBe(3);
   });
 

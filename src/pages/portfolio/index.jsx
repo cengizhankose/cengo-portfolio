@@ -50,11 +50,9 @@ export const Portfolio = () => {
     } catch {
       // A malformed escape: look the raw text up as it is.
     }
-    document
-      .getElementById(target)
-      ?.scrollIntoView?.({
-        behavior: reducedMotion.current ? "auto" : "smooth",
-      });
+    document.getElementById(target)?.scrollIntoView?.({
+      behavior: reducedMotion.current ? "auto" : "smooth",
+    });
   }, [hash]);
 
   // Cases that have their text; `position` counts the tracked items of the
