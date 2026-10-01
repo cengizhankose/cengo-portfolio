@@ -43,10 +43,21 @@ Runbook (sahip; ayrıntı `05-analyst-plan.md` ANL-01 adım 2.8):
 
 Umami yayına çıktığı gün başlar, 2 hafta sürer; 15. gün Cloudflare panelinden otomatik enjeksiyon (www + apex) kapatılır ve aynı hafta gizlilik metinlerinden ve CSP'den çıkarılır (PERF-25).
 
+Kapatma tek bayrakla yapılır: `CF_WEB_ANALYTICS` (varsayılan: açık). Bayrak `off` olunca (`0`, `false`, `no`, `disabled` de geçerli) `src/api/middleware/csp.ts` iki Cloudflare host'unu (`https://static.cloudflareinsights.com`, `https://cloudflareinsights.com`) `script-src` ve `connect-src`'den çıkarır ve `src/content/{en,tr}/privacy.js` gizlilik metninden `cloudflare_web_analytics` satırını düşürür. Umami host'una (`https://stats.cengizhankose.com`) dokunmaz. Gizlilik sayfası yapım anında üretildiği için Docker build'i değeri `VITE_CF_WEB_ANALYTICS` olarak alır (Dockerfile satırı: `ARG CF_WEB_ANALYTICS` ve `ENV VITE_CF_WEB_ANALYTICS=$CF_WEB_ANALYTICS`, build'den önce).
+
+Sıra (sahip, 14. günden sonra):
+
+1. Bu tabloyu doldur: iki kaynağı karşılaştır (sayfa görüntüleme toplamı ve Web Vitals p75; Umami'de `web_vital_reported`, Cloudflare'de Web Analytics → Core Web Vitals) ve sonucu aşağıdaki "Sonuç notu"na yaz.
+2. Cloudflare Dashboard → Analytics & Logs → Web Analytics → cengizhankose.com → Manage site → otomatik JS snippet enjeksiyonunu kapat ya da siteyi devre dışı bırak (panel etiketleri sürüme göre değişebilir). Kanonik host `www` de kontrol edilir (K-03).
+3. Out Plane ortamına `CF_WEB_ANALYTICS=off` yaz (`outplane env set --app cengoportfoliolhal CF_WEB_ANALYTICS=off`, önce `--dry-run`) ve deploy et. Aynı sürümde `src/pages/privacy/updated.js` içindeki `LAST_UPDATED` tarihi güncellenir.
+4. Doğrula: tarayıcı UA'lı bir istekte `curl -s -A 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36' -H 'Accept: text/html' --compressed https://www.cengizhankose.com/ | grep -c cloudflareinsights` → `0`; `curl -sI https://www.cengizhankose.com/ | grep -i '^content-security-policy' | grep -c cloudflareinsights` → `0`, aynı başlıkta `grep -c stats.cengizhankose.com` → `1`; `/privacy` ve `/tr/privacy` metninde "Cloudflare Web Analytics" geçmez.
+5. Temizlik commit'i (bayrak çalıştıktan sonra, isteğe bağlı): `cloudflare_web_analytics` girdisini iki dildeki `privacy.js` dosyalarından, `tests/frontend/privacy/content-parity.test.js` kimlik listesinden ve bu belgedeki CF satırlarından kaldır; bayrak ve CSP sabitleri de kaldırılabilir.
+
 | Alan | Değer |
 |---|---|
-| Başlangıç | — |
-| Bitiş / kapatma | — |
+| Başlangıç (Umami yayın günü, ilk `web_vital_reported` panelde göründü) | — (sahip yazar) |
+| Bitiş / kapatma (başlangıçtan en az 14 gün sonra) | — (sahip yazar) |
+| Bayrak `off` deploy tarihi | — |
 | Sonuç notu | — (sayfa görüntüleme farkı, reklam engelleyici etkisi, bot filtresi; CWV p75 karşılaştırması) |
 
 | Gün | Cloudflare sayfa görüntüleme | Umami sayfa görüntüleme | Not |
@@ -81,7 +92,7 @@ Ad kuralı: `object_action`, küçük harf + alt çizgi, ≤ 50 karakter. Her ol
 | Olay | Tetikleyici (dosya:satır) | Özellikler ve izinli değerler | Karar | Öncelik | Durum |
 |---|---|---|---|---|---|
 | `page_view` | `src/lib/analytics/usePageViewTracking.js` (`src/app/routes.jsx` içinden; yol (pathname) anahtarlı, render sonrası layout effect'te; blog yazısında veri gelince bir kez) → `trackPageview()` `src/lib/analytics/index.js` | `post_slug` (yalnız blog yazısı; slug) + global `page_type`, `ui_locale`, `content_language` | İçerik önceliği | Şart | **Uygulandı** (W7-FE-route-shell, ANL-07). Sıra: önce `page_view`, sonra sayfanın mount olayları (ör. `not_found_viewed`). Hash/arama değişimi yeni sayfa sayılmaz |
-| `cta_clicked` | `src/pages/home/index.jsx` hero linkleri; About sonu, yazı sonu, hizmet CTA'ları | `cta_id` ∈ {`hero_about`, `hero_contact`, `hero_portfolio`, `about_contact`, `blog_end_contact`, `service_contact`}; `project_type` ∈ {`mobile`, `web`, `ai`, `lead`, `job`, `other`} (yalnız `service_contact`) | Hero mesajı ve CTA'lar çalışıyor mu | Şart | **Kısmen uygulandı:** `hero_contact` ve `hero_portfolio` `src/pages/home/index.jsx`'te (W7-MKT-hero-contact-conversion, ANL-02, MKT-19); `hero_about` artık hero'da yok, enum'da kalır. Planlandı: `about_contact` (Hakkımda CTA'sı `.about-cta__button`, MKT-15), `blog_end_contact` (W8-SEO-blog-author-rss, MKT-07), `service_contact` (W11-FE-home-sections, MKT-13) |
+| `cta_clicked` | `src/pages/home/index.jsx` hero linkleri; About sonu, yazı sonu, hizmet CTA'ları | `cta_id` ∈ {`hero_about`, `hero_contact`, `hero_portfolio`, `about_contact`, `blog_end_contact`, `service_contact`}; `project_type` ∈ {`mobile`, `web`, `ai`, `lead`, `job`, `other`} (yalnız `service_contact`) | Hero mesajı ve CTA'lar çalışıyor mu | Şart | **Kısmen uygulandı:** `hero_contact` ve `hero_portfolio` `src/pages/home/index.jsx`'te (W7-MKT-hero-contact-conversion, ANL-02, MKT-19); `hero_about` artık hero'da yok, enum'da kalır. `about_contact` Hakkımda sayfasının kapanış CTA'sında gönderilir (`src/pages/about/index.jsx`, MKT-15; W8-ANL el değiştirme notu, W10 sonrası). Planlandı: `blog_end_contact` (W8-SEO-blog-author-rss, MKT-07), `service_contact` (W11-FE-home-sections, MKT-13) |
 | `outbound_link_clicked` | `src/lib/analytics/outbound.js` capture `click`/`auxclick` dinleyicisi (`initAnalytics` içinden) | `network` ∈ {`linkedin`, `github`, `x`, `youtube`, `twitch`, `instagram`, `other`}; `location` (token: `social_rail`, `menu_footer`, `blog_body`, `contact_page`, `other`); `link_host` (yalnız `network=other`; çıplak host, tam URL asla) | Hangi profil ikinci durak | Şart | **Uygulandı** (W7-DSG-social-links, ANL-09); test `tests/frontend/social/outbound.test.jsx` |
 | `email_link_clicked` | `src/pages/contact/index.jsx` mailto linki | `location` (token: `contact_page`) | Formu atlayan temas | Şart | **Uygulandı** (W7-MKT-hero-contact-conversion, ANL-02) |
 | `contact_form_started` | `src/pages/contact/index.jsx` `<form onFocus>` (sayfa görüntüleme başına bir kez) | — | Form sürtünmesi | Şart | **Uygulandı** (W7-MKT-hero-contact-conversion, ANL-02) |
@@ -294,9 +305,9 @@ Sorgular Umami 3.4.0 şemasına göre yazıldı; yerel testte (`tests/frontend/a
 |---|---|---|
 | Umami (self-host) | Sayfa görüntüleme, olaylar, referrer/UTM, Web Vitals | 13 ay (sahip kararıyla değişebilir); DB boyutu aylık izlenir |
 | Out Plane proxy kaydı | Ham istekler (referrer/UA yok) | ≈ 1 gün |
-| Günlük istek özetleri | Path grubu × gün, botlar ayrı (ANL-13) | Planlandı: W10-ANL-request-stats |
+| Günlük istek özetleri | Host, path grubu, durum sınıfı, ülke, bot bayrağı × gün (`request_daily_stats`, ANL-13) | 400 gün; `REQUEST_STATS_ENABLED=1` ile açılır, 16.2'deki sorgular |
 | Search Console / Bing | Organik sorgular, indeks | Google/Bing varsayılanı (Search Console performans verisi 16 ay); kurulum ve kullanım aşağıda, ANL-14 (sahip) |
-| Cloudflare Web Analytics | Sayfa görüntüleme, CWV | T-09 paralel dönemi bitince kapatılır |
+| Cloudflare Web Analytics | Sayfa görüntüleme, CWV | T-09 paralel dönemi bitince kapatılır (3. bölüm; `CF_WEB_ANALYTICS=off`) |
 
 ### 16.1 Search Console ve Bing (ANL-14)
 
@@ -317,9 +328,42 @@ Haftalık kullanım (15.2 tablosuna):
 3. Sorgular `ui_locale` ile değil URL önekiyle bölünür (Search Console olay özelliği tanımaz); Umami kırılımıyla karşılaştırma yalnız yön göstergesidir.
 4. Bing'den gelen sorgular Bing Webmaster Tools → Search Performance'tan aynı biçimde alınır.
 
+### 16.2 Günlük istek özetleri: haftalık sorgular (ANL-13)
+
+Kaynak: `request_daily_stats` (portföy veritabanı, `src/db/schema/requestStats.ts`). Sütunlar: `day`, `host` (`www` | `apex` | `outplane` | `other`), `path_group` (`page`, `asset`, `api`, `meta`, `probe`, `health`, `other`), `status_class` (`2xx`..`5xx`), `country` (`XX` bilinmiyor), `is_bot`, `requests`, `origin_ms_sum`. IP, user-agent, yol ve sorgu dizesi tutulmaz. Saklama 400 gün: sunucu günde bir kez `day < current_date - 400` satırlarını siler. Yazma `PG_STATS_URL` rolüyle yapılır; sorgular salt-okuma bir oturumdan koşar. Tablo `REQUEST_STATS_ENABLED=1` olmadıkça boş kalır.
+
+```sql
+-- Probe payı (tarayıcı trafiği olmayan tarayıcı/tarama istekleri: dotfile, php, wp yolları), son 7 gün
+SELECT sum(requests) FILTER (WHERE path_group = 'probe')::float
+       / NULLIF(sum(requests), 0) AS probe_share
+FROM request_daily_stats
+WHERE day >= current_date - 7;
+
+-- 5xx sayısı, gün başına, son 7 gün
+SELECT day, sum(requests) AS errors_5xx
+FROM request_daily_stats
+WHERE status_class = '5xx' AND day >= current_date - 7
+GROUP BY day ORDER BY day;
+
+-- Host dağılımı (www dışındaki istekler apex/outplane yönlendirme yedeğine düşer), son 7 gün
+SELECT host, sum(requests) AS requests
+FROM request_daily_stats
+WHERE day >= current_date - 7
+GROUP BY host ORDER BY requests DESC;
+
+-- Sayfa istekleri: insan ve bot ayrı, gün başına, son 7 gün
+SELECT day, is_bot, sum(requests) AS page_requests
+FROM request_daily_stats
+WHERE path_group = 'page' AND day >= current_date - 7
+GROUP BY day, is_bot ORDER BY day, is_bot;
+```
+
+Yorum: `probe` payı ve `5xx` artışı olay göstergesidir; sayfa istekleri Umami sayfa görüntülemeyle yalnız yön açısından karşılaştırılır (bu tablo sunucuya ulaşan her isteği sayar, tarayıcı betiği çalışmasa da). Sorgular `tests/server/finalize/request-stats-queries.test.ts` içinde bir PGlite kopyasında sözdizimi ve sonuç açısından denenir.
+
 ## 17. Değişiklik günlüğü
 
 | Tarih | Değişiklik | Paket |
 |---|---|---|
 | 2026-09-30 | Plan oluşturuldu: 16 olay, enum'lar, Umami işletimi, UTM kayıtları, iç trafik; `track`/`trackPageview`/`setPageContext`/`initAnalytics` ve `web_vital_reported` uygulandı, izleme kapalı. | W2-ANL-analytics-core (ANL-19, ANL-01, ANL-16, ANL-06, PERF-23, ANL-03) |
 | 2026-10-01 | `locale_switched` uygulandı (`target` 404'te gönderilmez); `ui_locale` / `content_language` bağlamının kaynağı ve tutarlılık kuralları yazıldı; olay durumları W7 sonrası gerçeğe çekildi (page_view, outbound, contact, not_found, error_occurred); 15. bölüm dil kırılımı, haftalık tablo ve `weekly-by-locale.sql`; 16.1 Search Console/Bing veri kaynağı. | W8-ANL-locale-segmentation (ANL-18, ANL-14) |
+| 2026-10-01 | 3. bölüm: `CF_WEB_ANALYTICS` bayrağı ve kapatma sırası (CSP + gizlilik metni), tarih alanları sahibe bırakıldı; `about_contact` uygulandı olarak işaretlendi; 16.2 günlük istek özeti sorguları ve 400 gün saklama (ANL-13). | W12-BE-finalize-docs (PERF-25, ANL-13) |
