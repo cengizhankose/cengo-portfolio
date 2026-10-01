@@ -1,8 +1,8 @@
 // TR page content, section "hero" (T-12, FE-14). Same shape as
 // src/content/en/hero.js. Source: 00-icerik-girdileri §2.4 and the brief in
 // .agents/product-marketing.md (sen form, short imperative). The role stays
-// English (recommended default until the owner decides, §10); the TR voice
-// is reviewed with MKT-14 (W11) before the TR pages go live.
+// English (recommended default until the owner decides, §10). TR is live
+// (MKT-14, W11): the parity test is strict.
 export default {
   name: "Cengizhan Köse",
   role: "Senior Fullstack Engineer",

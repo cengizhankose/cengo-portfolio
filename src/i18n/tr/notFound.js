@@ -1,6 +1,7 @@
 // TR interface text, namespace "notFound" (T-12, FE-14). Same keys as
-// src/i18n/en/notFound.js; a missing or empty value falls back to EN until the
-// strict parity test is switched on (W11, MKT-14 approves the TR voice).
+// src/i18n/en/notFound.js. TR is live (W11, MKT-14): the parity test is strict, so every key
+// exists in both languages with a non-empty value. Voice: .agents/product-marketing.md
+// ("Dil ve hitap": sen; "Terim sözlüğü").
 // Moved from src/pages/notfound/copy.js with the same keys (FE-16).
 export default {
   page: {

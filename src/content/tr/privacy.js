@@ -1,7 +1,7 @@
 // TR page content, section "privacy" (T-12, FE-14). Same shape as
 // src/content/en/privacy.js: same ids, same order, same list lengths. The
-// owner approves the Turkish text before the page goes live (the page opens
-// with the TR pages in W11). When the Cloudflare beacon is switched off
+// page is live in Turkish since W11 (the owner still approves the text
+// before the release, see the package report). When the Cloudflare beacon is switched off
 // (T-09), delete the `cloudflare_web_analytics` entry here and in EN.
 export const privacyProcessors = [
   {
