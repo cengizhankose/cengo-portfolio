@@ -18,6 +18,28 @@ const HTML = readFileSync(join(ROOT, "index.html"), "utf8");
 const CSS = GLOBAL_CSS;
 const LIGHT_QUERY = "(prefers-color-scheme: light)";
 
+// jsdom's runScripts needs node:vm contexts whose global is a Proxy; Bun's vm
+// refuses that ("Proxy is not allowed in the global prototype chain"), and
+// the image's build gate runs vitest on Bun (it has no Node.js). Under Bun the
+// classic <head> scripts are run against the parsed window instead, with the
+// window as scope, so they see the same localStorage / matchMedia stubs.
+const JSDOM_RUNS_SCRIPTS = !process.versions.bun;
+
+function runHeadScripts(window, errors) {
+  const code = [
+    ...window.document.querySelectorAll("head script:not([type])"),
+  ].map((script) => script.textContent);
+  for (const source of code) {
+    try {
+      // Sloppy-mode Function: `with` resolves the script's free names
+      // (localStorage, document, window) on the jsdom window, as a browser would.
+      new Function("window", `with (window) {\n${source}\n}`)(window);
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+}
+
 /**
  * Loads index.html. `stored` is the localStorage "theme" value (undefined =
  * no key), `osLight` answers the prefers-color-scheme: light query,
@@ -30,7 +52,7 @@ function load({ stored, osLight = false, storage = "ok", matchMedia = true }) {
   virtualConsole.on("jsdomError", (error) => errors.push(error));
   const dom = new JSDOM(HTML, {
     url: "https://www.cengizhankose.com/",
-    runScripts: "dangerously",
+    ...(JSDOM_RUNS_SCRIPTS ? { runScripts: "dangerously" } : {}),
     virtualConsole,
     beforeParse(window) {
       if (stored !== undefined) window.localStorage.setItem("theme", stored);
@@ -57,6 +79,7 @@ function load({ stored, osLight = false, storage = "ok", matchMedia = true }) {
       }
     },
   });
+  if (!JSDOM_RUNS_SCRIPTS) runHeadScripts(dom.window, errors);
   const { document } = dom.window;
   const root = document.documentElement;
   return {
