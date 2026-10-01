@@ -1,12 +1,13 @@
 // TR interface text, namespace "contact" (T-12, FE-14). Same keys as
-// src/i18n/en/contact.js; a missing or empty value falls back to EN until the
-// strict parity test is switched on (W11, MKT-14 approves the TR voice).
+// src/i18n/en/contact.js. TR is live (W11, MKT-14): the parity test is strict, so every key
+// exists in both languages with a non-empty value. Voice: .agents/product-marketing.md
+// ("Dil ve hitap": sen; "Terim sözlüğü").
 // Status messages: `{time}` is the reply promise (content contact.responseTime),
 // `{emailMe}` is rendered as a mailto: link whose text is contact.emailMe and
 // `{latestPost}` as a link to the blog whose text is contact.latestPost
 // (src/pages/contact).
 export default {
-  title: "İletişim",
+  title: "Birlikte çalışalım",
   reachMe: "Doğrudan ulaş",
   emailLabel: "E-posta:",
   bookCall: "20 dakikalık tanışma görüşmesi planla",

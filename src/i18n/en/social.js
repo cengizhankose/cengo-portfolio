@@ -2,7 +2,7 @@
 // t("social.<key>"); nested objects add dotted segments.
 export default {
   label: "Social links",
-  follow: "Follow Me",
+  follow: "Find me elsewhere",
   // Accessible name of a social profile link (SEO-24, DSG-12, MKT-23). The
   // name comes first so it matches the visible label (WCAG 2.5.3) and the
   // new-tab note ends it. {name} is the channel's brand name.

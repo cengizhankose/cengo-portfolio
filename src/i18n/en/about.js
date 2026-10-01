@@ -3,8 +3,8 @@
 // W6-MKT-about-positioning (MKT-15, MKT-04) added the proof, awards, talks,
 // ventures and cta keys.
 export default {
-  title: "About me",
-  intro: "A bit about myself",
+  title: "About Cengizhan Köse",
+  intro: "My story",
   proof: "Where I’ve worked and what I’ve won",
   timeline: "Work timeline",
   ventures: "Additional ventures",

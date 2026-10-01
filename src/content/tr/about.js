@@ -1,7 +1,7 @@
 // TR page content, section "about" (T-12, FE-14). Same shape as
 // src/content/en/about.js; written for a Turkish reader with the same facts
-// (sen/ben voice, .agents/product-marketing.md "Dil ve hitap"). The owner
-// reviews the Turkish before /tr opens (MKT-14, W11).
+// (sen/ben voice, .agents/product-marketing.md "Dil ve hitap"). TR is live
+// (MKT-14, W11): same paths, list lengths and ids as EN (strict parity test).
 export default {
   title:
     "6+ yıl web ve mobil ürün, kurucu ortağı olduğum girişimler ve 10 hackathon podyumu.",

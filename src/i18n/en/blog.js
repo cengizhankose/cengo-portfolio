@@ -18,4 +18,8 @@ export default {
   // Only the other-language group failed; the page's own posts still show.
   otherLoadError: "Posts in Turkish couldn't be loaded",
   inOtherLanguage: "in Turkish",
+  // The two strings a Mermaid diagram shows (DSG-06), in the post's language;
+  // src/lib/markdown/diagramText.js reads them from here.
+  diagram: "Diagram",
+  diagramLoading: "Loading diagram…",
 };

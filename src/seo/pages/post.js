@@ -45,7 +45,7 @@ export default {
   tr: {
     title: buildTitle("Yazı bulunamadı"),
     description:
-      "Bu yazı yok ya da artık yayında değil. Tüm yazılar için bloga göz atın.",
+      "Bu yazı yok ya da artık yayında değil. Tüm yazılar için bloga göz at.",
     robots: "noindex",
   },
 };

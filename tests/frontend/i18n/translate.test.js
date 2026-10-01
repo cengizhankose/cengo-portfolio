@@ -116,7 +116,7 @@ describe("defineDictionary (namespaced files -> flat keys)", () => {
     expect(en["nav.menu"]).toBe("Menu");
     expect(en["a11y.darkTheme"]).toBe("Dark theme");
     expect(en["social.label"]).toBe("Social links");
-    expect(en["social.follow"]).toBe("Follow Me");
+    expect(en["social.follow"]).toBe("Find me elsewhere");
     expect(en["contact.success"]).toBe(
       "Got it. I’ll reply to your email within {time}. Meanwhile, have a look at {latestPost}.",
     );

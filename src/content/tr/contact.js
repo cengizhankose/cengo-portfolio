@@ -1,7 +1,7 @@
 // TR page content, section "contact" (T-12, FE-14; MKT-10, MKT-12). Same
 // shape as src/content/en/contact.js; the ids of projectTypes are the same in
-// both languages. Sen form, short imperative (brief); the TR voice is reviewed
-// with MKT-14 (W11) before the TR pages go live.
+// both languages. Sen form, short imperative (brief). TR is live (MKT-14, W11):
+// the parity test is strict.
 export default {
   responseTime: "2 iş günü",
   description: "E-postana {time} içinde dönüyorum. Süreç:",

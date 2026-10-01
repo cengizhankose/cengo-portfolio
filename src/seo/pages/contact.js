@@ -11,6 +11,6 @@ export default {
   tr: {
     title: buildTitle("İletişim"),
     description:
-      "Mobil uygulama, web ürünü ya da AI agent projesi için Cengizhan Köse ile iletişime geçin. Formdan ya da e-postayla kısa bir özet gönderin, yanıt alın.",
+      "Mobil uygulama, web ürünü ya da AI agent projesi için Cengizhan Köse'ye yaz. Formdan ya da e-postayla projeni birkaç cümleyle anlat, yanıt al.",
   },
 };

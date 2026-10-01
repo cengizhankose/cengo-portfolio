@@ -1,9 +1,23 @@
-// FE-14 criterion 1 (today's LIVE table): /about is EN and its menu text is
-// en.js's nav.*; /tr/about is NotFound until the TR pages open. The TR half
-// (LIVE mocked open) is in i18n-routing-tr-live.test.jsx.
+// FE-14 criterion 1, rollback half: with the TR static pages closed again
+// (mocked route table, the shape LIVE had before W11), /about is EN and its
+// menu text is en.js's nav.*; /tr/about is NotFound. The live half (TR pages
+// open since W11) is in i18n-routing-tr-live.test.jsx.
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
+  const actual = await importOriginal();
+  const closed = Object.freeze({
+    static: Object.freeze(["en"]),
+    post: actual.LIVE.post,
+  });
+  return {
+    ...actual,
+    LIVE: closed,
+    matchRoute: (pathname, live = closed) => actual.matchRoute(pathname, live),
+  };
+});
 import AppRoutes from "../../../src/app/routes";
 import Headermain from "../../../src/header";
 import {
@@ -57,7 +71,10 @@ beforeEach(() => {
 describe("language from the URL prefix (T-12)", () => {
   it("/about: useLocale() is 'en' and the menu shows en.js nav.* texts", async () => {
     renderAt("/about");
-    await screen.findByRole("heading", { level: 1, name: "About me" });
+    await screen.findByRole("heading", {
+      level: 1,
+      name: DICTIONARIES.en["about.title"],
+    });
 
     expect(probe()).toMatchObject({
       locale: "en",
@@ -87,7 +104,9 @@ describe("language from the URL prefix (T-12)", () => {
       route: "notfound",
       aboutLink: "/about",
     });
-    expect(screen.queryByRole("heading", { name: "About me" })).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: DICTIONARIES.en["about.title"] }),
+    ).toBeNull();
   });
 
   it("a TR post: Turkish URL, English interface linking to English pages (DSG-19 uiLang)", () => {

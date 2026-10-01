@@ -1,20 +1,10 @@
-// FE-14 criterion 1, TR half: with the route table mocked as it will be
-// after SEO-11 Adım B (LIVE.static = ['en', 'tr']), /tr/about is the About
-// page in Turkish: useLocale() is 'tr', the menu shows tr.js's nav.* texts,
+// FE-14 criterion 1, TR half: with the real route table (LIVE.static =
+// ['en', 'tr'] since W11, SEO-11 Adım B), /tr/about is the About page in
+// Turkish: useLocale() is 'tr', the menu shows tr.js's nav.* texts,
 // internal links carry the /tr prefix and the page headings come from TR.
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    LIVE: actual.ALL_LIVE,
-    matchRoute: (pathname, live = actual.ALL_LIVE) =>
-      actual.matchRoute(pathname, live),
-  };
-});
 
 const { default: AppRoutes } = await import("../../../src/app/routes");
 const { default: Headermain } = await import("../../../src/header");
@@ -97,7 +87,10 @@ describe("with the TR pages live", () => {
 
   it("/about stays English", async () => {
     renderAt("/about");
-    await screen.findByRole("heading", { level: 1, name: "About me" });
+    await screen.findByRole("heading", {
+      level: 1,
+      name: DICTIONARIES.en["about.title"],
+    });
     expect(screen.getByTestId("probe").dataset.locale).toBe("en");
     expect(
       screen.getByRole("navigation", { name: "Main menu" }),
