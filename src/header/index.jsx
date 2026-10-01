@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import styles from "./header.module.css";
 import { VscGrabber, VscClose } from "react-icons/vsc";
-import { Link, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { hasPublishedCases } from "../content/projects.js";
 import { logotext } from "../content/shared.js";
 import Themetoggle from "../components/themetoggle";
@@ -9,8 +9,34 @@ import { LanguageSwitcher } from "../components/langswitch";
 import SocialLinks from "../components/SocialLinks.jsx";
 import { useLocalePath, useT, useUiLocale } from "../i18n";
 import { LOCATIONS } from "../lib/analytics/events.js";
+import { useMediaQuery } from "../lib/useMediaQuery.js";
 
 const MENU_ID = "site-navigation";
+
+// From this width the navigation is the row of tabs in the header bar and
+// the menu button is hidden (DSG-18); it matches the 992px breakpoint in
+// ./header.module.css.
+const DESKTOP_QUERY = "(min-width: 992px)";
+
+// Past this many pixels of scroll the header strip takes the page background
+// (DSG-22). At the top of the page it stays clear, so the hero under it does
+// not change.
+const SCROLLED_AFTER = 4;
+
+// Scroll state, read with useSyncExternalStore: the server (and the
+// hydrating first render) sees the page at the top, the browser then
+// re-renders with its real value, without a hydration mismatch. The width is
+// read the same way by the one media query hook (src/lib/useMediaQuery.js).
+const subscribeScroll = (onChange) => {
+  window.addEventListener("scroll", onChange, { passive: true });
+  return () => window.removeEventListener("scroll", onChange);
+};
+const readScrolled = () => window.scrollY > SCROLLED_AFTER;
+
+const onServer = () => false;
+
+// Joins the class names that apply (no trailing space for a false state).
+const classes = (...names) => names.filter(Boolean).join(" ");
 
 // Menu sections: path (made language-specific with useLocalePath) and the
 // nav.* dictionary key of the label.
@@ -74,10 +100,27 @@ function skipToMain(event) {
   main.focus();
 }
 
+// The header bar (FE-01, DSG-18, DSG-22): brand, the one navigation,
+// language switcher, theme toggle, menu button, then the colophon.
+//   - One <nav> for every width. From 992px it is a row of tabs in the bar;
+//     below, the same element is the full-screen panel the menu button opens
+//     (FE-11). NavLink marks the current page with aria-current="page".
+//   - DOM order = Tab order = visual order (logo, sections, language, theme).
+//   - The colophon (profiles, privacy, copyright) closes the header: the foot
+//     of the open panel below 992px, a tab on the bottom edge of the page
+//     frame from 992px (claudedocs/design/design-plan.md §6.1).
 const Headermain = () => {
   const { pathname } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [menuPathname, setMenuPathname] = useState(pathname);
+  // DSG-22: the strip gets its background once the page has scrolled (one
+  // passive listener; React skips the render while the boolean is the same).
+  const isScrolled = useSyncExternalStore(
+    subscribeScroll,
+    readScrolled,
+    onServer,
+  );
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const t = useT();
   const lp = useLocalePath();
   // Header, menu and footer speak the interface language (DSG-19 uiLang),
@@ -92,6 +135,11 @@ const Headermain = () => {
     setMenuPathname(pathname);
     setIsOpen(false);
   }
+
+  // The menu exists below 992px only: a window widened past it while the
+  // menu is open closes the menu, so the page is not left inert and locked
+  // behind a panel that is no longer drawn.
+  if (isOpen && isDesktop) setIsOpen(false);
 
   // Choosing the page that is already open changes no route, so the
   // route-change focus in routes.jsx does not run and focus would drop to
@@ -138,6 +186,12 @@ const Headermain = () => {
     };
   }, [isOpen]);
 
+  const headerClass = classes(
+    styles.siteHeader,
+    isScrolled && styles.isScrolled,
+    isOpen && styles.isOpen,
+  );
+
   return (
     <>
       <a
@@ -148,16 +202,43 @@ const Headermain = () => {
       >
         {t("a11y.skipToContent")}
       </a>
-      <header
-        className={`fixed-top ${styles.siteHeader}`}
-        lang={uiLocale}
-        ref={headerRef}
-      >
-        <div className="d-flex align-items-center justify-content-between">
+      <header className={headerClass} lang={uiLocale} ref={headerRef}>
+        <div className={styles.bar}>
           <Link className={`${styles.brand} ${styles.navAction}`} to={lp("/")}>
             {logotext}
           </Link>
-          <div className="d-flex align-items-center">
+
+          <div
+            id={MENU_ID}
+            className={classes(
+              styles.siteNavigation,
+              isOpen && styles.menuOpen,
+            )}
+          >
+            <div className={styles.menuPanel}>
+              <nav aria-label={t("nav.label")}>
+                <ul className={styles.menuList}>
+                  {NAV_ITEMS.map(({ path, key }, index) => (
+                    <li className={styles.menuItem} key={path}>
+                      {/* Home is current on its own path only (`end`),
+                          also on /tr. */}
+                      <NavLink
+                        ref={index === 0 ? firstLinkRef : undefined}
+                        onClick={() => closeMenu(lp(path))}
+                        to={lp(path)}
+                        end={path === "/"}
+                        className={() => styles.navLink}
+                      >
+                        {t(`nav.${key}`)}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
+          </div>
+
+          <div className={styles.controls}>
             <LanguageSwitcher />
             <Themetoggle
               label={t("a11y.darkTheme")}
@@ -181,66 +262,38 @@ const Headermain = () => {
           </div>
         </div>
 
-        <div
-          id={MENU_ID}
-          className={`${styles.siteNavigation} ${isOpen ? styles.menuOpen : ""}`}
-        >
-          <div className={`${styles.menuPanel} h-100`}>
-            <div className={styles.menuWrapper}>
-              <nav
-                className={`${styles.menuContainer} p-3`}
-                aria-label={t("nav.label")}
-              >
-                <ul className={styles.menuList}>
-                  {NAV_ITEMS.map(({ path, key }, index) => (
-                    <li className={styles.menuItem} key={path}>
-                      <Link
-                        ref={index === 0 ? firstLinkRef : undefined}
-                        onClick={() => closeMenu(lp(path))}
-                        to={lp(path)}
-                        className="my-3"
-                      >
-                        {t(`nav.${key}`)}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            </div>
-          </div>
-          <div
-            className={`${styles.menuFooter} d-flex flex-column flex-md-row justify-content-between align-items-md-center position-absolute w-100 p-3`}
-          >
-            {/* Same K-11 list and order as the side rail (DSG-30); the
-                visible text is the channel's brand name. */}
-            <SocialLinks
-              variant="text"
-              locale={uiLocale}
-              location={LOCATIONS.MENU_FOOTER}
-              className={`${styles.footerSocial} m-0 p-0`}
-            />
-            <div className="d-flex flex-wrap align-items-center">
-              <Link
-                to={lp("/privacy")}
-                className="menu_footer__privacy d-inline-block me-3 py-1"
-                onClick={() => closeMenu(lp("/privacy"))}
-              >
-                {t("nav.privacy")}
-              </Link>
-              {/* The year is read when the page is drawn: a prerendered page keeps
-                  the year of its build (PERF-03), which the browser corrects
-                  after hydrating instead of reporting a mismatch. */}
-              <p className="copyright m-0" suppressHydrationWarning>
-                {t("footer.copyright", { year: new Date().getFullYear() })}
-              </p>
-            </div>
+        <div className={styles.menuFooter}>
+          {/* Same K-11 list and order as the side rail (DSG-30); the visible
+              text is the channel's brand name. Below 992px only: from there
+              the rail shows the profiles. */}
+          <SocialLinks
+            variant="text"
+            locale={uiLocale}
+            location={LOCATIONS.MENU_FOOTER}
+            className={styles.footerSocial}
+          />
+          <div className={styles.colophon}>
+            <Link
+              to={lp("/privacy")}
+              className="menu_footer__privacy"
+              onClick={() => closeMenu(lp("/privacy"))}
+            >
+              {t("nav.privacy")}
+            </Link>
+            {/* The year is read when the page is drawn: a prerendered page
+                keeps the year of its build (PERF-03), which the browser
+                corrects after hydrating instead of reporting a mismatch. */}
+            <p className="copyright" suppressHydrationWarning>
+              {t("footer.copyright", { year: new Date().getFullYear() })}
+            </p>
           </div>
         </div>
       </header>
-      <div className={`${styles.frame} ${styles.frameTop}`}></div>
-      <div className={`${styles.frame} ${styles.frameBottom}`}></div>
-      <div className={`${styles.frame} ${styles.frameLeft}`}></div>
-      <div className={`${styles.frame} ${styles.frameRight}`}></div>
+      {/* The page frame, the signature element (claudedocs/design/
+          design-plan.md §7): one fixed box with a --frame-size border, over
+          the header and under the skip link. Decoration only: it takes no
+          pointer events and is hidden from assistive technology. */}
+      <div className={styles.frame} aria-hidden="true"></div>
     </>
   );
 };
