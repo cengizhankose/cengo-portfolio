@@ -16,7 +16,7 @@ import { ROOT, read, rule } from "./support.js";
 import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
 const HOME = read("src/pages/home/home.module.css");
-const CURSOR = read("src/components/Cursor.css");
+const CURSOR = read("src/components/Cursor.module.css");
 const INDEX = GLOBAL_CSS;
 const CONTACT = read("src/pages/contact/contact.module.css");
 const REDUCE = "(prefers-reduced-motion: reduce)";
@@ -140,7 +140,7 @@ describe("contact loading bar under reduced motion (DSG-07 criterion 4)", () => 
 });
 
 describe("cursor ring styles (DSG-21, FE-07, PERF-11)", () => {
-  const ring = rule(CURSOR, ".cursor-ring");
+  const ring = rule(CURSOR, ".cursorRing");
 
   it("is a 32 px, 1.5 px outline ring that never takes the pointer", () => {
     expect(ring).toMatchObject({
@@ -158,10 +158,10 @@ describe("cursor ring styles (DSG-21, FE-07, PERF-11)", () => {
   });
 
   it("appears on the first move and grows over clickables with the hover colour", () => {
-    expect(rule(CURSOR, ".cursor-ring[data-visible]")).toEqual({
+    expect(rule(CURSOR, ".cursorRing[data-visible]")).toEqual({
       opacity: "1",
     });
-    expect(rule(CURSOR, ".cursor-ring[data-hover]")).toEqual({
+    expect(rule(CURSOR, ".cursorRing[data-hover]")).toEqual({
       "border-color": "var(--cursor-ring-hover-color)",
       scale: "1.5",
     });

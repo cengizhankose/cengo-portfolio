@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../../../src/app/App";
 import home from "../../../src/pages/home/home.module.css";
 import headerStyles from "../../../src/header/header.module.css";
+import cursorStyles from "../../../src/components/Cursor.module.css";
 
 const count = (selector) => document.head.querySelectorAll(selector).length;
 
@@ -64,7 +65,7 @@ describe("App (smoke)", () => {
     );
     await act(async () => {});
 
-    expect(document.querySelector(".cursor-ring")).toBeNull();
+    expect(document.querySelector(`.${cursorStyles.cursorRing}`)).toBeNull();
     expect(document.body.style.cursor).toBe("");
     expect(document.querySelectorAll('[style*="cursor"]')).toHaveLength(0);
   });

@@ -136,7 +136,7 @@ describe("no synthetic bold (DSG-17, FE-19 step 3)", () => {
 
   it("gives heading classes and the logo no weight above 400", () => {
     const headingLike =
-      /(^|\s|>)(h[1-6]|\.introName|\.blog-title|\.blog-post-title(-full)?|\.title|\.navAction|\.label|\.cardTitle)(\s|$|:|\.)/;
+      /(^|\s|>)(h[1-6]|\.introName|\.blog-title|\.blog-post-title(-full)?|\.stateTitle|\.navAction|\.proofLabel|\.cardTitle)(\s|$|:|\.)/;
     const off = weights()
       .filter(([, value]) => Number(value) > 400)
       .filter(([, , selector]) =>
@@ -180,7 +180,7 @@ describe("home page renders only Raleway 400 and Marcellus 400 (PERF-08 budget, 
     "src/header/header.module.css",
     "src/pages/home/home.module.css",
     "src/components/socialicons/socialicons.module.css",
-    "src/app/App.css",
+    "src/app/App.module.css",
   ];
 
   it("asks for no weight other than 400 there", () => {

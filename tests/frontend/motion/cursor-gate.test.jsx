@@ -6,6 +6,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pointer, spyPointerListeners, stubMedia } from "./support.js";
+import cursorStyles from "../../../src/components/Cursor.module.css";
 
 // Counts real loads of the lazy Cursor module (the dynamic import in App).
 const loads = vi.hoisted(() => ({ count: 0 }));
@@ -16,7 +17,7 @@ vi.mock("../../../src/components/Cursor.jsx", async (importOriginal) => {
 
 const { default: App, CURSOR_QUERY } = await import("../../../src/app/App.jsx");
 
-const ring = () => document.querySelector(".cursor-ring");
+const ring = () => document.querySelector(`.${cursorStyles.cursorRing}`);
 const move = () =>
   window.dispatchEvent(pointer("pointermove", { clientX: 40, clientY: 40 }));
 

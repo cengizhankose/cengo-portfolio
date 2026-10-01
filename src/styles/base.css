@@ -169,7 +169,7 @@ code {
    finishes at once. Durations become 0.01ms instead of `animation: none` on
    purpose: animationend and transitionend still fire for a 0.01ms
    animation, so nothing that waits for one hangs. Delays go to 0 so nothing
-   appears late either. The page-enter fade (src/app/App.css), the hero
+   appears late either. The page-enter fade (src/app/App.module.css), the hero
    rotator and the contact loading bar also switch their animation off in
    their own stylesheets; the custom cursor ring is not mounted at all
    (src/app/App.jsx). FE-20's !important count leaves this block and .visually-hidden out. */

@@ -4,8 +4,8 @@
 // - With "reduce motion" on, the app renders no cursor ring and never loads
 //   its chunk; turning it on mid-session removes a mounted ring.
 // - One global CSS block ends every animation and transition at once
-//   (durations, not `animation: none`, so the page transition still gets
-//   its animationend).
+//   (durations, not `animation: none`, so animationend and transitionend
+//   still fire for anything that waits for them).
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { render, renderHook, waitFor } from "@testing-library/react";
@@ -17,6 +17,7 @@ import {
   usePrefersReducedMotion,
 } from "../../../src/lib/useMediaQuery.js";
 import { ROOT, pointer, read, rule, stubMedia } from "./support.js";
+import cursorStyles from "../../../src/components/Cursor.module.css";
 
 const loads = vi.hoisted(() => ({ count: 0 }));
 vi.mock("../../../src/components/Cursor.jsx", async (importOriginal) => {
@@ -111,7 +112,7 @@ describe("the app under reduced motion (FE-06 criterion 4, DSG-07 step 5)", () =
     }
     await new Promise((resolve) => setTimeout(resolve, 20));
 
-    expect(document.querySelector(".cursor-ring")).toBeNull();
+    expect(document.querySelector(`.${cursorStyles.cursorRing}`)).toBeNull();
     expect(loads.count).toBe(0);
   });
 
@@ -120,12 +121,14 @@ describe("the app under reduced motion (FE-06 criterion 4, DSG-07 step 5)", () =
     window.history.replaceState(null, "", "/");
     render(<App />);
     await waitFor(() =>
-      expect(document.querySelector(".cursor-ring")).not.toBeNull(),
+      expect(
+        document.querySelector(`.${cursorStyles.cursorRing}`),
+      ).not.toBeNull(),
     );
 
     media.set({ "prefers-reduced-motion": "reduce" });
 
-    expect(document.querySelector(".cursor-ring")).toBeNull();
+    expect(document.querySelector(`.${cursorStyles.cursorRing}`)).toBeNull();
   });
 });
 
@@ -177,7 +180,7 @@ describe("global reduced-motion block in src/styles/base.css (FE-06 step 1)", ()
     });
   });
 
-  it("does not switch animations off globally (routes.jsx waits for animationend)", () => {
+  it("does not switch animations off globally (animationend must still fire)", () => {
     expect(block).not.toHaveProperty("animation");
     expect(block).not.toHaveProperty("animation-name");
   });
