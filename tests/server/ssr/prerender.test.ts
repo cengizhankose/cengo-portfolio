@@ -108,6 +108,11 @@ describe("the written pages", () => {
       expect(html).not.toContain("Fixture shell");
       expect(count(html, /<h1\b/g)).toBe(1);
       expect(html).toContain('<div id="root" data-ssr>');
+      // The server cannot know the visitor's theme: <html> carries no
+      // data-theme (the head script sets it, the toggle follows after
+      // hydration), and the shell's static theme script is untouched.
+      expect(/<html\b[^>]*data-theme/.test(html)).toBe(false);
+      expect(html).toContain("<title data-seo>");
       expect(html).toContain('rel="canonical"');
       expect(html).toContain('property="og:title"');
       expect(html).not.toContain("Loading...");

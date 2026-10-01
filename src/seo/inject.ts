@@ -79,11 +79,11 @@ export function readShell(file: string): string {
  * contain `marker`, in name order.
  *
  * A page that Vite splits into its own chunk (the blog) brings its stylesheet
- * with the chunk, after the app has started. The snapshot of such a page uses
- * those class names from the first paint, so the server links the stylesheet in
- * the <head> (renderHeadTags `stylesheets`): without it the snapshot is drawn
- * unstyled and jumps when the chunk's CSS arrives (layout shift). The file is
- * found by a class name the snapshot itself prints, because the hashed file name
+ * with the chunk, after the app has started. The server render of such a page
+ * uses those class names from the first paint, so the server links the
+ * stylesheet in the <head> (renderHeadTags `stylesheets`): without it the page
+ * is drawn unstyled and jumps when the chunk's CSS arrives (layout shift). The
+ * file is found by a class name the page itself prints, because the hashed file name
  * says nothing about the page; Vite's runtime loader skips a stylesheet that is
  * already linked by the same href, so it is fetched once. Reads the files once,
  * at startup. An empty list (dev, a build without the chunk) prints nothing.
@@ -192,7 +192,7 @@ export function injectIntoShell(
   return out;
 }
 
-/** What the server writes into the shell's <head> for a page without a snapshot (SEO-02 step 4). */
+/** What the server writes into the shell's <head> for a page without a server render (SEO-02 step 4). */
 export interface ShellMeta {
   title?: string | null;
   robots?: string | null;

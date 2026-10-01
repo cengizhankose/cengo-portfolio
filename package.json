@@ -17,12 +17,8 @@
     "react-router-dom": "^7.18.4",
     "rehype-raw": "^7.0.0",
     "rehype-sanitize": "^6.0.0",
-    "rehype-stringify": "^10.0.1",
     "remark-gfm": "^4.0.1",
-    "remark-parse": "^11.0.0",
-    "remark-rehype": "^11.1.2",
     "swr": "^2.5.1",
-    "unified": "^11.0.5",
     "web-vitals": "^5.1.0",
     "zod": "^4.6.5"
   },

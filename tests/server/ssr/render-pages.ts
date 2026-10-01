@@ -30,6 +30,7 @@ if (process.env.OPEN_TR === "1") {
   });
 }
 
+// @ts-expect-error: a .jsx module without declarations (Bun compiles it).
 const { render } = await import("../../../src/entry-server.jsx");
 
 const pages: [string, Record<string, unknown>][] = JSON.parse(

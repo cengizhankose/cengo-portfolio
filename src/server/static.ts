@@ -101,8 +101,8 @@ const MISSING_MAX = 500;
 
 /**
  * Class names of the blog pages' stylesheet, which Vite ships with the lazy
- * blog chunk: the server links it in the <head> of the blog pages so their
- * snapshot is styled from the first paint (src/seo/inject.ts findStylesheets).
+ * blog chunk: the server links it in the <head> of the blog pages so the page
+ * it draws is styled from the first paint (src/seo/inject.ts findStylesheets).
  */
 const BLOG_STYLE_MARKERS = [".blog-container", ".blog-post-container"];
 
