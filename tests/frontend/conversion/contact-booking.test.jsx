@@ -34,7 +34,7 @@ describe("booking link", () => {
       a.getAttribute("href"),
     );
     expect(links).toEqual([
-      "mailto:hello@cengizhankose.com",
+      "mailto:me@cengizhankose.com",
       "https://cal.com/cengizhankose/intro",
       "https://www.linkedin.com/in/cengizhankose",
     ]);

@@ -303,6 +303,7 @@ describe("successful send (MKT-11, DSG-05, FE-15)", () => {
         from_name: TYPED.email,
         user_name: TYPED.name,
         to_name: email,
+        to_email: email,
         message: TYPED.message,
         project_type: "web",
         project_type_label: "Web app",

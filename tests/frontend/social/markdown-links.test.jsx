@@ -54,7 +54,7 @@ describe("classifyMarkdownHref", () => {
     ],
     ["https://cengizhankose.com/about", { kind: "internal", to: "/about" }],
     ["#user-content-fn-1", { kind: "plain" }],
-    ["mailto:hello@cengizhankose.com", { kind: "plain" }],
+    ["mailto:me@cengizhankose.com", { kind: "plain" }],
     ["notes.md", { kind: "plain" }],
     ["", { kind: "plain" }],
     [undefined, { kind: "plain" }],
@@ -129,10 +129,10 @@ describe("links in a post", () => {
 
   it("footnotes and mailto keep their plain links and attributes", () => {
     renderPost(
-      "Text[^1] and [mail](mailto:hello@cengizhankose.com).\n\n[^1]: Note.",
+      "Text[^1] and [mail](mailto:me@cengizhankose.com).\n\n[^1]: Note.",
     );
     const mail = screen.getByRole("link", { name: "mail" });
-    expect(mail).toHaveAttribute("href", "mailto:hello@cengizhankose.com");
+    expect(mail).toHaveAttribute("href", "mailto:me@cengizhankose.com");
     expect(mail).not.toHaveAttribute("target");
 
     const ref = document.querySelector("a[data-footnote-ref]");

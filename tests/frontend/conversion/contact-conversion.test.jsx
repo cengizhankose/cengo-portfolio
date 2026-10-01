@@ -185,6 +185,7 @@ describe.each([
         from_name: TYPED.email,
         user_name: TYPED.name,
         to_name: email,
+        to_email: email,
         message: TYPED.message,
         project_type: "ai",
         project_type_label: contact.projectTypes.find((x) => x.id === "ai")

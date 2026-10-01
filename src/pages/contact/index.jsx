@@ -187,6 +187,8 @@ export const ContactUs = () => {
       from_name: formData.email,
       user_name: formData.name,
       to_name: email,
+      // The EmailJS template's "To Email" field reads {{to_email}}.
+      to_email: email,
       message: formData.message,
       project_type: formData.project_type,
       project_type_label: projectType?.label ?? "",

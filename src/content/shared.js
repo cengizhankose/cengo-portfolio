@@ -6,9 +6,10 @@
 // Header logo text (DSG-24: the CENGO wordmark, capitals by design).
 export const logotext = "CENGO";
 
-// Public contact address (MKT-12, schedule default). The owner sets up the
-// forwarding for this address before the release (owner step).
-export const email = "hello@cengizhankose.com";
+// Public contact address (MKT-12): the owner's mailbox on the domain
+// (owner decision 2026-10-01, replaces the unused hello@ default). The
+// contact form sends it to EmailJS as to_email / to_name.
+export const email = "me@cengizhankose.com";
 
 // EmailJS IDs and the public key are public by design (they ship in the
 // bundle). Abuse is limited in the EmailJS panel (allowed domains) and by the

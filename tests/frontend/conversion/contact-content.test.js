@@ -134,7 +134,7 @@ describe("ways in besides the form (MKT-12)", () => {
   });
 
   it("the public address is on the site's own domain", () => {
-    expect(email).toBe("hello@cengizhankose.com");
+    expect(email).toBe("me@cengizhankose.com");
     expect(email.endsWith("@cengizhankose.com")).toBe(true);
   });
 

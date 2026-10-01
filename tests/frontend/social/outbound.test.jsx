@@ -131,7 +131,7 @@ describe("outboundProps (what a click sends)", () => {
     ["/tr/about", "the language switcher target"],
     ["https://www.cengizhankose.com/blog", "an absolute link to this site"],
     ["https://cengizhankose.com/blog", "the apex host"],
-    ["mailto:hello@cengizhankose.com", "a mailto link"],
+    ["mailto:me@cengizhankose.com", "a mailto link"],
     ["tel:+900000000000", "a tel link"],
     ["#user-content-fn-1", "a fragment"],
     ["notes.md", "a relative path"],
@@ -234,7 +234,7 @@ describe("initOutboundTracking (delegated listener)", () => {
     );
     expect(internal.length).toBeGreaterThan(0);
     const mail = document.createElement("a");
-    mail.href = "mailto:hello@cengizhankose.com";
+    mail.href = "mailto:me@cengizhankose.com";
     document.body.append(mail);
 
     for (const link of [...internal, mail]) fireEvent.click(link);

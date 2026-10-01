@@ -204,7 +204,7 @@ describe("getContent(locale) (FE-14 step 6)", () => {
 
   it("shared data: logo, the domain address and the EmailJS ids", () => {
     expect(shared.logotext).toBe("CENGO");
-    expect(shared.email).toBe("hello@cengizhankose.com");
+    expect(shared.email).toBe("me@cengizhankose.com");
     expect(Object.keys(shared.emailjs).sort()).toEqual([
       "publicKey",
       "serviceId",
