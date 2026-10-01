@@ -14,9 +14,10 @@
 //   controller, rights.how  `{email}` is rendered as a mailto: link
 //   privacyProcessors  the one list of recipients. EN and TR keep the same ids
 //                      in the same order (tests/frontend/privacy). When the
-//                      Cloudflare beacon is switched off (T-09), delete the
-//                      `cloudflare_web_analytics` entry in both files.
-export const privacyProcessors = [
+//                      Cloudflare beacon is switched off (T-09), the owner
+//                      sets CF_WEB_ANALYTICS=off (see the filter below); the
+//                      entry stays in both files until the cleanup commit.
+const processorEntries = [
   {
     id: "emailjs",
     name: "EmailJS",
@@ -58,6 +59,18 @@ export const privacyProcessors = [
     location: "The hosting provider’s data centre.",
   },
 ];
+
+// T-09 / PERF-25: the Cloudflare Web Analytics entry is listed while the beacon
+// runs next to Umami. CF_WEB_ANALYTICS=off (Out Plane env; the Dockerfile hands
+// it to the build as VITE_CF_WEB_ANALYTICS, the page is prerendered) drops it,
+// like src/api/middleware/csp.ts drops the beacon hosts. Default: listed.
+// Bump LAST_UPDATED (src/pages/privacy/updated.js) in the same release.
+const cloudflareBeaconOn = !/^(?:off|0|false|no|disabled)$/i.test(
+  String(import.meta.env?.VITE_CF_WEB_ANALYTICS ?? "").trim(),
+);
+export const privacyProcessors = processorEntries.filter(
+  ({ id }) => cloudflareBeaconOn || id !== "cloudflare_web_analytics",
+);
 
 export default {
   intro:

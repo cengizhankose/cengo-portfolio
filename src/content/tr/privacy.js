@@ -2,8 +2,9 @@
 // src/content/en/privacy.js: same ids, same order, same list lengths. The
 // owner approves the Turkish text before the page goes live (the page opens
 // with the TR pages in W11). When the Cloudflare beacon is switched off
-// (T-09), delete the `cloudflare_web_analytics` entry here and in EN.
-export const privacyProcessors = [
+// (T-09), CF_WEB_ANALYTICS=off drops the `cloudflare_web_analytics` entry
+// (filter below); it stays here and in EN until the cleanup commit.
+const processorEntries = [
   {
     id: "emailjs",
     name: "EmailJS",
@@ -45,6 +46,18 @@ export const privacyProcessors = [
     location: "Barındırma sağlayıcısının veri merkezi.",
   },
 ];
+
+// T-09 / PERF-25: the Cloudflare Web Analytics entry is listed while the beacon
+// runs next to Umami. CF_WEB_ANALYTICS=off (Out Plane env; the Dockerfile hands
+// it to the build as VITE_CF_WEB_ANALYTICS, the page is prerendered) drops it,
+// like src/api/middleware/csp.ts drops the beacon hosts. Default: listed.
+// Bump LAST_UPDATED (src/pages/privacy/updated.js) in the same release.
+const cloudflareBeaconOn = !/^(?:off|0|false|no|disabled)$/i.test(
+  String(import.meta.env?.VITE_CF_WEB_ANALYTICS ?? "").trim(),
+);
+export const privacyProcessors = processorEntries.filter(
+  ({ id }) => cloudflareBeaconOn || id !== "cloudflare_web_analytics",
+);
 
 export default {
   intro:
