@@ -4,6 +4,7 @@
 # the first --prod publish (the title alone is too long for the page title).
 slug: atlas-steward-laya-konustan-yarim-is-cikaran-sistem
 lang: tr
+translationKey: atlas-steward
 title: "40 milisaniyelik sezgi: Sohbette kaybolan işleri makineyi rehin almadan yakalamak"
 seoTitle: "Atlas Steward: Yarım İşi Yakalayan Sistem"
 excerpt: "Atlas Steward konuşmalardaki yarım işleri nasıl yakalıyor? Yerel karar modeli Laya, gerçek arıza hikâyeleri ve System 1 / System 2 yaklaşımı."

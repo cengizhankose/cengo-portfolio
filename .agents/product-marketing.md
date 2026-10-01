@@ -6,7 +6,9 @@ It is one page of decisions, not a brochure. The facts behind it live in the con
 below (§) point into it. Every number or date that reaches the site must be traceable to a § there.
 
 Status: these are the recommended defaults of the 2026-09 audit. The owner has not yet confirmed the open
-points at the bottom; change this file first when an answer arrives, then the copy.
+points at the bottom; change this file first when an answer arrives, then the copy. English and Turkish went
+live together in W11 (MKT-14): the Turkish voice below is the one the strict parity test and the voice test
+(`tests/frontend/i18n/`) enforce.
 
 ## What this site is
 
@@ -89,7 +91,7 @@ Not usable until the owner gets written permission (never paraphrase around it):
   not translated word for word (T-12).
 - Both languages ship together: a string, a content field or a page that exists in one language and not
   in the other is a bug. The parity test in `tests/frontend/i18n/` enforces it once `/tr` is live.
-- The next three sections are the contract for every content package. MKT-14 finalises them before `/tr` opens.
+- The next three sections are the contract for every content package. MKT-14 finalised them when `/tr` opened.
 
 ## Dil ve hitap
 
@@ -127,12 +129,34 @@ through this flow:
 1. The source post is published and carries a `translationKey` (added with the publish CLI if missing).
 2. AI draft: the source Markdown is translated. Code blocks, numbers, units and proper names do not change;
    internal links are rewritten to the target language path (`/blog/...` to `/tr/blog/...`); terms follow the
-   glossary above; the slug is written in the target language.
+   glossary above; the slug is written in the target language. Mermaid diagrams: the labels are visible text and
+   are translated, node ids and syntax are not. Both files carry the same `translationKey`.
 3. Owner review: Cengizhan reads and corrects the draft; technical claims are compared with the source.
 4. The post ends with the standard note. EN: "Translated from Turkish with AI assistance and reviewed by
    Cengizhan." TR: "İngilizceden yapay zekâ desteğiyle çevrildi, Cengizhan tarafından gözden geçirildi."
 5. Publish with the CLI (`content:publish ... --lang <lang> --translation-key <key>`, see CLAUDE.md); the pull
    request states "owner approval: <date>". Nothing is translated and published without that approval.
+
+First translation: the Atlas Steward post, `content/posts/atlas-steward-system-that-catches-unfinished-work.en.md`
+(`translationKey: atlas-steward`, shared with the Turkish file). It is an AI draft: it waits for the owner's
+review (step 3) and has no cover image yet (MKT-20); the translation note at its end is true only after that review.
+
+## Template strings that stay replaced
+
+The site started from a public portfolio template (MIT, 550 forks). Its visible strings must not come back in
+either language (MKT-08); the owner keeps the licence notice. The voice test fails on any of them.
+
+| Template string | EN now | TR now |
+| --- | --- | --- |
+| "Follow Me" (social rail) | Find me elsewhere | Beni başka yerlerde bul |
+| "Get in touch" (contact) | Reach me directly | Doğrudan ulaş |
+| "Contact Me" (contact heading) | Let’s work together | Birlikte çalışalım |
+| "About me" (about heading) | About Cengizhan Köse | Cengizhan Köse hakkında |
+| "abit about my self" (about subheading) | My story | Hikâyem |
+| "Work Timline", "copyright __" | Work timeline, © {year} Cengizhan Köse | İş deneyimi, © {year} Cengizhan Köse |
+| "SUCCESS! Thankyou for your messege", "Faild…" | the contact status messages in `src/i18n/en/contact.js` | `src/i18n/tr/contact.js` |
+
+Generic words (Home, Blog, About, Contact, Portfolio) are not fingerprints and stay.
 
 ## What stays out of the copy
 
