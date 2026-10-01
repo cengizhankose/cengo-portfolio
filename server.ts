@@ -4,6 +4,7 @@
 // production, SEC-22) stop the process before it listens.
 import { join } from "node:path";
 import { createApp, portFromEnv } from "./src/api/app";
+import { createRequestStatsFromEnv } from "./src/server/requestStats";
 import { readBuildInfo } from "./src/api/build-info";
 import { driverError, serverPostQueries, warmPostCache } from "./src/api/cache";
 import { errorFields, log } from "./src/api/log";
@@ -22,9 +23,13 @@ let server: ReturnType<typeof Bun.serve> | undefined;
 // Startup cache warm-up (below); settles, never rejects.
 let warmUp: Promise<void> = Promise.resolve();
 
+// ANL-13: daily request aggregates; null unless REQUEST_STATS_ENABLED=1.
+const requestStats = createRequestStatsFromEnv();
+
 const lifecycle = createShutdown({
   stopServer: async () => {
     await server?.stop(); // refuses new connections, waits for in-flight requests
+    await requestStats?.close("shutdown"); // writes the last counts (bounded)
   },
   closeDb: async () => {
     // postgres.js end() waits its whole timeout for a connection that is
@@ -44,6 +49,7 @@ const app = createApp({
   distDir: join(import.meta.dir, "dist"),
   buildInfo: await readBuildInfo(join(import.meta.dir, "build-info.json")),
   isShuttingDown,
+  requestStats,
 });
 
 server = Bun.serve({

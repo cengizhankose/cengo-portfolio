@@ -45,6 +45,24 @@ GRANT SELECT ON public.posts TO portfolio_reader;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.posts TO portfolio_writer;
 GRANT USAGE, SELECT ON SEQUENCE public.posts_id_seq TO portfolio_writer;
 
+-- ANL-13: the request statistics writer (PG_STATS_URL). Optional: runs only
+-- when the role exists (`outplane db role create <PROD_DB> portfolio_stats`).
+-- It may touch request_daily_stats and nothing else.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'portfolio_stats') THEN
+    EXECUTE format('REVOKE ALL ON DATABASE %I FROM portfolio_stats', current_database());
+    REVOKE ALL ON SCHEMA public FROM portfolio_stats;
+    REVOKE ALL ON ALL TABLES IN SCHEMA public FROM portfolio_stats;
+    EXECUTE format('GRANT CONNECT ON DATABASE %I TO portfolio_stats', current_database());
+    GRANT USAGE ON SCHEMA public TO portfolio_stats;
+    IF to_regclass('public.request_daily_stats') IS NOT NULL THEN
+      GRANT SELECT, INSERT, UPDATE, DELETE ON public.request_daily_stats TO portfolio_stats;
+    END IF;
+  END IF;
+END
+$$;
+
 COMMIT;
 
 -- Checks (SEC-14 acceptance criteria), printed after the grants:
