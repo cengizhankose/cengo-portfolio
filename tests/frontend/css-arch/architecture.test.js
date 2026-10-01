@@ -44,12 +44,15 @@ describe("tokens (FE-20 step 1, DSG-32 step 1)", () => {
       "--surface-color",
       "--text-color",
       "--text-muted",
-      "--border-color",
     ]) {
       expect(value(dark, name), `dark ${name}`).toBeDefined();
       expect(value(light, name), `light ${name}`).toBeDefined();
     }
+    // FE-01: the hairline is derived from the two theme colours, so one
+    // declaration on :root follows data-theme.
+    expect(value(dark, "--border-color")).toMatch(/^color-mix\(/);
     for (const name of [
+      "--border-color",
       "--cursor-ring-color",
       "--cursor-ring-hover-color",
       "--space-1",

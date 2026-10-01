@@ -114,10 +114,10 @@ describe.each(["/", "/tr"])("%s hero photo", (path) => {
       text.compareDocumentPosition(image) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     // h-100 (height:100% !important) overrode the mobile box size (DSG-11
-    // step 1); the order-* classes are dead in the block layout.
-    expect(image.className).not.toMatch(/\bh-100\b|\border-/);
-    expect(text).toHaveClass("h-100");
-    expect(text.className).not.toMatch(/\border-/);
+    // step 1); since FE-01 the hero is a CSS grid and neither half carries a
+    // Bootstrap helper: the module classes are the whole class list.
+    expect(image.className).toBe(home.heroImage);
+    expect(text.className).toBe(home.heroText);
   });
 
   it("every file the markup lists exists under public/", () => {

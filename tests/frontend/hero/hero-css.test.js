@@ -13,11 +13,17 @@ const HOME = read("src/pages/home/home.module.css");
 const APP = read("src/app/App.module.css");
 const MOBILE = "(max-width: 991.98px)";
 const DESKTOP = "(min-width: 992px)";
-const BOX = ".hero .heroImage";
+const BOX = ".heroImage";
 
+// FE-01: the hero is a CSS grid (one column below 992px, two halves from
+// there); the photo box keeps the DSG-11 / FE-18 / PERF-07 rules.
 describe("hero section height (FE-18 step 6, DSG-11)", () => {
   it("has no fixed height below 992px: the section is as tall as its content", () => {
-    expect(declared(HOME, ".hero")).toEqual({});
+    const base = declared(HOME, ".hero");
+    expect(base).toEqual({
+      display: "grid",
+      "grid-template-columns": "minmax(0, 1fr)",
+    });
     expect(declared(HOME, ".hero", MOBILE)).toEqual({});
   });
 
@@ -25,9 +31,10 @@ describe("hero section height (FE-18 step 6, DSG-11)", () => {
     // Later declarations win in `declared`, as in the cascade: 100svh with
     // the 100vh fallback before it in the source.
     expect(declared(HOME, ".hero", DESKTOP)).toEqual({
+      "grid-template-columns": "repeat(2, minmax(0, 1fr))",
       height: "100svh",
       "min-height": "700px",
-      "margin-top": "-60px",
+      "margin-top": "calc(-1 * (var(--frame-size) + var(--header-height)))",
     });
     expect(HOME).not.toMatch(/calc\(100vh - 60px\)/);
     expect(HOME).toMatch(/height: 100vh;\s*height: 100svh;/);
@@ -47,19 +54,16 @@ describe("photo box (DSG-11, FE-18, PERF-07)", () => {
   });
 
   it("is 4:5 below 992px, sized by its width alone (DSG-11 step 3)", () => {
-    // width: 100% comes from the grouped `.text, .h_bg-image` rule.
+    // The grid column gives the width; the box sets only its ratio.
     expect(declared(HOME, BOX, MOBILE)).toEqual({
-      width: "100%",
-      height: "auto",
-      "min-height": "0",
       "aspect-ratio": "4 / 5",
-      "margin-bottom": "24px",
+      "margin-bottom": "var(--space-4)",
     });
   });
 
   it("fills the section's height from 992px (DSG-11 step 2)", () => {
+    // A grid item stretches to the row, which is the section's height.
     expect(declared(HOME, BOX, DESKTOP)).toEqual({
-      height: "100%",
       "min-height": "700px",
     });
   });

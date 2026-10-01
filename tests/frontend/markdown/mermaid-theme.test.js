@@ -86,15 +86,25 @@ describe("THEME_TOKENS equals src/styles/tokens.css", () => {
   });
 });
 
+// FE-01: the hairline is 18% of the text colour over the page, declared once
+// on :root and resolved per theme (dark ~#383838, light ~#d1d1d1; it was
+// #3a3a3a / #d4d4d4).
+const BORDER_MIX = 0.18;
+const resolveBorder = ({ bg, text }) => mix(bg, text, BORDER_MIX);
+
 describe("--border-color (DSG-06, shared token contract of the design plan)", () => {
-  it("is declared in both theme blocks: dark #3a3a3a, light #d4d4d4", () => {
-    expect(tokenBlock(BLOCKS.dark)["--border-color"]).toBe("#3a3a3a");
-    expect(tokenBlock(BLOCKS.light)["--border-color"]).toBe("#d4d4d4");
+  it("is one color-mix of the theme's text over its background", () => {
+    expect(tokenBlock(BLOCKS.dark)["--border-color"]).toBe(
+      "color-mix(in srgb, var(--text-color) 18%, var(--bg-color))",
+    );
+    expect(tokenBlock(BLOCKS.light)).not.toHaveProperty("--border-color");
+    expect(resolveBorder(THEME_TOKENS.dark)).toBe("#383838");
+    expect(resolveBorder(THEME_TOKENS.light)).toBe("#d1d1d1");
   });
 
   it("is a quiet edge that is still distinguishable from the page", () => {
-    for (const [theme, selector] of Object.entries(BLOCKS)) {
-      const border = tokenBlock(selector)["--border-color"];
+    for (const theme of Object.keys(BLOCKS)) {
+      const border = resolveBorder(THEME_TOKENS[theme]);
       expect(contrast(border, THEME_TOKENS[theme].bg), theme).toBeGreaterThan(
         1.3,
       );

@@ -48,7 +48,7 @@ describe("type scale (FE-19 steps 1-2)", () => {
 
   it("puts the menu links on the largest step (was 4.8vw)", () => {
     expect(
-      declared(read("src/header/header.module.css"), ".menuList .menuItem > a"),
+      declared(read("src/header/header.module.css"), ".navLink"),
     ).toMatchObject({
       "font-size": "var(--fs-2xl)",
     });

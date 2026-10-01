@@ -49,8 +49,12 @@ describe("inline code (DSG-26)", () => {
       color: "var(--text-color)",
       border: "1px solid var(--border-color)",
     });
-    expect(DARK["--border-color"]).toBe("#3a3a3a");
-    expect(LIGHT["--border-color"]).toBe("#d4d4d4");
+    // FE-01: one declaration, 18% of the text colour over the page (dark
+    // ~#383838, light ~#d1d1d1; it was #3a3a3a / #d4d4d4).
+    expect(DARK["--border-color"]).toBe(
+      "color-mix(in srgb, var(--text-color) 18%, var(--bg-color))",
+    );
+    expect(tokens('[data-theme="light"]')).not.toHaveProperty("--border-color");
   });
 
   it("reads at >= 4.5:1 on its own background in both themes", () => {
@@ -92,7 +96,7 @@ describe("hover changes something visible (DSG-27)", () => {
   // rule does not have.
   it.each([
     [HEADER, ".navAction", ".navAction:hover"],
-    [HEADER, ".menuList .menuItem > a", ".menuList .menuItem > a:hover"],
+    [HEADER, ".navLink", ".navLink:hover"],
     [HEADER, ".footerSocial a", ".footerSocial a:hover"],
     [BLOG, ".blog-post-title a", ".blog-post-title a:hover"],
     [BLOG, ".blog-post-byline a", ".blog-post-byline a:hover"],

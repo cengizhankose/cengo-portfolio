@@ -228,7 +228,10 @@ describe("entry and stacks", () => {
     expect(css).toContain(`--font-body: ${FONT_STACKS.body};`);
     expect(css).toContain(`--font-display: ${FONT_STACKS.display};`);
     expect(css).toMatch(/body \{[^}]*font-family: var\(--font-body\);/);
-    expect(css).toMatch(/h6 \{ font-family: var\(--font-display\); \}/);
+    // FE-01: one heading rule carries the family, the weight and the wrap.
+    expect(css).toMatch(
+      /:is\(h1, h2, h3, h4, h5, h6\) \{ font-family: var\(--font-display\);/,
+    );
   });
 
   it("every stack names its fallback face, a system face and a generic family", () => {

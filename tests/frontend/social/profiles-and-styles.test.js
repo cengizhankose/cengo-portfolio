@@ -170,23 +170,29 @@ describe("rail and menu footer CSS (DSG-12)", () => {
   const header = read("src/header/header.module.css");
   const MOBILE = "max-width: 991px";
 
+  // FE-01: the sizes are spacing tokens: --space-4 24px, --space-5 32px,
+  // --space-2 8px (src/styles/tokens.css).
   it("rail: 32px wide at left 24px, icons 32x32, 8px apart", () => {
+    const tokens = read("src/styles/tokens.css");
+    expect(tokens).toMatch(/--space-2: 0\.5rem;/);
+    expect(tokens).toMatch(/--space-4: 1\.5rem;/);
+    expect(tokens).toMatch(/--space-5: 2rem;/);
     expect(rule(rail, ".rail")).toMatchObject({
       position: "fixed",
-      left: "24px",
-      width: "32px",
+      left: "var(--space-4)",
+      width: "var(--space-5)",
     });
     expect(rule(rail, ".rail a")).toMatchObject({
       display: "inline-flex",
       "align-items": "center",
       "justify-content": "center",
-      width: "32px",
-      height: "32px",
+      width: "var(--space-5)",
+      height: "var(--space-5)",
     });
     expect(rule(rail, ".rail ul")).toMatchObject({
       display: "flex",
       "flex-direction": "column",
-      gap: "8px",
+      gap: "var(--space-2)",
     });
   });
 
@@ -218,17 +224,19 @@ describe("rail and menu footer CSS (DSG-12)", () => {
     });
   });
 
-  it("menu footer: every link at least 24x24, 4px/12px gaps", () => {
+  // FE-01: --tap-min is 24px; the gaps are --space-1 / --space-3 (4px/16px).
+  it("menu footer: every link at least 24x24, 4px/16px gaps", () => {
+    expect(read("src/styles/tokens.css")).toMatch(/--tap-min: 24px;/);
     expect(rule(header, ".footerSocial")).toMatchObject({
       display: "flex",
       "flex-wrap": "wrap",
-      gap: "4px 12px",
+      gap: "var(--space-1) var(--space-3)",
       "list-style": "none",
     });
     expect(rule(header, ".footerSocial a")).toMatchObject({
       display: "inline-flex",
-      "min-width": "24px",
-      "min-height": "24px",
+      "min-width": "var(--tap-min)",
+      "min-height": "var(--tap-min)",
     });
     expect(rule(header, ".menuFooter a")).not.toHaveProperty("margin-right");
   });

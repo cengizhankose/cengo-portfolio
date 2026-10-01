@@ -71,12 +71,16 @@ describe("theme toggle (DSG-02, FE-02)", () => {
 });
 
 describe("keyboard order", () => {
-  it("goes skip link -> logo -> language switcher -> theme toggle -> menu button (TR open since W11)", async () => {
+  // FE-01 / DSG-18: the sections are one navigation for every width, between
+  // the logo and the language switcher (in jsdom, which loads no CSS, the
+  // panel's links are always reachable; in a browser below 992px they are
+  // hidden until the menu opens).
+  it("goes skip link -> logo -> sections -> language switcher -> theme toggle -> menu button (TR open since W11)", async () => {
     const user = userEvent.setup();
     renderHeader();
 
     const stops = [];
-    for (let step = 0; step < 5; step += 1) {
+    for (let step = 0; step < 10; step += 1) {
       await user.tab();
       stops.push(
         document.activeElement.getAttribute("aria-label") ??
@@ -87,6 +91,11 @@ describe("keyboard order", () => {
     expect(stops).toEqual([
       "Skip to content",
       "CENGO",
+      "Home",
+      "Portfolio",
+      "About",
+      "Blog",
+      "Contact",
       "TR – Türkçe",
       "Dark theme",
       "Menu",

@@ -116,24 +116,22 @@ describe("class coverage (FE-21 step 1)", () => {
     expect(missing).toEqual([]);
   });
 
-  it("keeps the header's helpers (W2-FE-nav-a11y handoff)", () => {
+  // FE-01: the header and the hero lay themselves out in their CSS Modules,
+  // so the helpers the template header needed (.fixed-top, the responsive
+  // flex utilities) are no longer compiled. The class coverage test above
+  // still fails if markup names one again.
+  it("no longer compiles the template header's helpers (FE-01)", () => {
     for (const name of [
       "fixed-top",
-      "d-flex",
-      "flex-wrap",
-      "flex-column",
       "flex-md-row",
-      "justify-content-between",
-      "align-items-center",
       "align-items-md-center",
+      "d-lg-flex",
       "position-absolute",
-      "w-100",
       "h-100",
-      "m-0",
-      "p-0",
-      "p-3",
-      "my-3",
     ]) {
+      expect(compiled, name).not.toContain(name);
+    }
+    for (const name of ["d-flex", "align-items-center", "w-100", "mb-0"]) {
       expect(compiled, name).toContain(name);
     }
   });
@@ -279,7 +277,7 @@ describe(".brand is local (PERF-09 step 4, FE-21 step 4)", () => {
       header.indexOf(".navAction {"),
     );
     expect(declarations(header, ".navAction")).toMatchObject({
-      padding: "5px 15px",
+      padding: "0 var(--space-3)",
       margin: "0",
       "font-size": "var(--fs-md)",
       color: "var(--text-color)",

@@ -76,11 +76,10 @@ describe("hero button (DSG-28)", () => {
     expect(rule.transition).toBeUndefined();
   });
 
-  it("the ring layers are blocks, so they fill a span as they filled a div", () => {
-    expect(declarations(BUTTON_CSS, ".ring")).toMatchObject({
-      display: "block",
-      position: "absolute",
-    });
+  // FE-01: the sliding fill layers of the template's button kit are gone;
+  // the hero uses the site's one button style.
+  it("has no ring-layer kit left in the button stylesheet", () => {
+    expect(BUTTON_CSS).not.toMatch(/\.ring|hasRings/);
   });
 
   it("the old About button style is gone", () => {
@@ -94,9 +93,7 @@ describe("hero markup (DSG-28, MKT-19)", () => {
     const button = HOME.slice(start, HOME.indexOf("</Link>", start));
     expect(start).toBeGreaterThan(0);
     expect(button).not.toMatch(/<div\b/);
-    expect(button).toContain(
-      "className={`${button.button} ${button.hasRings} btn`}",
-    );
+    expect(button).toContain("className={`${button.button} btn`}");
     expect(HOME).not.toContain("button_p");
   });
 

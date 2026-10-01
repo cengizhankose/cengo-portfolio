@@ -253,12 +253,17 @@ describe("styles (DSG-19 step 7, criteria 3-4; checked on the CSS source)", () =
     return "";
   };
 
-  it("every item is at least 44x44px, 50px high on desktop", () => {
-    expect(rule(".item")).toMatch(/min-width:\s*44px/);
-    expect(rule(".item")).toMatch(/min-height:\s*44px/);
-    expect(css).toMatch(
-      /@media \(min-width: 992px\)\s*\{\s*\.item\s*\{\s*min-height:\s*50px;/,
+  // FE-01: the two items are header tabs: --header-height (50px) tall at
+  // every width, at least --tap-touch (44px) wide.
+  it("every item is at least 44px wide and a 50px header tab tall", () => {
+    expect(rule(".item")).toMatch(/min-width:\s*var\(--tap-touch\)/);
+    expect(rule(".item")).toMatch(/min-height:\s*var\(--header-height\)/);
+    const tokens = readFileSync(
+      join(process.cwd(), "src/styles/tokens.css"),
+      "utf8",
     );
+    expect(tokens).toMatch(/--tap-touch:\s*44px;/);
+    expect(tokens).toMatch(/--header-height:\s*50px;/);
   });
 
   it("marks the current language by weight and underline, the other at 400", () => {

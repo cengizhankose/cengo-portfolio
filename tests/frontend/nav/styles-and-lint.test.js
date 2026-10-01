@@ -74,7 +74,8 @@ describe("header focus styles (DSG-02, DSG-03, FE-02)", () => {
     expect(declarations(css, "button.navAction")).toMatchObject({
       cursor: "pointer",
     });
-    expect(declarations(css, ".themeToggle")).toMatchObject({
+    // FE-01: every header tab is an inline-flex box that centres its content.
+    expect(declarations(css, ".navAction")).toMatchObject({
       display: "inline-flex",
       "align-items": "center",
     });

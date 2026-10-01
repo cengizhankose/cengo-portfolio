@@ -143,10 +143,12 @@ describe("cursor ring styles (DSG-21, FE-07, PERF-11)", () => {
   const ring = rule(CURSOR, ".cursorRing");
 
   it("is a 32 px, 1.5 px outline ring that never takes the pointer", () => {
+    // FE-01: the diameter is the --cursor-ring-size token (32px).
+    expect(GLOBAL_CSS).toMatch(/--cursor-ring-size:\s*32px;/);
     expect(ring).toMatchObject({
       position: "fixed",
-      width: "32px",
-      height: "32px",
+      width: "var(--cursor-ring-size)",
+      height: "var(--cursor-ring-size)",
       border: "1.5px solid var(--cursor-ring-color)",
       "border-radius": "50%",
       "pointer-events": "none",

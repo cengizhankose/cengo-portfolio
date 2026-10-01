@@ -73,21 +73,14 @@ describe.each([
     expect(normalise(button.textContent)).toBe(t("cta.primary"));
   });
 
-  it("DSG-28: no block inside the button link, the rings are decorative spans", () => {
+  // FE-01: the site's one button style, no decorative fill layers inside.
+  it("DSG-28: no block inside the button link, and nothing but its label", () => {
     renderHome(path);
 
     expect(document.querySelectorAll(`.${home.actions} a div`)).toHaveLength(0);
     const button = document.getElementById("button_h");
-    const rings = [...button.querySelectorAll(`.${buttonStyles.ring}`)];
-    expect(rings.map((ring) => [ring.tagName, ring.className])).toEqual([
-      ["SPAN", `${buttonStyles.ring} ${buttonStyles.ringOne}`],
-      ["SPAN", `${buttonStyles.ring} ${buttonStyles.ringTwo}`],
-      ["SPAN", `${buttonStyles.ring} ${buttonStyles.ringThree}`],
-    ]);
-    for (const ring of rings) {
-      expect(ring).toHaveAttribute("aria-hidden", "true");
-      expect(ring.textContent).toBe("");
-    }
+    expect(button.className).toBe(`${buttonStyles.button} btn`);
+    expect(button.children).toHaveLength(0);
     // The accessible name is the label only. (The closing call to action of
     // the page, MKT-03, reuses the label further down: look in the hero.)
     expect(

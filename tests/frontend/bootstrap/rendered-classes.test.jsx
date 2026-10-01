@@ -151,7 +151,6 @@ describe("rendered Bootstrap classes (FE-21)", () => {
         "btn-close",
         "table",
         "form-control",
-        "fixed-top",
       ]),
     );
   });
