@@ -1,4 +1,4 @@
-import "./style.css";
+import styles from "./portfolio.module.css";
 import { Container, Row, Col } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import ExternalLink from "../../components/ExternalLink.jsx";
@@ -48,18 +48,18 @@ export const Portfolio = () => {
       <Row className="mb-5 mt-3">
         <Col lg="8">
           <h1 className="display-4 mb-4">{t("portfolio.title")}</h1>
-          <hr className="t_border my-4 ms-0 text-start" />
+          <hr className="section-rule my-4 ms-0 text-start" />
           {cases.length > 0 && (
-            <p className="portfolio__lead">{t("portfolio.lead")}</p>
+            <p className={styles.lead}>{t("portfolio.lead")}</p>
           )}
         </Col>
       </Row>
 
       {cases.length === 0 ? (
-        <Row className="sec_sp">
+        <Row className="section-gap">
           <Col lg="8">
-            <p className="portfolio__lead">{t("portfolio.empty")}</p>
-            <ul className="portfolio__empty-links list-unstyled">
+            <p className={styles.lead}>{t("portfolio.empty")}</p>
+            <ul className={`${styles.emptyLinks} list-unstyled`}>
               <li>
                 <Link to={lp("/blog")}>{t("portfolio.emptyBlog")}</Link>
               </li>
@@ -73,7 +73,7 @@ export const Portfolio = () => {
         </Row>
       ) : (
         <>
-          <ul className="project-grid list-unstyled">
+          <ul className={`${styles.projectGrid} list-unstyled`}>
             {cases.map(({ project, text }, index) => (
               <li key={project.id}>
                 <ProjectCard
@@ -86,7 +86,7 @@ export const Portfolio = () => {
           </ul>
 
           <section
-            className="portfolio-archive"
+            className={styles.archive}
             aria-labelledby="portfolio-archive-title"
           >
             <h2 className="h4" id="portfolio-archive-title">
@@ -109,24 +109,24 @@ export const Portfolio = () => {
       )}
 
       {repos.length > 0 && (
-        <section className="portfolio-repos" aria-labelledby="portfolio-repos">
-          <h2 className="h3 color_sec py-4" id="portfolio-repos">
+        <section className={styles.repos} aria-labelledby="portfolio-repos">
+          <h2 className="h3 py-4" id="portfolio-repos">
             {t("portfolio.repos.title")}
           </h2>
-          <ul className="repo-list list-unstyled">
+          <ul className={`${styles.repoList} list-unstyled`}>
             {repos.map(({ repo, text }, index) => (
               <li key={repo.id} className="repo-list__item">
                 <ExternalLink
                   href={repo.href}
-                  className="repo-list__name"
+                  className={styles.repoName}
                   {...projectLinkProps(repo.id, "repo", repoPosition(index))}
                 >
                   {text.name}
                 </ExternalLink>
-                <p className="repo-list__what">{text.what}</p>
+                <p className={styles.repoWhat}>{text.what}</p>
                 {text.learned && (
-                  <p className="repo-list__learned">
-                    <span className="repo-list__learned-label">
+                  <p className={styles.repoLearned}>
+                    <span className={styles.repoLearnedLabel}>
                       {t("portfolio.repos.learned")}
                     </span>{" "}
                     {text.learned}
@@ -135,7 +135,7 @@ export const Portfolio = () => {
               </li>
             ))}
           </ul>
-          <p className="repo-list__all">
+          <p className={styles.repoAll}>
             <ExternalLink
               href={GITHUB.url}
               me
@@ -148,9 +148,9 @@ export const Portfolio = () => {
         </section>
       )}
 
-      <section className="portfolio-cta">
+      <section className={styles.cta}>
         <p>{t("portfolio.contact.text")}</p>
-        <Link to={lp("/contact")} className="portfolio-cta__link">
+        <Link to={lp("/contact")} className={styles.ctaLink}>
           {t("portfolio.contact.cta")}
           <span aria-hidden="true"> →</span>
         </Link>

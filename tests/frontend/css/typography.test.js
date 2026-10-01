@@ -15,8 +15,9 @@ import {
   rules,
   stylesheets,
 } from "./support.js";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
-const INDEX = read("src/index.css");
+const INDEX = GLOBAL_CSS;
 const SCALE = ["sm", "base", "md", "lg", "xl", "2xl"];
 
 const fontSizes = () =>
@@ -47,11 +48,13 @@ describe("type scale (FE-19 steps 1-2)", () => {
 
   it("puts the menu links on the largest step (was 4.8vw)", () => {
     expect(
-      declared(read("src/header/style.css"), ".the_menu .menu_item > a"),
+      declared(read("src/header/header.module.css"), ".menuList .menuItem > a"),
     ).toMatchObject({
       "font-size": "var(--fs-2xl)",
     });
-    expect(read("src/header/style.css")).not.toMatch(/\d+(\.\d+)?vw\s*;/);
+    expect(read("src/header/header.module.css")).not.toMatch(
+      /\d+(\.\d+)?vw\s*;/,
+    );
   });
 });
 
@@ -133,7 +136,7 @@ describe("no synthetic bold (DSG-17, FE-19 step 3)", () => {
 
   it("gives heading classes and the logo no weight above 400", () => {
     const headingLike =
-      /(^|\s|>)(h[1-6]|\.intro__name|\.blog-title|\.blog-post-title(-full)?|\.status-state__title|\.nav_ac|\.proofstrip__label|\.project-card__title)(\s|$|:|\.)/;
+      /(^|\s|>)(h[1-6]|\.introName|\.blog-title|\.blog-post-title(-full)?|\.stateTitle|\.navAction|\.proofLabel|\.cardTitle)(\s|$|:|\.)/;
     const off = weights()
       .filter(([, value]) => Number(value) > 400)
       .filter(([, , selector]) =>
@@ -174,10 +177,10 @@ describe("home page renders only Raleway 400 and Marcellus 400 (PERF-08 budget, 
   // only EN is live.
   const HOME_SHEETS = [
     "src/index.css",
-    "src/header/style.css",
-    "src/pages/home/style.css",
-    "src/components/socialicons/style.css",
-    "src/app/App.css",
+    "src/header/header.module.css",
+    "src/pages/home/home.module.css",
+    "src/components/socialicons/socialicons.module.css",
+    "src/app/App.module.css",
   ];
 
   it("asks for no weight other than 400 there", () => {
@@ -197,14 +200,14 @@ describe("home page renders only Raleway 400 and Marcellus 400 (PERF-08 budget, 
   });
 
   it("keeps the hero role and tagline, the skip link and the social caption at the body weight", () => {
-    const home = read("src/pages/home/style.css");
-    expect(declared(home, ".intro__role")["font-weight"]).toBe("400");
-    expect(declared(home, ".intro__tagline")).not.toHaveProperty("font-weight");
+    const home = read("src/pages/home/home.module.css");
+    expect(declared(home, ".introRole")["font-weight"]).toBe("400");
+    expect(declared(home, ".introTagline")).not.toHaveProperty("font-weight");
     expect(declared(INDEX, ".skip-link")).not.toHaveProperty("font-weight");
     expect(
       declared(
-        read("src/components/socialicons/style.css"),
-        ".stick_follow_icon p",
+        read("src/components/socialicons/socialicons.module.css"),
+        ".rail p",
       ),
     ).not.toHaveProperty("font-weight");
   });

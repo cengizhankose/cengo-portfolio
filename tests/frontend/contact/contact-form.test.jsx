@@ -23,6 +23,7 @@ vi.mock("@emailjs/browser", () => ({ default: { send: vi.fn() } }));
 import emailjs from "@emailjs/browser";
 import { email, emailjs as ids } from "../../../src/content/shared.js";
 import { ContactUs } from "../../../src/pages/contact";
+import contact from "../../../src/pages/contact/contact.module.css";
 
 const TYPED = { name: "Jane Doe", email: "jane@example.com", message: "Hi" };
 const HONEYPOT = "subject";
@@ -83,7 +84,9 @@ describe("labels (DSG-04, FE-15)", () => {
     for (const label of ["Name", "Email", "Project type", "Message"]) {
       expect(screen.getByLabelText(label)).toBeInstanceOf(HTMLElement);
     }
-    const labels = [...document.querySelectorAll(".contact__form label")];
+    const labels = [
+      ...document.querySelectorAll(`.${contact.contactForm} label`),
+    ];
     expect(labels.filter((label) => label.control)).toHaveLength(4);
     expect(
       FIELD_IDS.every((id) => document.getElementById(id).labels.length === 1),
@@ -346,7 +349,7 @@ describe("while sending (DSG-05, MKT-11)", () => {
     const user = userEvent.setup();
     renderContact();
     await fillForm(user);
-    const form = document.querySelector(".contact__form");
+    const form = document.querySelector(`.${contact.contactForm}`);
 
     act(() => {
       form.requestSubmit();

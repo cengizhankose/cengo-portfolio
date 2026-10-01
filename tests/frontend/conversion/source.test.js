@@ -39,43 +39,45 @@ function declarations(css, selector) {
   return null;
 }
 
-const HOME_CSS = read("src/pages/home/style.css");
+const HOME_CSS = read("src/pages/home/home.module.css");
 const HOME = read("src/pages/home/index.jsx");
 const CONTACT = read("src/pages/contact/index.jsx");
 
+const BUTTON_CSS = read("src/components/actionbutton/button.module.css");
+
 describe("hero button (DSG-28)", () => {
   it("has a 2px solid text-colour focus ring outside the button box", () => {
-    expect(
-      declarations(HOME_CSS, ".intro_btn-action .ac_btn:focus-visible"),
-    ).toEqual({
+    expect(declarations(BUTTON_CSS, ".button:focus-visible")).toEqual({
       outline: "2px solid var(--text-color)",
       "outline-offset": "3px",
     });
   });
 
   it("the evidence link has the same ring", () => {
-    expect(declarations(HOME_CSS, ".intro__textlink:focus-visible")).toEqual({
+    expect(declarations(HOME_CSS, ".textLink:focus-visible")).toEqual({
       outline: "2px solid var(--text-color)",
       "outline-offset": "3px",
     });
   });
 
-  it("the ring is more specific than Bootstrap's .btn:focus-visible (0,2,0)", () => {
-    // `.intro_btn-action .ac_btn:focus-visible` is three classes/pseudos.
-    const selector = ".intro_btn-action .ac_btn:focus-visible";
-    const specificity = selector.match(/[.:][\w-]+/g).length;
-    expect(specificity).toBeGreaterThanOrEqual(3);
+  it("beats Bootstrap's .btn:focus-visible by layer, not by specificity (FE-20)", () => {
+    // Bootstrap is compiled into `@layer vendor`; the module is unlayered, so
+    // a single class wins over Bootstrap's (0,2,0) selector.
+    expect(read("src/styles/bootstrap-subset.scss")).toMatch(
+      /@layer vendor \{/,
+    );
+    expect(BUTTON_CSS).not.toMatch(/@layer/);
   });
 
   it("the button does not animate its outline (no `transition: all`)", () => {
-    const rule = declarations(HOME_CSS, ".ac_btn");
+    const rule = declarations(BUTTON_CSS, ".button");
     expect(rule["transition-property"]).toBeDefined();
     expect(rule["transition-property"]).not.toMatch(/all|outline/);
     expect(rule.transition).toBeUndefined();
   });
 
   it("the ring layers are blocks, so they fill a span as they filled a div", () => {
-    expect(declarations(HOME_CSS, ".ac_btn .ring")).toMatchObject({
+    expect(declarations(BUTTON_CSS, ".ring")).toMatchObject({
       display: "block",
       position: "absolute",
     });
@@ -92,7 +94,9 @@ describe("hero markup (DSG-28, MKT-19)", () => {
     const button = HOME.slice(start, HOME.indexOf("</Link>", start));
     expect(start).toBeGreaterThan(0);
     expect(button).not.toMatch(/<div\b/);
-    expect(button).toContain('className="ac_btn btn"');
+    expect(button).toContain(
+      "className={`${button.button} ${button.hasRings} btn`}",
+    );
     expect(HOME).not.toContain("button_p");
   });
 

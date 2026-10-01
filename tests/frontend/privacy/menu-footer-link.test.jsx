@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import Headermain from "../../../src/header";
 import { DICTIONARIES } from "../../../src/i18n/translate.js";
+import headerStyles from "../../../src/header/header.module.css";
 
 const T = DICTIONARIES.en;
 
@@ -16,14 +17,16 @@ const renderHeader = (path = "/") =>
   );
 
 describe("menu footer privacy link", () => {
-  it("is in .menu_footer with the nav.privacy text and /privacy", () => {
+  it(`is in .${headerStyles.menuFooter} with the nav.privacy text and /privacy`, () => {
     renderHeader();
-    const link = document.querySelector(".menu_footer a.menu_footer__privacy");
+    const link = document.querySelector(
+      `.${headerStyles.menuFooter} a.menu_footer__privacy`,
+    );
     expect(link).not.toBeNull();
     expect(link.textContent).toBe(T["nav.privacy"]);
     expect(link.getAttribute("href")).toBe("/privacy");
     // Not one of the social links: those keep their own list and order.
-    expect(link.closest(".menu_footer__social")).toBeNull();
+    expect(link.closest(`.${headerStyles.footerSocial}`)).toBeNull();
   });
 
   it("sits next to the copyright line and is not a main menu item", () => {
@@ -31,8 +34,8 @@ describe("menu footer privacy link", () => {
     const link = document.querySelector(".menu_footer__privacy");
     expect(link.parentElement.querySelector(".copyright")).not.toBeNull();
     expect(
-      [...document.querySelectorAll("nav .menu_item a")].map((a) =>
-        a.getAttribute("href"),
+      [...document.querySelectorAll(`nav .${headerStyles.menuItem} a`)].map(
+        (a) => a.getAttribute("href"),
       ),
     ).not.toContain("/privacy");
   });
@@ -40,12 +43,12 @@ describe("menu footer privacy link", () => {
   it("opens the menu, then closes it when the link is followed", () => {
     renderHeader("/contact");
     fireEvent.click(screen.getByRole("button", { name: T["nav.menu"] }));
-    expect(document.querySelector(".site__navigation")).toHaveClass(
-      "menu__opend",
-    );
+    expect(
+      document.querySelector(`.${headerStyles.siteNavigation}`),
+    ).toHaveClass(headerStyles.menuOpen);
     fireEvent.click(document.querySelector(".menu_footer__privacy"));
-    expect(document.querySelector(".site__navigation")).not.toHaveClass(
-      "menu__opend",
-    );
+    expect(
+      document.querySelector(`.${headerStyles.siteNavigation}`),
+    ).not.toHaveClass(headerStyles.menuOpen);
   });
 });

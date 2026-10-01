@@ -7,6 +7,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import aboutStyles from "../../../src/pages/about/about.module.css";
 
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -102,6 +103,6 @@ describe.each([
     ]);
     const row = document.getElementById("reel");
     expect(row.contains(document.querySelector("video"))).toBe(true);
-    expect(row.classList.contains("about-anchor")).toBe(true);
+    expect(row.classList.contains(aboutStyles.anchor)).toBe(true);
   });
 });

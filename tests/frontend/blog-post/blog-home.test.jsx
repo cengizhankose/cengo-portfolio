@@ -4,6 +4,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { json, deferred, renderBlog } from "../blog/support.jsx";
+import statusStyles from "../../../src/components/statusstate/statusstate.module.css";
 
 const card = (overrides = {}) => ({
   id: 1,
@@ -50,7 +51,7 @@ describe("empty state (MKT-20 step 5)", () => {
     const feed = screen.getByRole("link", { name: "Follow via RSS →" });
     expect(feed).toHaveAttribute("href", "/rss.xml");
     // The state keeps exactly its two links (Home, Contact).
-    const state = container.querySelector(".status-state");
+    const state = container.querySelector(`.${statusStyles.state}`);
     expect(
       within(state)
         .getAllByRole("link")

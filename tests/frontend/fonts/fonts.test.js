@@ -18,6 +18,7 @@ import {
   renderFontsCss,
   renderOfl,
 } from "../../../scripts/fonts/sync-fonts.ts";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
 const ROOT = join(import.meta.dirname, "..", "..", "..");
 const read = (...p) => readFileSync(join(ROOT, ...p), "utf8");
@@ -222,8 +223,8 @@ describe("entry and stacks", () => {
     expect(index).toBeGreaterThan(fonts);
   });
 
-  it("index.css defines the two stacks from faces.ts and uses them on body and headings", () => {
-    const css = read("src", "index.css").replace(/\s+/g, " ");
+  it("tokens.css and base.css define the two stacks from faces.ts and uses them on body and headings", () => {
+    const css = GLOBAL_CSS.replace(/\s+/g, " ");
     expect(css).toContain(`--font-body: ${FONT_STACKS.body};`);
     expect(css).toContain(`--font-display: ${FONT_STACKS.display};`);
     expect(css).toMatch(/body \{[^}]*font-family: var\(--font-body\);/);

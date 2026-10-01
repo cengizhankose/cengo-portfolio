@@ -3,7 +3,7 @@
 // alert-dismissible, btn-close), which the source scan in subset.test.js
 // cannot see, so every page, the blog post and both contact alerts are
 // rendered and their DOM classes are checked against the compiled CSS (or a
-// local rule, such as .navbar-brand in src/header/style.css).
+// local rule).
 // EmailJS and the posts API are stubbed: nothing leaves the test.
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -152,7 +152,6 @@ describe("rendered Bootstrap classes (FE-21)", () => {
         "table",
         "form-control",
         "fixed-top",
-        "navbar-brand",
       ]),
     );
   });

@@ -4,6 +4,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import proofStyles from "../../../src/components/proofstrip/proofstrip.module.css";
 
 vi.mock("../../../src/content/index.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -101,21 +102,26 @@ describe("variants", () => {
   it("defaults to the full strip; compact is the same content, tighter", () => {
     const full = renderStrip();
     expect(full.container.firstElementChild).toHaveClass(
-      "proofstrip",
-      "proofstrip--full",
+      proofStyles.proofstrip,
+    );
+    expect(full.container.firstElementChild).not.toHaveClass(
+      proofStyles.proofCompact,
     );
     const fullText = full.container.textContent;
     full.unmount();
 
     const compact = renderStrip({ variant: "compact" });
     expect(compact.container.firstElementChild).toHaveClass(
-      "proofstrip--compact",
+      proofStyles.proofstrip,
+      proofStyles.proofCompact,
     );
     expect(compact.container.textContent).toBe(fullText);
     compact.unmount();
 
     const other = renderStrip({ variant: "huge" });
-    expect(other.container.firstElementChild).toHaveClass("proofstrip--full");
+    expect(other.container.firstElementChild).not.toHaveClass(
+      proofStyles.proofCompact,
+    );
   });
 
   it("labels its lists with its own h3s and leaves the section title to the page", () => {

@@ -12,6 +12,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import AppRoutes from "../../../src/app/routes";
 import { StatusState } from "../../../src/components/statusstate";
 import { POST_EN, POST_TR, json, renderBlog } from "./support.jsx";
+import home from "../../../src/pages/home/home.module.css";
+import statusStyles from "../../../src/components/statusstate/statusstate.module.css";
 
 const ROOT = process.cwd();
 
@@ -52,7 +54,7 @@ describe("post not found (DSG-20 criterion 1, EN)", () => {
     expect(document.querySelector("h1").textContent).toBe("Post not found");
     expect(
       document.querySelectorAll(
-        '.status-state a[href="/blog"], .status-state a[href="/"]',
+        `.${statusStyles.state} a[href="/blog"], .${statusStyles.state} a[href="/"]`,
       ),
     ).toHaveLength(2);
     await waitFor(() =>
@@ -76,8 +78,8 @@ describe("unknown page (DSG-20 criterion 2, client half)", () => {
       </MemoryRouter>,
     );
     await screen.findByRole("heading", { level: 1, name: "Page not found" });
-    expect(document.querySelector(".intro_sec")).toBeNull();
-    const state = document.querySelector(".status-state");
+    expect(document.querySelector(`.${home.hero}`)).toBeNull();
+    const state = document.querySelector(`.${statusStyles.state}`);
     expect(state).toHaveClass("not-found");
     expect(within(state).getByRole("link", { name: "Home" })).toHaveAttribute(
       "href",
@@ -101,7 +103,7 @@ describe("blocked API (DSG-20 criterion 3)", () => {
 
     const retry = await screen.findByRole("button", { name: "Try again" });
     expect(screen.queryByText(/No posts yet/)).toBeNull();
-    const state = retry.closest(".status-state");
+    const state = retry.closest(`.${statusStyles.state}`);
     expect(state).toHaveAttribute("role", "alert");
     expect(within(state).getByRole("link", { name: "Home" })).toHaveAttribute(
       "href",
@@ -115,7 +117,7 @@ describe("blocked API (DSG-20 criterion 3)", () => {
     await user.click(retry);
     await screen.findByRole("link", { name: "Hello world" });
     expect(document.querySelectorAll(".blog-card")).toHaveLength(2);
-    expect(document.querySelector(".status-state")).toBeNull();
+    expect(document.querySelector(`.${statusStyles.state}`)).toBeNull();
   });
 });
 
@@ -133,7 +135,7 @@ describe("one language group fails (T-12 second group)", () => {
     expect(
       await screen.findByRole("link", { name: "Hello world" }),
     ).toBeVisible();
-    const state = document.querySelector(".status-state");
+    const state = document.querySelector(`.${statusStyles.state}`);
     expect(state).toHaveClass("blog-other-error");
     expect(state).toHaveAttribute("role", "alert");
     expect(
@@ -155,7 +157,7 @@ describe("one language group fails (T-12 second group)", () => {
     );
     await user.click(within(state).getByRole("button", { name: "Try again" }));
     await screen.findByRole("link", { name: "Merhaba dünya" });
-    expect(document.querySelector(".status-state")).toBeNull();
+    expect(document.querySelector(`.${statusStyles.state}`)).toBeNull();
     // "Try again" asked again only for the group that failed.
     expect(
       fetchMock.mock.calls.filter(([url]) => url === "/api/posts?lang=en"),
@@ -177,7 +179,9 @@ describe("one language group fails (T-12 second group)", () => {
       name: "Posts couldn't be loaded",
     });
     expect(screen.queryByText(/No posts yet/)).toBeNull();
-    expect(document.querySelector(".status-state")).toHaveClass("blog-error");
+    expect(document.querySelector(`.${statusStyles.state}`)).toHaveClass(
+      "blog-error",
+    );
   });
 });
 
@@ -189,7 +193,7 @@ describe("the blog-states scenarios (DSG-20 criterion 4, EN)", () => {
     );
     renderBlog("/blog");
     await screen.findByText("No posts yet");
-    const state = document.querySelector(".status-state");
+    const state = document.querySelector(`.${statusStyles.state}`);
     const links = within(state).getAllByRole("link");
     expect(links.length).toBeGreaterThanOrEqual(1);
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
@@ -219,7 +223,7 @@ describe("the blog-states scenarios (DSG-20 criterion 4, EN)", () => {
       level: 1,
       name: "Couldn't load this post",
     });
-    const state = document.querySelector(".status-state");
+    const state = document.querySelector(`.${statusStyles.state}`);
     expect(state).toHaveClass("blog-error");
     expect(
       within(state).getByRole("link", { name: "Back to Blog" }),
@@ -249,7 +253,7 @@ describe("StatusState (DSG-20 step 1)", () => {
     );
     const region = screen.getByRole("region", { name: "Page not found" });
     expect(region.tagName).toBe("SECTION");
-    expect(region).toHaveClass("status-state", "status-state--page");
+    expect(region).toHaveClass(statusStyles.state, statusStyles.statePage);
     expect(screen.queryByRole("button")).toBeNull();
   });
 

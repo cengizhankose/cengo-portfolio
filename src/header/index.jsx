@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import "./style.css";
+import styles from "./header.module.css";
 import { VscGrabber, VscClose } from "react-icons/vsc";
 import { Link, useLocation } from "react-router-dom";
 import { hasPublishedCases } from "../content/projects.js";
@@ -116,8 +116,8 @@ const Headermain = () => {
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const content = document.querySelector(".s_c");
-    document.body.classList.add("ovhidden");
+    const content = document.querySelector(".page-shell");
+    document.body.classList.add("scroll-locked");
     content?.setAttribute("inert", "");
     firstLinkRef.current?.focus();
 
@@ -133,7 +133,7 @@ const Headermain = () => {
 
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.classList.remove("ovhidden");
+      document.body.classList.remove("scroll-locked");
       content?.removeAttribute("inert");
     };
   }, [isOpen]);
@@ -149,21 +149,24 @@ const Headermain = () => {
         {t("a11y.skipToContent")}
       </a>
       <header
-        className="fixed-top site__header"
+        className={`fixed-top ${styles.siteHeader}`}
         lang={uiLocale}
         ref={headerRef}
       >
         <div className="d-flex align-items-center justify-content-between">
-          <Link className="navbar-brand nav_ac" to={lp("/")}>
+          <Link className={`${styles.brand} ${styles.navAction}`} to={lp("/")}>
             {logotext}
           </Link>
           <div className="d-flex align-items-center">
             <LanguageSwitcher />
-            <Themetoggle label={t("a11y.darkTheme")} />
+            <Themetoggle
+              label={t("a11y.darkTheme")}
+              className={`${styles.navAction} ${styles.themeToggle}`}
+            />
             <button
               ref={buttonRef}
               type="button"
-              className="menu__button nav_ac"
+              className={`${styles.menuButton} ${styles.navAction}`}
               aria-label={t("nav.menu")}
               aria-expanded={isOpen}
               aria-controls={MENU_ID}
@@ -180,14 +183,17 @@ const Headermain = () => {
 
         <div
           id={MENU_ID}
-          className={`site__navigation ${isOpen ? "menu__opend" : ""}`}
+          className={`${styles.siteNavigation} ${isOpen ? styles.menuOpen : ""}`}
         >
-          <div className="bg__menu h-100">
-            <div className="menu__wrapper">
-              <nav className="menu__container p-3" aria-label={t("nav.label")}>
-                <ul className="the_menu">
+          <div className={`${styles.menuPanel} h-100`}>
+            <div className={styles.menuWrapper}>
+              <nav
+                className={`${styles.menuContainer} p-3`}
+                aria-label={t("nav.label")}
+              >
+                <ul className={styles.menuList}>
                   {NAV_ITEMS.map(({ path, key }, index) => (
-                    <li className="menu_item" key={path}>
+                    <li className={styles.menuItem} key={path}>
                       <Link
                         ref={index === 0 ? firstLinkRef : undefined}
                         onClick={() => closeMenu(lp(path))}
@@ -202,14 +208,16 @@ const Headermain = () => {
               </nav>
             </div>
           </div>
-          <div className="menu_footer d-flex flex-column flex-md-row justify-content-between align-items-md-center position-absolute w-100 p-3">
+          <div
+            className={`${styles.menuFooter} d-flex flex-column flex-md-row justify-content-between align-items-md-center position-absolute w-100 p-3`}
+          >
             {/* Same K-11 list and order as the side rail (DSG-30); the
                 visible text is the channel's brand name. */}
             <SocialLinks
               variant="text"
               locale={uiLocale}
               location={LOCATIONS.MENU_FOOTER}
-              className="menu_footer__social m-0 p-0"
+              className={`${styles.footerSocial} m-0 p-0`}
             />
             <div className="d-flex flex-wrap align-items-center">
               <Link
@@ -229,10 +237,10 @@ const Headermain = () => {
           </div>
         </div>
       </header>
-      <div className="br-top"></div>
-      <div className="br-bottom"></div>
-      <div className="br-left"></div>
-      <div className="br-right"></div>
+      <div className={`${styles.frame} ${styles.frameTop}`}></div>
+      <div className={`${styles.frame} ${styles.frameBottom}`}></div>
+      <div className={`${styles.frame} ${styles.frameLeft}`}></div>
+      <div className={`${styles.frame} ${styles.frameRight}`}></div>
     </>
   );
 };

@@ -10,7 +10,7 @@ import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..", "..", "..");
 const css = readFileSync(
-  join(ROOT, "src", "pages", "about", "style.css"),
+  join(ROOT, "src", "pages", "about", "about.module.css"),
   "utf8",
 );
 const about = readFileSync(
@@ -36,7 +36,7 @@ function declarations(selector: string): Record<string, string> {
 
 describe("About timeline table (DSG-01)", () => {
   test("table variables are bound to the theme, cell background is transparent", () => {
-    const decl = declarations(".About-header .table");
+    const decl = declarations(".page :global(.table)");
     expect(decl["--bs-table-bg"]).toBe("transparent");
     expect(decl["--bs-table-color"]).toBe("var(--text-color)");
     expect(decl["--bs-table-border-color"]).toContain("var(--text-color)");
@@ -48,7 +48,7 @@ describe("About timeline table (DSG-01)", () => {
   });
 
   test("the rule is scoped to the page that renders the table", () => {
-    expect(about).toContain('className="About-header"');
-    expect(about).toMatch(/<table className="table\b/);
+    expect(about).toContain("<Container className={styles.page}>");
+    expect(about).toMatch(/<table className=\{`table\b/);
   });
 });

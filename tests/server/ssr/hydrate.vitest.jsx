@@ -24,6 +24,7 @@ import {
   POST,
   TR_CARD,
 } from "./hydrate-support.jsx";
+import headerStyles from "../../../src/header/header.module.css";
 
 const BLOG_DATA = {
   "/api/posts?lang=en": [CARD],
@@ -112,7 +113,9 @@ describe("every page hydrates the server's HTML without a mismatch", () => {
     expect(container.querySelector("h1")).toBe(marked.h1);
     // After hydration the page follows the browser: the dark toggle is not pressed.
     expect(
-      container.querySelector(".theme-toggle").getAttribute("aria-pressed"),
+      container
+        .querySelector(`.${headerStyles.themeToggle}`)
+        .getAttribute("aria-pressed"),
     ).toBe("false");
     await act(async () => root.unmount());
   });

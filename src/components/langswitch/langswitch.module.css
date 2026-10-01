@@ -1,10 +1,10 @@
 /* EN/TR switcher (DSG-19 step 7). Sits in the header's right group, left of
    the theme toggle. Every target is at least 44x44px (50px high on desktop,
-   the height of .nav_ac). The active language is marked by weight, an inset
+   the height of .navAction (src/header)). The active language is marked by weight, an inset
    underline and aria-current together, never by colour alone; it has no
    fill, so the underline and the focus ring keep their contrast against the
    header in both themes. */
-.lang-switch ul {
+.switcher ul {
   display: flex;
   gap: 2px;
   margin: 0;
@@ -12,7 +12,7 @@
   list-style: none;
 }
 
-.lang-switch__item {
+.item {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -20,32 +20,30 @@
   min-height: 44px;
   padding: 0 0.5rem;
   background: var(--bg-color);
-  color: var(--text-color);
   font: 500 var(--fs-sm) / 1 var(--font-body);
   letter-spacing: 0.04em;
   text-decoration: none;
 }
 
-.lang-switch__item[aria-current] {
+.item[aria-current] {
   font-weight: 700;
   box-shadow: inset 0 -2px 0 var(--text-color);
 }
 
-a.lang-switch__item:hover {
-  color: var(--text-color);
+a.item:hover {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
-/* Inset like .nav_ac: an outward ring would slide under the fixed page frame
-   (.br-top, z-index 999999) at the top of the header. */
-a.lang-switch__item:focus-visible {
+/* Inset like .navAction (src/header): an outward ring would slide under the fixed page frame
+   (.frameTop, --z-frame) at the top of the header. */
+a.item:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: -4px;
 }
 
 @media (min-width: 992px) {
-  .lang-switch__item {
+  .item {
     min-height: 50px;
   }
 }

@@ -8,6 +8,7 @@ import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import Headermain from "../../../src/header";
+import headerStyles from "../../../src/header/header.module.css";
 
 // Vitest runs from the repository root (jsdom has no file: import.meta.url).
 const ROOT = process.cwd();
@@ -62,18 +63,16 @@ describe("Bootstrap 4 leftovers and undefined classes (FE-28, DSG-34, SEO-20)", 
     expect(grep(/\b(mb-1x|fluidz-48)\b/)).toEqual([]);
   });
 
-  it("keeps About-header only as the defined scope of the DSG-01 table rule", () => {
-    // FE-28 removed it where it styled nothing (portfolio); on About it is
-    // the selector of the table rule in about/style.css (DSG-01). (The server
-    // snapshot that mirrored the page's markup is gone since PERF-03: the
-    // server draws the page component itself.)
-    const files = new Set(
-      grep(/\bAbout-header\b/).map((hit) => hit.split(":")[0]),
+  it("has no About-header scope class: the table rule is scoped by the page's CSS Module (FE-28, FE-20)", () => {
+    // FE-28's literal grep: the template's class name is gone everywhere. The
+    // DSG-01 table rule hangs off `styles.page` in about.module.css instead.
+    expect(grep(/\bAbout-header\b/)).toEqual([]);
+    expect(read("src/pages/about/index.jsx")).toContain(
+      "<Container className={styles.page}>",
     );
-    expect([...files]).toEqual([
-      "src/pages/about/index.jsx",
-      "src/pages/about/style.css",
-    ]);
+    expect(read("src/pages/about/about.module.css")).toContain(
+      ".page :global(.table) {",
+    );
   });
 
   it('uses lg="5" for the eight section title columns, Services and the intro reel (MKT-18, W8) included', () => {
@@ -91,7 +90,9 @@ describe("menu footer copyright (MKT-09, FE-36, DSG-23)", () => {
       </MemoryRouter>,
     );
 
-    const copyright = document.querySelector(".menu_footer .copyright");
+    const copyright = document.querySelector(
+      `.${headerStyles.menuFooter} .copyright`,
+    );
     expect(copyright.textContent.trim()).toBe(
       `© ${new Date().getFullYear()} Cengizhan Köse`,
     );

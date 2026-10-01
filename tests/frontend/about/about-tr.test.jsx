@@ -6,6 +6,8 @@
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import aboutStyles from "../../../src/pages/about/about.module.css";
+import proofStyles from "../../../src/components/proofstrip/proofstrip.module.css";
 
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -67,27 +69,29 @@ describe("/tr/about", () => {
   it("tells the same story in Turkish: lead, paragraphs, outcomes", () => {
     const { container } = renderAbout("/tr/about");
 
-    expect(screen.getByText(tr.about.title)).toHaveClass("about-lead");
+    expect(screen.getByText(tr.about.title)).toHaveClass(aboutStyles.lead);
     for (const paragraph of tr.about.story) {
       expect(screen.getByText(paragraph)).toBeInTheDocument();
     }
-    const bodies = container.querySelectorAll("table.timeline > tbody");
+    const bodies = container.querySelectorAll(
+      `table.${aboutStyles.timeline} > tbody`,
+    );
     expect(bodies).toHaveLength(8);
     bodies.forEach((body, index) => {
       expect(body.querySelectorAll("tr")[1].textContent).toBe(
         tr.timeline[index].outcome,
       );
     });
-    expect(container.querySelector("table.timeline").textContent).toContain(
-      "2026 – günümüz",
-    );
+    expect(
+      container.querySelector(`table.${aboutStyles.timeline}`).textContent,
+    ).toContain("2026 – günümüz");
   });
 
   it("groups the skills in Turkish", () => {
     const { container } = renderAbout("/tr/about");
 
     expect(
-      [...container.querySelectorAll(".skill-group__name")].map(
+      [...container.querySelectorAll(`.${aboutStyles.skillGroupName}`)].map(
         (p) => p.textContent,
       ),
     ).toEqual([
@@ -102,7 +106,7 @@ describe("/tr/about", () => {
   it("writes the results in Turkish and links within /tr", () => {
     const { container } = renderAbout("/tr/about");
 
-    const awards = container.querySelectorAll(".proof-awards li");
+    const awards = container.querySelectorAll(`.${proofStyles.proofAwards} li`);
     expect(awards).toHaveLength(4);
     expect(awards[1].textContent).toBe(
       "AlgoHack Istanbul (Algorand Foundation × Rise In) · 2025 · Open Innovation Track birinciliği · Farmin (yeni sekmede açılır)",
@@ -111,7 +115,7 @@ describe("/tr/about", () => {
       /1st place|2nd place|3rd place/,
     );
     expect(
-      container.querySelectorAll("#awards .awards-archive li"),
+      container.querySelectorAll(`#awards .${aboutStyles.awardsArchive} li`),
     ).toHaveLength(9);
     expect(
       screen.getByRole("link", {

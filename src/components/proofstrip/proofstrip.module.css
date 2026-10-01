@@ -5,11 +5,11 @@
   gap: 2rem;
 }
 
-.proofstrip--compact {
+.proofCompact {
   gap: 1.25rem;
 }
 
-.proofstrip__label {
+.proofLabel {
   margin: 0 0 0.75rem;
   color: var(--text-muted);
   font-size: var(--fs-base);
@@ -17,13 +17,13 @@
   letter-spacing: 0.04em;
 }
 
-.proofstrip--compact .proofstrip__label {
+.proofCompact .proofLabel {
   margin-bottom: 0.5rem;
   font-size: var(--fs-sm);
 }
 
 /* Employers as plain text: wordmarks without logos (employer permission). */
-.proof-companies {
+.proofCompanies {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 1.75rem;
@@ -35,30 +35,29 @@
   letter-spacing: 0.02em;
 }
 
-.proofstrip--compact .proof-companies {
+.proofCompact .proofCompanies {
   font-size: var(--fs-base);
 }
 
-.proof-awards {
+.proofAwards {
   display: grid;
   gap: 0.75rem;
   margin: 0;
   padding: 0;
 }
 
-.proof-awards li {
+.proofAwards li {
   padding-left: 1rem;
   border-left: 2px solid var(--text-color);
   line-height: 1.45;
 }
 
-.proofstrip--compact .proof-awards {
+.proofCompact .proofAwards {
   gap: 0.5rem;
   font-size: var(--fs-sm);
 }
 
 .proofstrip a {
-  color: var(--text-color);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -72,38 +71,38 @@
   outline-offset: 3px;
 }
 
-.proofstrip__more {
+.proofMore {
   margin: 1rem 0 0;
 }
 
-.proof-testimonials {
+.proofTestimonials {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
 }
 
-.proof-testimonial {
+.proofTestimonial {
   margin: 0;
 }
 
-.proof-testimonial blockquote {
+.proofTestimonial blockquote {
   margin: 0 0 0.75rem;
   padding: 0;
 }
 
-.proof-testimonial blockquote p {
+.proofTestimonial blockquote p {
   margin: 0;
 }
 
-.proof-testimonial figcaption {
+.proofTestimonial figcaption {
   display: grid;
   font-size: var(--fs-sm);
 }
 
-.proof-testimonial__name {
+.proofTestimonialName {
   font-weight: 700;
 }
 
-.proof-testimonial__role {
+.proofTestimonialRole {
   color: var(--text-muted);
 }

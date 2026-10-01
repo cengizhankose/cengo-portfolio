@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import "../styles/layers.css";
 import "../styles/bootstrap-subset.scss";
 import { BrowserRouter as Router } from "react-router-dom";
 import AppRoutes from "./routes";
@@ -7,7 +8,6 @@ import Headermain from "../header";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { reloadForNewRelease } from "../components/routefallback/lazyPage.js";
 import { useMediaQuery } from "../lib/useMediaQuery";
-import "./App.css";
 
 // T-14 (K-06a): the cursor ring exists only for a mouse-like pointer with
 // "reduce motion" off. Touch/coarse pointers and reduced-motion users never

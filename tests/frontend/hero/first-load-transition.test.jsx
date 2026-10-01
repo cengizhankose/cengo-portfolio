@@ -6,6 +6,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, useNavigate } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import appStyles from "../../../src/app/App.module.css";
 
 function stubPage(name) {
   const Page = () => <h1>{name}</h1>;
@@ -46,7 +47,7 @@ describe("page change on the first load (PERF-07)", () => {
       const { stage } = renderAt(path);
 
       expect(stage()).toHaveAttribute("data-route", path);
-      expect(stage()).not.toHaveClass("page-enter");
+      expect(stage()).not.toHaveClass(appStyles.pageEnter);
     },
   );
 
@@ -57,7 +58,7 @@ describe("page change on the first load (PERF-07)", () => {
     await go("#details");
 
     expect(stage()).toBe(landing);
-    expect(stage()).not.toHaveClass("page-enter");
+    expect(stage()).not.toHaveClass(appStyles.pageEnter);
   });
 
   it("the first navigation shows the next page at once, with the entry fade", async () => {
@@ -65,7 +66,7 @@ describe("page change on the first load (PERF-07)", () => {
 
     await go("/about");
 
-    expect(stage()).toHaveClass("page-enter");
+    expect(stage()).toHaveClass(appStyles.pageEnter);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "About page",
     );
@@ -78,7 +79,7 @@ describe("page change on the first load (PERF-07)", () => {
     await go("/");
 
     expect(stage()).toHaveAttribute("data-route", "/");
-    expect(stage()).toHaveClass("page-enter");
+    expect(stage()).toHaveClass(appStyles.pageEnter);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "Home page",
     );

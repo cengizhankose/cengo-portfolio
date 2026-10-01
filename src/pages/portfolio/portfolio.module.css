@@ -1,13 +1,7 @@
 /* Portfolio (FE-04, DSG-08, MKT-01, MKT-18). Colours come from the theme
    tokens (--text-color, --text-muted, --border-color), so both themes read the
-   same; --text-muted is the AA-checked secondary text colour. The rule line
-   is repeated here because its only other definition lives in the About
-   stylesheet, which is not loaded on this page. */
-.portfolio .t_border {
-  border-color: var(--text-color);
-}
-
-.portfolio__lead {
+   same; --text-muted is the AA-checked secondary text colour. */
+.lead {
   max-width: 40rem;
   margin: 0;
   color: var(--text-muted);
@@ -15,12 +9,12 @@
   line-height: 1.5;
 }
 
-.portfolio__empty-links li + li {
+.emptyLinks li + li {
   margin-top: 0.5rem;
 }
 
 /* Cases: a grid of cards, three across from the Bootstrap lg width. */
-.project-grid {
+.projectGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
   gap: 2rem;
@@ -28,11 +22,11 @@
   padding: 0;
 }
 
-.project-grid > li {
+.projectGrid > li {
   display: flex;
 }
 
-.project-card {
+.card {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -42,14 +36,14 @@
 
 /* 16:10, cropped to the box; the width and height attributes reserve the
    space before the file arrives. */
-.project-card__media {
+.cardMedia {
   display: block;
   overflow: hidden;
   aspect-ratio: 16 / 10;
   background: var(--border-color);
 }
 
-.project-card__media img {
+.cardMedia img {
   display: block;
   width: 100%;
   height: 100%;
@@ -57,16 +51,16 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .project-card__media img {
+  .cardMedia img {
     transition: transform 0.4s ease;
   }
 
-  .project-card:hover .project-card__media img {
+  .card:hover .cardMedia img {
     transform: scale(1.03);
   }
 }
 
-.project-card__body {
+.cardBody {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -75,7 +69,7 @@
 
 /* Badge above the title (DSG-08): monochrome, no fill. One line where it
    fits; in a narrow card it wraps inside a softly rounded box. */
-.project-card__award {
+.cardAward {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
@@ -88,18 +82,18 @@
   font: 700 var(--fs-sm) / 1.5 var(--font-body);
 }
 
-.project-card__title {
+.cardTitle {
   margin: 0 0 1rem;
   line-height: 1.3;
 }
 
-.project-card__facts {
+.cardFacts {
   display: grid;
   gap: 0.75rem;
   margin: 0 0 1rem;
 }
 
-.project-card__fact dt {
+.cardFact dt {
   color: var(--text-muted);
   font-size: var(--fs-sm);
   font-weight: 700;
@@ -107,12 +101,12 @@
   text-transform: uppercase;
 }
 
-.project-card__fact dd {
+.cardFact dd {
   margin: 0;
   line-height: 1.5;
 }
 
-.project-card__tags {
+.cardTags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
@@ -120,7 +114,7 @@
   padding: 0;
 }
 
-.project-card__tags li {
+.cardTags li {
   padding: 0.125rem 0.5rem;
   border: 1px solid var(--border-color);
   color: var(--text-muted);
@@ -128,7 +122,7 @@
   line-height: 1.5;
 }
 
-.project-card__links {
+.cardLinks {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 1.25rem;
@@ -136,43 +130,43 @@
   padding: 0;
 }
 
-.project-card a,
-.portfolio-archive a,
-.repo-list a,
-.portfolio-cta a {
+.card a,
+.archive a,
+.repoList a,
+.cta a {
   color: var(--text-color);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 
-.project-card a:hover,
-.portfolio-archive a:hover,
-.repo-list a:hover,
-.portfolio-cta a:hover {
+.card a:hover,
+.archive a:hover,
+.repoList a:hover,
+.cta a:hover {
   text-decoration-thickness: 2px;
 }
 
 /* Hackathon archive teaser under the cases. */
-.portfolio-archive {
+.archive {
   max-width: 40rem;
   margin: 0 0 calc(3rem + 5.128vw);
 }
 
-.portfolio-archive h2 {
+.archive h2 {
   margin: 0 0 0.5rem;
 }
 
-.portfolio-archive p {
+.archive p {
   margin: 0 0 0.75rem;
   color: var(--text-muted);
 }
 
 /* Selected GitHub repos (MKT-18). */
-.portfolio-repos {
+.repos {
   margin: 0 0 calc(3rem + 5.128vw);
 }
 
-.repo-list {
+.repoList {
   display: grid;
   gap: 1.25rem;
   max-width: 40rem;
@@ -180,39 +174,39 @@
   padding: 0;
 }
 
-.repo-list__name {
+.repoName {
   font-family: var(--font-display);
   font-synthesis: none;
   font-size: var(--fs-md);
 }
 
-.repo-list__what,
-.repo-list__learned {
+.repoWhat,
+.repoLearned {
   margin: 0.25rem 0 0;
   line-height: 1.5;
 }
 
-.repo-list__learned-label {
+.repoLearnedLabel {
   color: var(--text-muted);
   font-weight: 700;
 }
 
-.repo-list__all {
+.repoAll {
   margin: 0;
 }
 
 /* Closing call to action. */
-.portfolio-cta {
+.cta {
   margin: 0 0 3rem;
 }
 
-.portfolio-cta p {
+.cta p {
   margin: 0 0 0.5rem;
   font-family: var(--font-display);
   font-synthesis: none;
   font-size: var(--fs-md);
 }
 
-a.portfolio-cta__link {
+a.ctaLink {
   font-weight: 700;
 }

@@ -1,4 +1,4 @@
-// PERF-13 steps 2-3 / FE-17 step 2: src/app/App.css has one entry fade of at
+// PERF-13 steps 2-3 / FE-17 step 2: src/app/App.module.css has one entry fade of at
 // most 150 ms and no exit animation; reduced motion switches it off.
 import { describe, expect, it } from "vitest";
 import {
@@ -9,7 +9,7 @@ import {
   stripComments,
 } from "./support.js";
 
-const CSS = read("src/app/App.css");
+const CSS = read("src/app/App.module.css");
 const CODE = stripComments(CSS);
 
 function computedIn(className) {
@@ -26,17 +26,17 @@ function computedIn(className) {
   return result;
 }
 
-describe(".page-enter (the entry fade)", () => {
+describe(".pageEnter (the entry fade)", () => {
   it("is one animation of at most 150 ms (computed style)", () => {
-    const { animation } = computedIn("page-enter");
+    const { animation } = computedIn("pageEnter");
 
-    expect(animation).toContain("pageEnter");
+    expect(animation).toContain("enter");
     expect(animationMs(animation)).toBeLessThanOrEqual(150);
     expect(animationMs(animation)).toBeGreaterThan(0);
   });
 
   it("uses a named keyframe rule from opacity 0 to opacity 1", () => {
-    const frames = blockOf(CODE, "@keyframes pageEnter");
+    const frames = blockOf(CODE, "@keyframes enter");
 
     expect(frames).not.toBeNull();
     expect(frames).toMatch(/from\s*\{[^}]*opacity:\s*0/);
@@ -44,18 +44,18 @@ describe(".page-enter (the entry fade)", () => {
   });
 
   it("holds the end state (fill-mode both), so nothing flashes at either end", () => {
-    expect(ruleBody(CSS, ".page-enter")).toMatch(/animation:[^;]*\bboth\b/);
+    expect(ruleBody(CSS, ".pageEnter")).toMatch(/animation:[^;]*\bboth\b/);
   });
 
   it("is not applied to an element without the class (the landing page)", () => {
-    expect(computedIn("").animation).not.toContain("pageEnter");
+    expect(computedIn("").animation).not.toContain("enter");
   });
 });
 
 describe("reduced motion", () => {
-  it("switches .page-enter off, and nothing depends on it ending", () => {
+  it("switches .pageEnter off, and nothing depends on it ending", () => {
     expect(
-      ruleBody(CSS, ".page-enter", "@media (prefers-reduced-motion: reduce)"),
+      ruleBody(CSS, ".pageEnter", "@media (prefers-reduced-motion: reduce)"),
     ).toMatch(/animation:\s*none/);
   });
 });
@@ -67,7 +67,7 @@ describe("the exit animation and its gate are gone", () => {
     ["a 400 ms duration", /400ms/],
     [".page-transition", /page-transition/],
     [".is-initial", /is-initial/],
-  ])("App.css has no %s", (_label, pattern) => {
+  ])("App.module.css has no %s", (_label, pattern) => {
     expect(CODE).not.toMatch(pattern);
   });
 

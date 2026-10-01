@@ -9,7 +9,7 @@
 
    Below 992px the rail is part of the page flow: the caption above one row
    of icons (232px, one line at 375px). */
-.stick_follow_icon {
+.rail {
   position: fixed;
   top: 50%;
   left: 24px;
@@ -21,7 +21,7 @@
   gap: 16px;
 }
 
-.stick_follow_icon ul {
+.rail ul {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -30,38 +30,36 @@
   margin: 0;
 }
 
-.stick_follow_icon a {
+.rail a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
-  color: var(--text-color);
 }
 
-.stick_follow_icon svg {
+.rail svg {
   width: 16px;
   height: 16px;
   fill: var(--text-color);
 }
 
-.stick_follow_icon a:hover {
+.rail a:hover {
   opacity: 0.7;
 }
 
-.stick_follow_icon a:focus-visible {
+.rail a:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: 2px;
 }
 
-.stick_follow_icon p {
+.rail p {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 0;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  color: var(--text-color);
   font-size: var(--fs-sm);
   line-height: 1.2;
   white-space: nowrap;
@@ -69,7 +67,7 @@
 
 /* The rule: after the text in the flow, so above it once the caption is
    turned to read bottom-to-top. */
-.stick_follow_icon p::after {
+.rail p::after {
   content: "";
   display: block;
   flex: none;
@@ -79,7 +77,7 @@
 }
 
 @media only screen and (max-width: 991px) {
-  .stick_follow_icon {
+  .rail {
     position: static;
     width: auto;
     transform: none;
@@ -88,19 +86,19 @@
     padding: 40px 0;
   }
 
-  .stick_follow_icon ul {
+  .rail ul {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
   }
 
-  .stick_follow_icon p {
+  .rail p {
     writing-mode: horizontal-tb;
     transform: none;
     font-size: var(--fs-base);
   }
 
-  .stick_follow_icon p::after {
+  .rail p::after {
     width: 40px;
     height: 1px;
   }

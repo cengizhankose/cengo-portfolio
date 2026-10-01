@@ -8,6 +8,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import routeStyles from "../../../src/components/routefallback/routefallback.module.css";
 
 // Each test re-imports the route table (and a blog chunk) cold.
 vi.setConfig({ testTimeout: 30_000 });
@@ -132,7 +133,7 @@ describe("route chunks are requested on their own route only", () => {
     const { container } = renderAt(table, "/blog");
 
     // The chunk is still loading: the route shows the fallback.
-    const fallback = container.querySelector(".route-fallback");
+    const fallback = container.querySelector(`.${routeStyles.routeFallback}`);
     expect(fallback).toBeInTheDocument();
     expect(fallback).toHaveAttribute("aria-busy", "true");
     expect(fallback).toHaveTextContent("Loading…");
@@ -145,7 +146,7 @@ describe("route chunks are requested on their own route only", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Blog" }),
     ).toBeInTheDocument();
-    expect(container.querySelector(".route-fallback")).toBeNull();
+    expect(container.querySelector(`.${routeStyles.routeFallback}`)).toBeNull();
     expect(table.loadBlogHome).toHaveBeenCalledTimes(1);
     expect(table.loadBlogPost).not.toHaveBeenCalled();
   });
@@ -155,7 +156,9 @@ describe("route chunks are requested on their own route only", () => {
     const table = await freshRoutes({ post: () => chunk.promise });
     const { container } = renderAt(table, "/blog/hello-world");
 
-    expect(container.querySelector(".route-fallback")).toBeInTheDocument();
+    expect(
+      container.querySelector(`.${routeStyles.routeFallback}`),
+    ).toBeInTheDocument();
     expect(table.loadBlogPost).toHaveBeenCalledTimes(1);
     expect(table.loadBlogHome).not.toHaveBeenCalled();
 
@@ -165,7 +168,7 @@ describe("route chunks are requested on their own route only", () => {
     expect(
       await screen.findByRole("heading", { name: "Hello world" }),
     ).toBeInTheDocument();
-    expect(container.querySelector(".route-fallback")).toBeNull();
+    expect(container.querySelector(`.${routeStyles.routeFallback}`)).toBeNull();
     expect(table.loadBlogHome).not.toHaveBeenCalled();
   });
 
@@ -204,7 +207,7 @@ describe("RouteFallback", () => {
       </MemoryRouter>,
     );
 
-    const fallback = container.querySelector(".route-fallback");
+    const fallback = container.querySelector(`.${routeStyles.routeFallback}`);
     expect(fallback).toHaveAttribute("aria-busy", "true");
     expect(fallback).toHaveAttribute("lang", "en");
     const label = fallback.querySelector(".visually-hidden");

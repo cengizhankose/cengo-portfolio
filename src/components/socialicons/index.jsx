@@ -1,4 +1,4 @@
-import "./style.css";
+import styles from "./socialicons.module.css";
 import { SOCIAL_PROFILES } from "../../seo/site.js";
 import { translate } from "../../i18n/translate.js";
 import { LOCATIONS } from "../../lib/analytics/events.js";
@@ -18,7 +18,7 @@ export const SOCIAL_PROFILE_URLS = Object.freeze(
 export const Socialicons = ({ followLabel, locale }) => (
   <UiLocale locale={locale}>
     {(lang) => (
-      <div className="stick_follow_icon">
+      <div className={styles.rail}>
         <SocialLinks
           variant="icons"
           locale={lang}

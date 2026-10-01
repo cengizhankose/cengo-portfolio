@@ -7,6 +7,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { read } from "./support.js";
+import home from "../../../src/pages/home/home.module.css";
 
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -91,7 +92,7 @@ describe.each([
     expect(normalise(h1.textContent)).toBe(
       "Cengizhan Köse Senior Fullstack Engineer",
     );
-    expect(h1.querySelector(".intro__role").textContent).toBe(hero.role);
+    expect(h1.querySelector(`.${home.introRole}`).textContent).toBe(hero.role);
   });
 
   it("starts the page outline with the h1 and has no other hero heading", () => {
@@ -104,7 +105,7 @@ describe.each([
   it("marks the English role as English only on pages in another language", () => {
     renderHome(path);
 
-    const role = document.querySelector("h1 .intro__role");
+    const role = document.querySelector(`h1 .${home.introRole}`);
     if (locale === "en") expect(role).not.toHaveAttribute("lang");
     else expect(role).toHaveAttribute("lang", "en");
   });
@@ -112,10 +113,10 @@ describe.each([
   it("puts the rotating line under the h1, hidden from screen readers, with the last phrase as text", () => {
     renderHome(path);
 
-    const rotator = document.querySelector(".rotator");
+    const rotator = document.querySelector(`.${home.rotator}`);
     expect(rotator.closest("h1")).toBeNull();
     expect(rotator).toHaveAttribute("aria-hidden", "true");
-    expect(rotator.closest("p.intro__tagline")).not.toBeNull();
+    expect(rotator.closest(`p.${home.introTagline}`)).not.toBeNull();
     expect(
       [...rotator.children].map((span) => [
         span.textContent,
@@ -125,7 +126,8 @@ describe.each([
     // W7-MKT-hero-contact-conversion (MKT-02): the hidden text is the whole
     // sentence (phrasesText), which ends on the last phrase.
     expect(
-      document.querySelector(".intro__tagline .visually-hidden").textContent,
+      document.querySelector(`.${home.introTagline} .visually-hidden`)
+        .textContent,
     ).toBe(hero.phrasesText);
     // What assistive technology gets from the hero, in order.
     const h1 = screen.getByRole("heading", { level: 1 });
@@ -137,7 +139,9 @@ describe.each([
   it("shows the lead under the rotating line", () => {
     renderHome(path);
 
-    expect(document.querySelector(".intro__lead").textContent).toBe(hero.lead);
+    expect(document.querySelector(`.${home.introLead}`).textContent).toBe(
+      hero.lead,
+    );
   });
 
   it("does not change the h1 on later renders (no JS timer, no typewriter)", () => {

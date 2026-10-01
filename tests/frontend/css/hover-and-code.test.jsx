@@ -7,9 +7,10 @@ import { screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST_EN, POST_TR, json, renderBlog } from "../blog/support.jsx";
 import { declared, read, stylesheets } from "./support.js";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
-const INDEX = read("src/index.css");
-const HEADER = read("src/header/style.css");
+const INDEX = GLOBAL_CSS;
+const HEADER = read("src/header/header.module.css");
 const BLOG = read("src/pages/blog/style.css");
 
 // --- tokens and contrast --------------------------------------------------
@@ -90,16 +91,16 @@ describe("hover changes something visible (DSG-27)", () => {
   // text-decoration(-line/-thickness) or opacity to something the resting
   // rule does not have.
   it.each([
-    [HEADER, ".nav_ac", ".nav_ac:hover"],
-    [HEADER, ".the_menu .menu_item > a", ".the_menu .menu_item > a:hover"],
-    [HEADER, ".menu_footer__social a", ".menu_footer__social a:hover"],
+    [HEADER, ".navAction", ".navAction:hover"],
+    [HEADER, ".menuList .menuItem > a", ".menuList .menuItem > a:hover"],
+    [HEADER, ".footerSocial a", ".footerSocial a:hover"],
     [BLOG, ".blog-post-title a", ".blog-post-title a:hover"],
     [BLOG, ".blog-post-byline a", ".blog-post-byline a:hover"],
     [BLOG, ".markdown-body a", ".markdown-body a:hover"],
     [
-      read("src/components/socialicons/style.css"),
-      ".stick_follow_icon a",
-      ".stick_follow_icon a:hover",
+      read("src/components/socialicons/socialicons.module.css"),
+      ".rail a",
+      ".rail a:hover",
     ],
   ])("%#: %s", (css, resting, hover) => {
     const before = declared(css, resting);
@@ -117,12 +118,15 @@ describe("hover changes something visible (DSG-27)", () => {
 
   it("keeps the underline off links drawn as buttons", () => {
     expect(
-      declared(read("src/pages/home/style.css"), ".ac_btn:hover"),
+      declared(
+        read("src/components/actionbutton/button.module.css"),
+        ".button:hover",
+      ),
     ).toMatchObject({
       "text-decoration": "none",
     });
     expect(
-      declared(read("src/pages/about/style.css"), ".about-cta__button:hover"),
+      declared(read("src/pages/about/about.module.css"), ".ctaButton:hover"),
     ).toMatchObject({ "text-decoration": "none" });
   });
 });

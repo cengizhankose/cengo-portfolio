@@ -45,7 +45,7 @@ describe("ellipsis character (DSG-31)", () => {
       "src/i18n/en/blog.js",
       "src/i18n/tr/blog.js",
       "src/pages/blog/BlogHome.jsx",
-      "src/pages/contact/style.css",
+      "src/pages/contact/contact.module.css",
     ]) {
       expect(read(file), file).not.toMatch(THREE_DOTS);
     }

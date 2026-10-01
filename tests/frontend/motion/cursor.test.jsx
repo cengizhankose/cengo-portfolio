@@ -10,6 +10,7 @@ import { Profiler } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Cursor, { CLICKABLE } from "../../../src/components/Cursor.jsx";
 import { pointer, spyPointerListeners, stubFrames } from "./support.js";
+import cursorStyles from "../../../src/components/Cursor.module.css";
 
 let frames;
 
@@ -17,7 +18,7 @@ beforeEach(() => {
   frames = stubFrames();
 });
 
-const ring = () => document.querySelector(".cursor-ring");
+const ring = () => document.querySelector(`.${cursorStyles.cursorRing}`);
 const move = (x, y, init = {}) =>
   window.dispatchEvent(
     pointer("pointermove", { clientX: x, clientY: y, ...init }),
@@ -91,7 +92,9 @@ describe("rendering (PERF-11: no React commit per move)", () => {
     render(<Cursor />);
     move(10, 10);
 
-    expect(document.querySelectorAll(".cursor-ring")).toHaveLength(1);
+    expect(
+      document.querySelectorAll(`.${cursorStyles.cursorRing}`),
+    ).toHaveLength(1);
     expect(ring()).toHaveAttribute("aria-hidden", "true");
     expect(ring().childElementCount).toBe(0);
     expect(document.body.style.cursor).toBe("");

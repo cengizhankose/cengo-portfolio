@@ -11,6 +11,7 @@ import {
   PROJECT_IMAGE,
   projectSrcSet,
 } from "../../../src/pages/portfolio/projectImage.js";
+import portfolioStyles from "../../../src/pages/portfolio/portfolio.module.css";
 
 vi.mock("../../../src/lib/analytics/index.js", () => ({ track: vi.fn() }));
 
@@ -95,7 +96,7 @@ describe("badge and tags", () => {
   it("prints the badge above the title only when there is a podium", () => {
     const { container, rerender } = renderCard();
     const article = container.querySelector("article");
-    const badge = article.querySelector(".project-card__award");
+    const badge = article.querySelector(`.${portfolioStyles.cardAward}`);
     expect(badge.textContent.trim()).toBe(text.awardLabel);
     expect(
       badge.compareDocumentPosition(article.querySelector("h2")) &
@@ -111,7 +112,7 @@ describe("badge and tags", () => {
         />
       </MemoryRouter>,
     );
-    expect(container.querySelector(".project-card__award")).toBeNull();
+    expect(container.querySelector(`.${portfolioStyles.cardAward}`)).toBeNull();
   });
 
   it("shows at most five stack tags", () => {

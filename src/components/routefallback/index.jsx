@@ -11,13 +11,13 @@
 // anything around. The text is for screen readers only and comes from the
 // dictionary in the interface language (T-12).
 import { useT, useUiLocale } from "../../i18n";
-import "./style.css";
+import styles from "./routefallback.module.css";
 
 export function RouteFallback() {
   const t = useT();
   const uiLocale = useUiLocale();
   return (
-    <div className="route-fallback" aria-busy="true" lang={uiLocale}>
+    <div className={styles.routeFallback} aria-busy="true" lang={uiLocale}>
       <span className="visually-hidden">{t("status.loading")}</span>
     </div>
   );

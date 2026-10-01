@@ -78,7 +78,7 @@ describe("size budget (PERF-09, FE-21)", () => {
     expect(gzip(css)).toBeLessThanOrEqual(8_700);
   });
 
-  it("keeps the subset plus every src/ stylesheet within 76,000 B raw and 16,000 B gzip -9", async () => {
+  it("keeps the subset plus every src/ stylesheet within 70,000 B raw and 15,000 B gzip -9", async () => {
     // What `vite build` ships in assets/index-*.css: the subset plus the
     // page and component CSS, minified by esbuild (build.minify is terser, so
     // Vite minifies CSS with esbuild). Before PERF-09: 248,074 B / 34,717 B.
@@ -93,8 +93,8 @@ describe("size budget (PERF-09, FE-21)", () => {
     // W8 added the portfolio cards, author box, post footer and @font-face
     // rules (+2.6 kB raw). Budget raised at the W8 merge; W10-FE-css-architecture
     // (tokens + CSS Modules, dead-CSS removal) must bring it back to 70,000 / 15,000.
-    expect(code.length).toBeLessThanOrEqual(76_000);
-    expect(gzip(code)).toBeLessThanOrEqual(16_000);
+    expect(code.length).toBeLessThanOrEqual(70_000);
+    expect(gzip(code)).toBeLessThanOrEqual(15_000);
   });
 });
 
@@ -237,7 +237,10 @@ describe("components kept on purpose", () => {
     expect(cell.color).toMatch(/var\(--bs-table-color\)/);
     // DSG-01's override (two classes) outranks .table (one class).
     expect(
-      declarations(read("src/pages/about/style.css"), ".About-header .table"),
+      declarations(
+        read("src/pages/about/about.module.css"),
+        ".page :global(.table)",
+      ),
     ).toMatchObject({
       "--bs-table-bg": "transparent",
       "--bs-table-color": "var(--text-color)",
@@ -261,25 +264,25 @@ describe("imports (PERF-09 step 6, FE-21 criterion 2)", () => {
   });
 });
 
-describe(".navbar-brand is local (PERF-09 step 4, FE-21 step 4)", () => {
-  const header = read("src/header/style.css");
+describe(".brand is local (PERF-09 step 4, FE-21 step 4)", () => {
+  const header = read("src/header/header.module.css");
 
   it("keeps the two declarations that reached the brand link", () => {
-    expect(declarations(header, ".navbar-brand")).toEqual({
+    expect(declarations(header, ".brand")).toEqual({
       "text-decoration": "none",
       "white-space": "nowrap",
     });
   });
 
-  it("sits above .nav_ac, which still sets padding, margin, size and color", () => {
-    expect(header.indexOf(".navbar-brand {")).toBeLessThan(
-      header.indexOf(".nav_ac {"),
+  it("sits above .navAction, which still sets padding, margin, size and color", () => {
+    expect(header.indexOf(".brand {")).toBeLessThan(
+      header.indexOf(".navAction {"),
     );
-    expect(declarations(header, ".nav_ac")).toMatchObject({
+    expect(declarations(header, ".navAction")).toMatchObject({
       padding: "5px 15px",
       margin: "0",
       "font-size": "var(--fs-md)",
-      color: "var(--text-color-2)",
+      color: "var(--text-color)",
     });
   });
 });

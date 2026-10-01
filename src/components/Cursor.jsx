@@ -18,7 +18,7 @@
 // The frame loop runs only while the ring is catching up with the pointer
 // and stops once it has settled (no idle requestAnimationFrame).
 import { useEffect, useRef } from "react";
-import "./Cursor.css";
+import styles from "./Cursor.module.css";
 
 // Anything that acts on a click grows the ring (DSG-21 hover state).
 export const CLICKABLE =
@@ -125,5 +125,5 @@ export default function Cursor() {
     };
   }, []);
 
-  return <div ref={ringRef} className="cursor-ring" aria-hidden="true" />;
+  return <div ref={ringRef} className={styles.cursorRing} aria-hidden="true" />;
 }

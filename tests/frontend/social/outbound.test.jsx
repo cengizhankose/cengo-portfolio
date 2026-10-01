@@ -19,6 +19,8 @@ import {
 } from "../../../src/lib/analytics/outbound.js";
 import PostMarkdown from "../../../src/pages/blog/PostMarkdown.jsx";
 import { SOCIAL_PROFILES } from "../../../src/seo/site.js";
+import headerStyles from "../../../src/header/header.module.css";
+import railStyles from "../../../src/components/socialicons/socialicons.module.css";
 
 vi.mock("../../../src/lib/webVitals.js", () => ({ initWebVitals: vi.fn() }));
 
@@ -181,7 +183,7 @@ describe("initOutboundTracking (delegated listener)", () => {
 
   it("each of the six rail icons sends its own network with location social_rail (criterion 2)", () => {
     renderShell();
-    const rail = [...document.querySelectorAll(".stick_follow_icon a")];
+    const rail = [...document.querySelectorAll(`.${railStyles.rail} a`)];
     expect(rail).toHaveLength(6);
     for (const link of rail) fireEvent.click(link.querySelector("svg"));
 
@@ -195,9 +197,9 @@ describe("initOutboundTracking (delegated listener)", () => {
 
   it("the menu footer GitHub link sends location menu_footer (criterion 3)", () => {
     renderShell();
-    const github = [...document.querySelectorAll(".menu_footer a")].find(
-      (a) => a.textContent === "GitHub",
-    );
+    const github = [
+      ...document.querySelectorAll(`.${headerStyles.menuFooter} a`),
+    ].find((a) => a.textContent === "GitHub");
     fireEvent.click(github);
     expect(send).toHaveBeenCalledExactlyOnceWith("outbound_link_clicked", {
       network: "github",
@@ -242,7 +244,7 @@ describe("initOutboundTracking (delegated listener)", () => {
 
   it("middle click (auxclick button 1) counts, right click does not", () => {
     renderShell();
-    const link = document.querySelector(".stick_follow_icon a");
+    const link = document.querySelector(`.${railStyles.rail} a`);
     fireEvent(link, new MouseEvent("auxclick", { bubbles: true, button: 2 }));
     expect(send).not.toHaveBeenCalled();
     fireEvent(link, new MouseEvent("auxclick", { bubbles: true, button: 1 }));
@@ -254,7 +256,7 @@ describe("initOutboundTracking (delegated listener)", () => {
 
   it("runs in the capture phase: a handler that stops the click cannot hide it", () => {
     renderShell();
-    const link = document.querySelector(".stick_follow_icon a");
+    const link = document.querySelector(`.${railStyles.rail} a`);
     const blocker = (event) => event.stopPropagation();
     link.parentElement.addEventListener("click", blocker);
     fireEvent.click(link);
@@ -271,7 +273,7 @@ describe("initOutboundTracking (delegated listener)", () => {
       },
       doc: document,
     });
-    const link = document.querySelector(".stick_follow_icon a");
+    const link = document.querySelector(`.${railStyles.rail} a`);
     // Read the flag on the link itself: after the document's capture
     // listener, before the test's own canceller on window.
     let prevented;
@@ -285,7 +287,7 @@ describe("initOutboundTracking (delegated listener)", () => {
 
   it("stop() removes the listener; a second start replaces the first", () => {
     renderShell();
-    const link = document.querySelector(".stick_follow_icon a");
+    const link = document.querySelector(`.${railStyles.rail} a`);
     const second = vi.fn();
     const stopSecond = initOutboundTracking({ send: second, doc: document });
     fireEvent.click(link);
@@ -299,7 +301,7 @@ describe("initOutboundTracking (delegated listener)", () => {
   it("stopOutboundTracking(doc) removes whatever listener the document has", () => {
     renderShell();
     stopOutboundTracking(document);
-    fireEvent.click(document.querySelector(".stick_follow_icon a"));
+    fireEvent.click(document.querySelector(`.${railStyles.rail} a`));
     expect(send).not.toHaveBeenCalled();
     expect(() => stopOutboundTracking(document)).not.toThrow();
   });

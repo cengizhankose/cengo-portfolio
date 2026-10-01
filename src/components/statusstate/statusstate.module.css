@@ -2,16 +2,15 @@
    voice as the blog: Marcellus headings (the global h1-h6 rule), one colour (--text-color on
    --bg-color), square corners, the blog cards' 4px rule for states that sit
    inside a page. Replaces src/pages/notfound/style.css. */
-.status-state {
+.state {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 1rem;
-  color: var(--text-color);
 }
 
 /* The state is the whole page (404, a post that failed, a crashed route). */
-.status-state--page {
+.statePage {
   justify-content: center;
   min-height: 60vh;
   max-width: 40rem;
@@ -20,34 +19,34 @@
 }
 
 /* The state sits under the page's own heading (the blog list). */
-.status-state--inline {
+.stateInline {
   max-width: 40rem;
   margin: 0 auto;
   padding: 1.25rem 0 1.25rem 1.25rem;
   border-left: 4px solid var(--text-color);
 }
 
-.status-state__title {
+.stateTitle {
   margin: 0;
   line-height: 1.2;
 }
 
-.status-state--page .status-state__title {
+.statePage .stateTitle {
   font-size: var(--fs-2xl);
 }
 
-.status-state--inline .status-state__title {
+.stateInline .stateTitle {
   font-size: var(--fs-lg);
 }
 
-.status-state__text {
+.stateText {
   margin: 0;
   max-width: 36em;
   font-size: var(--fs-md);
   line-height: 1.6;
 }
 
-.status-state__actions {
+.stateActions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -55,7 +54,7 @@
   margin-top: 0.5rem;
 }
 
-.status-state__links {
+.stateLinks {
   display: flex;
   flex-wrap: wrap;
   gap: 0 1.5rem;
@@ -65,22 +64,21 @@
 }
 
 /* Links and the button keep a 44px target (WCAG 2.5.5). */
-.status-state__links a {
+.stateLinks a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--text-color);
   font-size: var(--fs-md);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 
-.status-state__links a:hover,
-.status-state__links a:focus-visible {
+.stateLinks a:hover,
+.stateLinks a:focus-visible {
   text-decoration-thickness: 2px;
 }
 
-.status-state__retry {
+.stateRetry {
   min-height: 44px;
   padding: 0.5rem 1.25rem;
   font: inherit;
@@ -92,19 +90,19 @@
   cursor: pointer;
 }
 
-.status-state__retry:hover {
+.stateRetry:hover {
   color: var(--bg-color);
   background: var(--text-color);
 }
 
-.status-state__retry:focus-visible,
-.status-state__links a:focus-visible {
+.stateRetry:focus-visible,
+.stateLinks a:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .status-state__retry {
+  .stateRetry {
     transition:
       color 0.2s ease,
       background-color 0.2s ease;

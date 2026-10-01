@@ -1,0 +1,48 @@
+/* Privacy page (SEC-25, ANL-04). The note under the contact form is in
+   src/pages/contact/contact.module.css. */
+.section {
+  margin-bottom: calc(3rem + 5.128vw);
+}
+
+.lead {
+  max-width: 48rem;
+}
+
+.updated {
+  color: var(--text-muted);
+}
+
+.list {
+  padding-left: 1.25rem;
+}
+
+.labelled > li + li,
+.list > li + li {
+  margin-top: 0.75rem;
+}
+
+.processors > li + li {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: solid 1px color-mix(in srgb, var(--text-color) 20%, transparent);
+}
+
+.facts {
+  margin: 0;
+}
+
+.facts dt {
+  margin-top: 0.5rem;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.page a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}

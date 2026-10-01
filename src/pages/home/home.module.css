@@ -1,10 +1,10 @@
-section {
+/* The page's own section (FE-20 step 3): this used to be a global `section`
+   rule, which put position, width and a catch-all transition on every
+   <section> of every page. */
+.home {
   flex: 1 0 auto;
   position: relative;
   width: 100%;
-  -webkit-transition: all 0.5s ease-in;
-  -o-transition: all 0.5s ease-in;
-  transition: all 0.5s ease-in;
 }
 
 /* Hero layout (FE-18, DSG-11). Below 992px the section is one column in
@@ -14,7 +14,7 @@ section {
    browser has one, so the photo never runs under a toolbar), pulled up
    under the header. */
 @media (min-width: 992px) {
-  .intro_sec {
+  .hero {
     height: 100vh;
     height: 100svh;
     min-height: 700px;
@@ -22,25 +22,25 @@ section {
   }
 }
 
-.intro_sec .text,
-.intro_sec .h_bg-image {
+.hero .heroText,
+.hero .heroImage {
   width: 50%;
 }
 
 @media (max-width: 991.98px) {
-  .intro_sec .text,
-  .intro_sec .h_bg-image {
+  .hero .heroText,
+  .hero .heroImage {
     width: 100%;
   }
 }
 
-.intro_sec .intro {
+.hero .heroIntro {
   max-width: 450px;
   margin: 0 auto;
 }
 
 @media (max-width: 991.98px) {
-  .intro_sec .intro {
+  .hero .heroIntro {
     max-width: 700px;
     padding-left: 20px;
     padding-right: 20px;
@@ -51,14 +51,14 @@ section {
    Marcellus 400 (its only weight: no synthetic bold, DSG-17), the role on
    its own line in Raleway 400, told apart by case, spacing and colour, so
    the home page needs no third font file (PERF-08). */
-.intro__name {
+.introName {
   margin-bottom: 1.25rem;
   font-size: var(--fs-2xl);
   font-weight: 400;
   line-height: 1.1;
 }
 
-.intro__role {
+.introRole {
   display: block;
   margin-top: 0.75rem;
   color: var(--text-muted);
@@ -83,19 +83,19 @@ section {
    >= 0.9s at 1.3s); phrase i starts at i * --rot-step, so with 3 phrases the
    last one fades in at 2.6s and is settled at 3s (< 5s, WCAG 2.2.2).
    Reduced motion: no animation, the last phrase from the start. */
-.intro__tagline {
+.introTagline {
   margin-bottom: 0.75rem;
   font-size: var(--fs-md);
   line-height: 1.3;
 }
 
 @media (max-width: 991.98px) {
-  .intro__tagline {
+  .introTagline {
     min-height: calc(2 * 1.3em);
   }
 
   @supports (min-height: 1lh) {
-    .intro__tagline {
+    .introTagline {
       min-height: 2lh;
     }
   }
@@ -151,18 +151,18 @@ section {
 /* Subheadline (MKT-02, MKT-16): the lead and the short status line under it
    read as one unit, then the turning line, the proof line and the CTAs.
    --text-muted is the theme token that holds >= 4.5:1 on the page background
-   in both themes (src/index.css). */
-.intro__lead {
+   in both themes (src/styles/tokens.css). */
+.introLead {
   margin-bottom: 0.25rem;
 }
 
-.intro__status {
+.introStatus {
   margin-bottom: 1.5rem;
   color: var(--text-muted);
   font-size: var(--fs-sm);
 }
 
-.intro__proof {
+.introProof {
   margin-bottom: 2rem;
   color: var(--text-muted);
   font-size: var(--fs-sm);
@@ -172,34 +172,30 @@ section {
 /* CTAs (MKT-19, DSG-28): one button, one evidence link, the reply note under
    them. The button is an <a> itself (no block inside an inline link), so its
    box and its focus ring are the same box. */
-.intro_btn-action {
+.actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 1rem 1.5rem;
 }
 
-.intro_btn-action .ac_btn {
-  margin-right: 0;
-}
-
-.intro_btn-action .ac_btn:focus-visible,
-.intro__textlink:focus-visible {
+/* The button's own box, focus ring and hover are in
+   src/components/actionbutton/button.module.css. */
+.textLink:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: 3px;
 }
 
-.intro__textlink {
-  color: var(--text-color);
+.textLink {
   text-decoration: underline;
   text-underline-offset: 0.25em;
 }
 
-.intro__textlink:hover {
+.textLink:hover {
   text-decoration-thickness: 2px;
 }
 
-.intro__note {
+.note {
   margin: 0.75rem 0 0;
   color: var(--text-muted);
   font-size: var(--fs-sm);
@@ -214,7 +210,7 @@ section {
    Below 992px the box is 4:5, a hair wider than the 1284x1654 photo, so
    cover trims about 1.5% top and bottom; from 992px it is the column's
    full height (at least 700px, like the section). */
-.intro_sec .h_bg-image {
+.hero .heroImage {
   position: relative;
   overflow: hidden;
   background-color: rgb(128 128 128 / 12%);
@@ -222,7 +218,7 @@ section {
 }
 
 @media (max-width: 991.98px) {
-  .intro_sec .h_bg-image {
+  .hero .heroImage {
     height: auto;
     min-height: 0;
     aspect-ratio: 4 / 5;
@@ -231,90 +227,21 @@ section {
 }
 
 @media (min-width: 992px) {
-  .intro_sec .h_bg-image {
+  .hero .heroImage {
     height: 100%;
     min-height: 700px;
   }
 }
 
-.intro_sec .h_bg-image picture {
+.hero .heroImage picture {
   position: absolute;
   inset: 0;
 }
 
-.intro_sec .h_bg-image img {
+.hero .heroImage img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-}
-
-.ac_btn {
-  padding: 4px 19px;
-  color: var(--secondary-color);
-  text-decoration: none;
-  position: relative;
-  border: var(--secondary-color) 2px solid;
-  overflow: hidden;
-  /* Not `all`: the focus outline must not animate (W3 handoff, DSG-13). */
-  transition-property: box-shadow, color, background-color, border-color;
-  transition-duration: 0.6s;
-  transition-timing-function: cubic-bezier(0.55, 0, 0.1, 1);
-  cursor: pointer;
-  border-radius: 0;
-  margin-right: 20px;
-}
-
-.ac_btn:hover {
-  text-decoration: none;
-  box-shadow:
-    8px 8px 0px var(--text-color),
-    -8px -8px 0px var(--text-color);
-}
-
-.ac_btn:hover .one {
-  opacity: 1;
-  transform: translate3d(0px, 0px, 0px);
-}
-
-.ac_btn:hover .two {
-  transform: translate3d(0px, 0px, 0px);
-}
-
-.ac_btn:hover .three {
-  transform: translate3d(0px, 0px, 0px);
-}
-
-.ac_btn .ring {
-  display: block;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  background: transparent;
-  top: 0;
-  left: 0;
-  transform: translate3d(0px, 90px, 0px);
-}
-
-.ac_btn .one {
-  background-color: #000;
-  transition: all 0.3s cubic-bezier(0.55, 0, 0.1, 1);
-  z-index: -4;
-}
-
-.ac_btn .two {
-  background-color: var(--primary-color);
-  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
-  z-index: -3;
-}
-
-.ac_btn .three {
-  background-color: var(--secondary-color);
-  transition: all 0.7s cubic-bezier(0.55, 0, 0.1, 1);
-  z-index: -3;
-}
-
-#button_h:hover {
-  color: var(--primary-color);
 }

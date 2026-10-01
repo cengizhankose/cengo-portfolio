@@ -4,6 +4,9 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderSite, routerState } from "./support/site";
+import headerStyles from "../../../src/header/header.module.css";
+import railStyles from "../../../src/components/socialicons/socialicons.module.css";
+import appStyles from "../../../src/app/App.module.css";
 
 vi.mock("../../../src/pages/home", async () => ({
   Home: (await import("./support/pages.jsx")).Home,
@@ -63,14 +66,16 @@ describe("landmarks", () => {
     expect(new Set(labels).size).toBe(labels.length);
 
     const mainMenu = screen.getByRole("navigation", { name: "Main menu" });
-    expect(mainMenu.querySelector("ul.the_menu")).not.toBeNull();
+    expect(
+      mainMenu.querySelector(`ul.${headerStyles.menuList}`),
+    ).not.toBeNull();
   });
 
   it("puts the social strip in a named <aside> outside <main>", () => {
     renderSite();
 
     const aside = screen.getByRole("complementary", { name: "Social links" });
-    expect(aside.querySelector(".stick_follow_icon")).not.toBeNull();
+    expect(aside.querySelector(`.${railStyles.rail}`)).not.toBeNull();
     expect(document.querySelector("main").contains(aside)).toBe(false);
   });
 });
@@ -90,7 +95,7 @@ describe("skip link", () => {
     expect(document.activeElement.id).toBe("main");
     expect(routerState()).toEqual({ pathname: "/about", hash: "" });
     expect(pageStage()).toBe(page);
-    expect(pageStage()).not.toHaveClass("page-enter");
+    expect(pageStage()).not.toHaveClass(appStyles.pageEnter);
   });
 });
 
@@ -113,7 +118,7 @@ describe("page transition and focus (FE-10)", () => {
     // The new page is rendered in the same commit as the navigation
     // (PERF-13, FE-17): nothing to wait for.
     expect(routerState().pathname).toBe("/about");
-    expect(pageStage()).toHaveClass("page-enter");
+    expect(pageStage()).toHaveClass(appStyles.pageEnter);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "About page",
     );
@@ -150,7 +155,7 @@ describe("page transition and focus (FE-10)", () => {
 
     expect(routerState()).toEqual({ pathname: "/blog", hash: "#details" });
     expect(pageStage()).toBe(page);
-    expect(pageStage()).not.toHaveClass("page-enter");
+    expect(pageStage()).not.toHaveClass(appStyles.pageEnter);
     expect(document.activeElement).not.toBe(document.getElementById("main"));
   });
 });

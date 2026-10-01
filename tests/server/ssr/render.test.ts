@@ -26,7 +26,7 @@ describe("the static pages", () => {
     async (url) => {
       const html = await body(url, { fallback: LISTS });
       expect(count(html, /<h1\b/g)).toBe(1);
-      expect(html).toContain('<header class="fixed-top site__header"');
+      expect(html).toContain('<header class="fixed-top siteHeader"');
       expect(html).toContain('<main id="main" tabindex="-1">');
       expect(html).toContain('<aside aria-label="Social links"');
       // The head is src/seo/head.ts's alone (T-03): nothing of it in the body.

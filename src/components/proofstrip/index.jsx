@@ -1,4 +1,4 @@
-import "./style.css";
+import styles from "./proofstrip.module.css";
 import { Fragment, useId } from "react";
 import { Link } from "react-router-dom";
 import { useContent, useLocalePath, useT } from "../../i18n";
@@ -65,13 +65,15 @@ export function ProofStrip({ variant = "full" }) {
   const shape = variant === "compact" ? "compact" : "full";
 
   return (
-    <div className={`proofstrip proofstrip--${shape}`}>
-      <div className="proofstrip__group">
-        <h3 className="proofstrip__label" id={`${id}-companies`}>
+    <div
+      className={`${styles.proofstrip} ${shape === "compact" ? styles.proofCompact : ""}`}
+    >
+      <div>
+        <h3 className={styles.proofLabel} id={`${id}-companies`}>
           {t("proof.companies")}
         </h3>
         <ul
-          className="proof-companies list-unstyled"
+          className={`${styles.proofCompanies} list-unstyled`}
           aria-labelledby={`${id}-companies`}
         >
           {proof.companies.map((company) => (
@@ -80,12 +82,12 @@ export function ProofStrip({ variant = "full" }) {
         </ul>
       </div>
 
-      <div className="proofstrip__group">
-        <h3 className="proofstrip__label" id={`${id}-awards`}>
+      <div>
+        <h3 className={styles.proofLabel} id={`${id}-awards`}>
           {t("proof.awards")}
         </h3>
         <ul
-          className="proof-awards list-unstyled"
+          className={`${styles.proofAwards} list-unstyled`}
           aria-labelledby={`${id}-awards`}
         >
           {proof.awards.map((award) => (
@@ -94,7 +96,7 @@ export function ProofStrip({ variant = "full" }) {
             </li>
           ))}
         </ul>
-        <p className="proofstrip__more">
+        <p className={styles.proofMore}>
           <Link to={`${lp("/about")}#awards`}>
             {t("proof.podiums", { count: awards.length })}
           </Link>
@@ -102,17 +104,19 @@ export function ProofStrip({ variant = "full" }) {
       </div>
 
       {showReferences && (
-        <div className="proofstrip__group">
-          <h3 className="proofstrip__label">{t("proof.testimonials")}</h3>
-          <div className="proof-testimonials">
+        <div>
+          <h3 className={styles.proofLabel}>{t("proof.testimonials")}</h3>
+          <div className={styles.proofTestimonials}>
             {references.map((item) => (
-              <figure key={item.id} className="proof-testimonial">
+              <figure key={item.id} className={styles.proofTestimonial}>
                 <blockquote>
                   <p>{item.quote}</p>
                 </blockquote>
                 <figcaption>
-                  <span className="proof-testimonial__name">{item.name}</span>
-                  <span className="proof-testimonial__role">
+                  <span className={styles.proofTestimonialName}>
+                    {item.name}
+                  </span>
+                  <span className={styles.proofTestimonialRole}>
                     {item.role} — {item.company}
                   </span>
                 </figcaption>

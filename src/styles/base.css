@@ -1,0 +1,187 @@
+/* Base layer (FE-20): element defaults and the few classes more than one
+   page shares. Loaded through src/index.css into `@layer base`, so any
+   component or page rule beats it without raising specificity. This is the
+   only place `!important` is allowed (.visually-hidden and the
+   reduced-motion block). Values come from tokens.css. */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 60px clears the fixed header; the 10px side padding keeps the content
+     inside the page frame (.br-* in src/header, --z-frame), which is the one
+     place the frame is drawn (FE-20 step 6: the body used to draw a second
+     10px border under it). */
+  padding: 60px 10px 0;
+}
+
+ul {
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+}
+
+/* Headings: Marcellus at its one weight (Bootstrap's 500 is set to 400 in
+   src/styles/bootstrap-subset.scss), lines balanced so a title does not end
+   on one short word (DSG-31). Bold text inside a heading stays 400 too. */
+:is(h1, h2, h3, h4, h5, h6) {
+  font-weight: 400;
+  font-synthesis: none;
+  text-wrap: balance;
+}
+
+:is(h1, h2, h3, h4, h5, h6) :is(b, strong) {
+  font-weight: inherit;
+}
+
+/* Links (DSG-27): the text colour, underlined by Bootstrap's reboot. The
+   two text tokens are the same colour, so hover cannot be a colour change:
+   the underline shows (or thickens) instead. Rules that draw a link as a
+   button or a nav box turn the underline off in their own :hover. */
+a {
+  color: var(--text-color);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--text-color);
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* Hyphenation (DSG-19 step 3, FE-14 step 10). Automatic hyphens follow the
+   `lang` of the text, so they are on only where the language is known and
+   the text is long: a blog post body, whose <article lang> picks the right
+   dictionary (Turkish words were split by English rules before). Everywhere
+   else only soft hyphens (&shy;) break a word. hyphenate-limit-chars keeps
+   Turkish suffix chains from leaving 1-2 letter fragments. */
+p {
+  word-break: break-word;
+  -webkit-hyphens: manual;
+  hyphens: manual;
+  text-wrap: pretty;
+}
+
+.markdown-body :is(p, li, blockquote) {
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+}
+
+/* Page shell: the wrapper src/app/routes.jsx puts around every route (the
+   header sets `inert` on it while the menu is open); below 992px it leaves
+   room for the taller header. */
+@media (max-width: 991px) {
+  .page-shell {
+    padding-top: 40px;
+  }
+}
+
+/* Body class while the header menu is open (src/header/index.jsx). */
+.scroll-locked {
+  overflow: hidden;
+}
+
+/* Section helpers shared by the pages: the spacing under a section, and the
+   rule above the first one. */
+.section-gap {
+  margin-bottom: calc(3rem + 5.128vw);
+}
+
+.section-rule {
+  border-color: var(--text-color);
+}
+
+/* Text for screen readers only (same rules as Bootstrap's class, kept here
+   so the language switcher and the blog badges do not depend on the
+   Bootstrap build, PERF-09). */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Skip link (FE-10/DSG-14): first stop in the tab order, off screen until it
+   has focus. Above the page frame (--z-frame) when shown. */
+.skip-link {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: var(--z-skip-link);
+  padding: 8px 16px;
+  background: var(--bg-color);
+  color: var(--text-color);
+  text-decoration: none;
+  outline: 2px solid var(--text-color);
+  outline-offset: 0;
+  transform: translateY(calc(-100% - 32px));
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* <main> takes focus only programmatically (skip link, route change); it is
+   not a control, so it gets no focus ring. */
+#main:focus {
+  outline: none;
+}
+
+/* Code is set in the system monospace and in the text colour: Bootstrap's
+   pink (--bs-code-color, 4.35:1 on the dark page) was the one accidental
+   colour on the site (DSG-26). */
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
+}
+
+code {
+  color: inherit;
+}
+
+/* Reduced motion (FE-06, DSG-07). With the OS "reduce motion" setting on,
+   nothing on the page moves by itself: every animation and transition
+   finishes at once. Durations become 0.01ms instead of `animation: none` on
+   purpose: animationend and transitionend still fire for a 0.01ms
+   animation, so nothing that waits for one hangs. Delays go to 0 so nothing
+   appears late either. The page-enter fade (src/app/App.module.css), the hero
+   rotator and the contact loading bar also switch their animation off in
+   their own stylesheets; the custom cursor ring is not mounted at all
+   (src/app/App.jsx). FE-20's !important count leaves this block and .visually-hidden out. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-delay: 0s !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

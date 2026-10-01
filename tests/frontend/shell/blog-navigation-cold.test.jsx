@@ -12,6 +12,8 @@ import { Link, MemoryRouter } from "react-router-dom";
 import { SWRConfig } from "swr";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { swrConfig } from "../../../src/lib/swr.js";
+import routeStyles from "../../../src/components/routefallback/routefallback.module.css";
+import appStyles from "../../../src/app/App.module.css";
 
 function stubPage(name) {
   const Page = () => <h1>{name}</h1>;
@@ -81,8 +83,8 @@ describe("/ -> /blog with the chunk still loading", () => {
     const page = container.querySelector('[data-route="/blog"]');
     expect(page).not.toBeNull();
     expect(screen.getByRole("main")).toContainElement(page);
-    expect(page).toHaveClass("page-enter");
-    const fallback = page.querySelector(".route-fallback");
+    expect(page).toHaveClass(appStyles.pageEnter);
+    const fallback = page.querySelector(`.${routeStyles.routeFallback}`);
     expect(fallback).not.toBeNull();
     expect(fallback).toHaveAttribute("aria-busy", "true");
     expect(screen.queryByText("Home page")).not.toBeInTheDocument();
@@ -93,6 +95,6 @@ describe("/ -> /blog with the chunk still loading", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Blog" }),
     ).toBeInTheDocument();
-    expect(page.querySelector(".route-fallback")).toBeNull();
+    expect(page.querySelector(`.${routeStyles.routeFallback}`)).toBeNull();
   });
 });

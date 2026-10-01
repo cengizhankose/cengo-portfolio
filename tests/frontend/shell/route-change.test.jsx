@@ -7,6 +7,7 @@ import { StrictMode } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Link, MemoryRouter, useNavigate } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import appStyles from "../../../src/app/App.module.css";
 
 function stubPage(name) {
   const Page = () => <h1>{name}</h1>;
@@ -68,7 +69,7 @@ describe("the landing page (PERF-07)", () => {
     const { page } = renderAt(path);
 
     expect(page()).toHaveAttribute("data-route", path);
-    expect(page()).not.toHaveClass("page-enter");
+    expect(page()).not.toHaveClass(appStyles.pageEnter);
     expect(page().className).toBe("");
   });
 
@@ -79,7 +80,7 @@ describe("the landing page (PERF-07)", () => {
     await act(async () => navigate("#details"));
 
     expect(page()).toBe(landing);
-    expect(page()).not.toHaveClass("page-enter");
+    expect(page()).not.toHaveClass(appStyles.pageEnter);
   });
 });
 
@@ -101,7 +102,7 @@ describe("a page change renders the new page at once (FE-17 step 1)", () => {
 
     click("about");
 
-    expect(page()).toHaveClass("page-enter");
+    expect(page()).toHaveClass(appStyles.pageEnter);
   });
 
   it("keeps the fade for every later page, also back on the landing path", () => {
@@ -112,7 +113,7 @@ describe("a page change renders the new page at once (FE-17 step 1)", () => {
 
     expect(heading()).toHaveTextContent("Home page");
     expect(page()).toHaveAttribute("data-route", "/");
-    expect(page()).toHaveClass("page-enter");
+    expect(page()).toHaveClass(appStyles.pageEnter);
   });
 
   it("does not wait for, or react to, animation events", () => {

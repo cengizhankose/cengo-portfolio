@@ -9,22 +9,22 @@
 import { describe, expect, it } from "vitest";
 import { allSelectors, declared, read } from "./support.js";
 
-const HOME = read("src/pages/home/style.css");
-const APP = read("src/app/App.css");
+const HOME = read("src/pages/home/home.module.css");
+const APP = read("src/app/App.module.css");
 const MOBILE = "(max-width: 991.98px)";
 const DESKTOP = "(min-width: 992px)";
-const BOX = ".intro_sec .h_bg-image";
+const BOX = ".hero .heroImage";
 
 describe("hero section height (FE-18 step 6, DSG-11)", () => {
   it("has no fixed height below 992px: the section is as tall as its content", () => {
-    expect(declared(HOME, ".intro_sec")).toEqual({});
-    expect(declared(HOME, ".intro_sec", MOBILE)).toEqual({});
+    expect(declared(HOME, ".hero")).toEqual({});
+    expect(declared(HOME, ".hero", MOBILE)).toEqual({});
   });
 
   it("is one (small) viewport tall from 992px, with one height pair instead of the old double declaration", () => {
     // Later declarations win in `declared`, as in the cascade: 100svh with
     // the 100vh fallback before it in the source.
-    expect(declared(HOME, ".intro_sec", DESKTOP)).toEqual({
+    expect(declared(HOME, ".hero", DESKTOP)).toEqual({
       height: "100svh",
       "min-height": "700px",
       "margin-top": "-60px",
@@ -89,15 +89,15 @@ describe("photo box (DSG-11, FE-18, PERF-07)", () => {
 });
 
 describe("first page after a full load is not faded in (PERF-07 step 3)", () => {
-  it("only .page-enter animates; routes.jsx leaves it off the landing page", () => {
-    expect(declared(APP, ".page-enter")).toMatchObject({
-      animation: "pageEnter 150ms ease-out both",
+  it("only .pageEnter animates; routes.jsx leaves it off the landing page", () => {
+    expect(declared(APP, ".pageEnter")).toMatchObject({
+      animation: "enter 150ms ease-out both",
     });
     expect(APP).not.toMatch(/is-initial|page-transition/);
   });
 
   it("the entry fade is 150ms at most and there is no exit fade (PERF-13 / FE-17)", () => {
     expect(APP).not.toMatch(/fadeOut|400ms/);
-    expect(declared(APP, ".page-enter").animation).toMatch(/\b150ms\b/);
+    expect(declared(APP, ".pageEnter").animation).toMatch(/\b150ms\b/);
   });
 });

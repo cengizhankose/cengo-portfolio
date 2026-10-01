@@ -41,7 +41,7 @@ export function renderSite(path = "/") {
     ...utils,
     menuButton: () => screen.getByRole("button", { name: "Menu" }),
     pageStage: () => utils.container.querySelector("[data-route]"),
-    content: () => utils.container.querySelector(".s_c"),
+    content: () => utils.container.querySelector(".page-shell"),
   };
 }
 

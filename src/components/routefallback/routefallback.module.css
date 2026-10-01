@@ -1,6 +1,6 @@
 /* Route chunk fallback (PERF-04): an empty block as tall as a page, so the
    page that replaces it does not move the layout (same height rule as
    .blog-post-container in src/pages/blog/style.css, PERF-16). */
-.route-fallback {
+.routeFallback {
   min-height: 100vh;
 }

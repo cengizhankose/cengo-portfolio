@@ -9,6 +9,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { getContent } from "../../../src/content/index.js";
 import { About } from "../../../src/pages/about";
+import aboutStyles from "../../../src/pages/about/about.module.css";
 
 const { services, skills } = getContent("en");
 
@@ -73,10 +74,10 @@ describe("About heading outline (SEO-13, FE-27, MKT-15)", () => {
     renderAbout();
 
     for (const heading of document.querySelectorAll("h2")) {
-      expect(heading).toHaveClass("h3", "color_sec");
+      expect(heading).toHaveClass("h3");
     }
     for (const heading of document.querySelectorAll(".service_ h3")) {
-      expect(heading).toHaveClass("h5", "service__title");
+      expect(heading).toHaveClass("h5", aboutStyles.serviceTitle);
     }
   });
 
@@ -88,14 +89,18 @@ describe("About heading outline (SEO-13, FE-27, MKT-15)", () => {
     expect(groups).toHaveLength(skills.length);
     expect(
       [...groups].map(
-        (li) => li.querySelector(".skill-group__name").textContent,
+        (li) => li.querySelector(`.${aboutStyles.skillGroupName}`).textContent,
       ),
     ).toEqual(skills.map((group) => group.name));
     expect(
-      [...document.querySelectorAll(".skill-chip")].map((li) => li.textContent),
+      [...document.querySelectorAll(`.${aboutStyles.skillChip}`)].map(
+        (li) => li.textContent,
+      ),
     ).toEqual(skills.flatMap((group) => group.items));
     // Each chip list is named by its group label.
-    for (const list of document.querySelectorAll(".skill-group__items")) {
+    for (const list of document.querySelectorAll(
+      `.${aboutStyles.skillGroupItems}`,
+    )) {
       const label = document.getElementById(
         list.getAttribute("aria-labelledby"),
       );
@@ -124,7 +129,9 @@ describe("About grid and attributes (SEO-20, DSG-34, FE-28)", () => {
   it("puts all seven section titles, Services included, in a col-lg-5 column", () => {
     renderAbout();
 
-    expect(document.querySelectorAll(".sec_sp > .col-lg-5")).toHaveLength(7);
+    expect(document.querySelectorAll(".section-gap > .col-lg-5")).toHaveLength(
+      7,
+    );
     const services = screen.getByRole("heading", {
       level: 2,
       name: "Services",
@@ -135,7 +142,7 @@ describe("About grid and attributes (SEO-20, DSG-34, FE-28)", () => {
   it("uses the Bootstrap 5 names for the divider alignment", () => {
     renderAbout();
 
-    const divider = document.querySelector("hr.t_border");
+    const divider = document.querySelector("hr.section-rule");
     expect(divider).toHaveClass("ms-0", "text-start");
     expect(divider).not.toHaveClass("ml-0");
     expect(divider).not.toHaveClass("text-left");

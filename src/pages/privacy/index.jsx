@@ -1,4 +1,4 @@
-import "./style.css";
+import styles from "./privacy.module.css";
 import { Container, Row, Col } from "react-bootstrap";
 import { email } from "../../content/shared.js";
 import {
@@ -41,9 +41,9 @@ function WithEmail({ text }) {
 
 function Section({ id, title, children }) {
   return (
-    <Row className="privacy__section">
+    <Row className={styles.section}>
       <Col lg="5">
-        <h2 className="h3 color_sec py-4" id={id}>
+        <h2 className="h3 py-4" id={id}>
           {title}
         </h2>
       </Col>
@@ -57,7 +57,7 @@ const endSentence = (label) => `${label}.`;
 // A list of { id, label, text } entries: the label in bold, the text after it.
 function LabelledList({ items }) {
   return (
-    <ul className="privacy__labelled list-unstyled">
+    <ul className={`${styles.labelled} list-unstyled`}>
       {items.map(({ id, label, text }) => (
         <li key={id}>
           <strong>{endSentence(label)}</strong> {text}
@@ -84,13 +84,13 @@ export const Privacy = () => {
   const optInHref = `${lp("/")}?analytics=on`;
 
   return (
-    <Container className="privacy__page">
+    <Container className={styles.page}>
       <Row className="mb-5 mt-3">
         <Col lg="8">
           <h1 className="display-4 mb-4">{t("privacy.title")}</h1>
-          <hr className="t_border my-4 ms-0 text-start" />
-          <p className="privacy__lead">{privacy.intro}</p>
-          <p className="privacy__updated">
+          <hr className="section-rule my-4 ms-0 text-start" />
+          <p className={styles.lead}>{privacy.intro}</p>
+          <p className={styles.updated}>
             <time dateTime={LAST_UPDATED}>
               {t("privacy.updated", { date: formatDate(LAST_UPDATED, locale) })}
             </time>
@@ -113,12 +113,12 @@ export const Privacy = () => {
       </Section>
 
       <Section id="privacy-recipients" title={t("privacy.section.recipients")}>
-        <ul className="privacy__processors list-unstyled">
+        <ul className={`${styles.processors} list-unstyled`}>
           {privacy.privacyProcessors.map(
             ({ id, name, purpose, data, location }) => (
               <li key={id} data-processor={id}>
                 <h3 className="h5">{name}</h3>
-                <dl className="privacy__facts">
+                <dl className={styles.facts}>
                   <dt>{t("privacy.processor.purpose")}</dt>
                   <dd>{purpose}</dd>
                   <dt>{t("privacy.processor.data")}</dt>
@@ -134,7 +134,7 @@ export const Privacy = () => {
 
       <Section id="privacy-analytics" title={t("privacy.section.analytics")}>
         <p>{privacy.analytics.text}</p>
-        <ul className="privacy__list">
+        <ul className={styles.list}>
           {UMAMI_STATEMENTS.map((name) => (
             <li key={name}>{t(`${UMAMI}.${name}`)}</li>
           ))}
@@ -152,7 +152,7 @@ export const Privacy = () => {
 
       <Section id="privacy-rights" title={t("privacy.section.rights")}>
         <p>{privacy.rights.intro}</p>
-        <ul className="privacy__list">
+        <ul className={styles.list}>
           {privacy.rights.items.map((item) => (
             <li key={item}>{item}</li>
           ))}
@@ -166,7 +166,7 @@ export const Privacy = () => {
 
       <Section id="privacy-changes" title={t("privacy.section.changes")}>
         <p>{privacy.changes}</p>
-        <p className="privacy__updated">{t("privacy.disclaimer")}</p>
+        <p className={styles.updated}>{t("privacy.disclaimer")}</p>
       </Section>
     </Container>
   );

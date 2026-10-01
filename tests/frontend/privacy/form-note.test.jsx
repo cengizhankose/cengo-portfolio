@@ -10,6 +10,7 @@ vi.mock("@emailjs/browser", () => ({ default: { send: vi.fn() } }));
 
 import { DICTIONARIES } from "../../../src/i18n/translate.js";
 import { ContactUs } from "../../../src/pages/contact";
+import contact from "../../../src/pages/contact/contact.module.css";
 
 const T = DICTIONARIES.en;
 
@@ -25,7 +26,7 @@ describe("/contact form note", () => {
     renderContact();
     const form = document.querySelector("form");
     const button = form.querySelector("button[type=submit]");
-    const note = form.querySelector(".privacy-note");
+    const note = form.querySelector(`.${contact.privacyNote}`);
     expect(note).not.toBeNull();
     expect(button.nextElementSibling).toBe(note);
     expect(form.lastElementChild).toBe(note);
@@ -33,7 +34,7 @@ describe("/contact form note", () => {
 
   it("names EmailJS and a retention period written as a number", () => {
     renderContact();
-    const note = document.querySelector(".privacy-note");
+    const note = document.querySelector(`.${contact.privacyNote}`);
     expect(note.textContent).toContain("EmailJS");
     expect(note.textContent).toMatch(/\b12 months\b/);
     expect(note.textContent).toContain(T["privacy.formNote"]);
@@ -43,8 +44,8 @@ describe("/contact form note", () => {
     renderContact();
     const link = screen.getByRole("link", { name: T["privacy.formLink"] });
     expect(link).toHaveAttribute("href", "/privacy");
-    expect(link.closest(".privacy-note")).not.toBeNull();
-    const note = document.querySelector(".privacy-note");
+    expect(link.closest(`.${contact.privacyNote}`)).not.toBeNull();
+    const note = document.querySelector(`.${contact.privacyNote}`);
     expect(document.querySelector("button[type=submit]")).toHaveAttribute(
       "aria-describedby",
       note.id,
@@ -53,7 +54,7 @@ describe("/contact form note", () => {
 
   it("keeps the honeypot and the project type field", () => {
     renderContact();
-    expect(document.querySelector("div.contact__hp")).not.toBeNull();
+    expect(document.querySelector(`div.${contact.honeypot}`)).not.toBeNull();
     expect(document.getElementById("project_type")).not.toBeNull();
   });
 

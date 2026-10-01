@@ -6,6 +6,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import portfolioStyles from "../../../src/pages/portfolio/portfolio.module.css";
 
 vi.mock("../../../src/content/projects.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -84,7 +85,9 @@ describe("portfolio without cases (T-10 interim)", () => {
         .getByRole("link", { name: /See my code on GitHub/ })
         .getAttribute("href"),
     ).toBe("https://github.com/cengizhankose");
-    expect(container.querySelector("article, .project-grid")).toBeNull();
+    expect(
+      container.querySelector(`article, .${portfolioStyles.projectGrid}`),
+    ).toBeNull();
     expect(container.textContent).not.toMatch(/Under Construction/i);
   });
 });

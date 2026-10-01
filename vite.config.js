@@ -134,5 +134,10 @@ export default defineConfig({
     ],
     restoreMocks: true,
     unstubGlobals: true,
+    // CSS Modules in the component tests: class names stay as written
+    // (`styles.siteHeader === "siteHeader"`), the same names the Bun plugin
+    // gives the server tests (tests/frontend/css-arch/bun-css-modules.ts), so
+    // server markup and hydrated markup agree. No stylesheet is processed.
+    css: { modules: { classNameStrategy: "non-scoped" } },
   },
 });

@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import Headermain from "../../../src/header";
+import headerStyles from "../../../src/header/header.module.css";
 
 function renderHeader() {
   return render(
@@ -23,7 +24,10 @@ describe("theme toggle (DSG-02, FE-02)", () => {
     const toggle = screen.getByRole("button", { name: "Dark theme" });
     expect(toggle.tagName).toBe("BUTTON");
     expect(toggle.type).toBe("button");
-    expect(toggle).toHaveClass("theme-toggle", "nav_ac");
+    expect(toggle).toHaveClass(
+      headerStyles.themeToggle,
+      headerStyles.navAction,
+    );
     expect(toggle).toHaveAttribute("aria-pressed", String(theme() === "dark"));
     expect(toggle.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
   });

@@ -23,8 +23,8 @@ describe("no exit animation machinery left (FE-17, PERF-13 criteria)", () => {
     );
   });
 
-  it("App.css has no fadeOut and no 400 ms", () => {
-    expect(read("src/app/App.css")).not.toMatch(/fadeOut|400ms/);
+  it("App.module.css has no fadeOut and no 400 ms", () => {
+    expect(read("src/app/App.module.css")).not.toMatch(/fadeOut|400ms/);
   });
 });
 

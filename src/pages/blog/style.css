@@ -102,7 +102,7 @@
 }
 
 .blog-date {
-  color: var(--text-color-2);
+  color: var(--text-color);
   font-size: var(--fs-sm);
   display: block;
 }
@@ -163,7 +163,7 @@
 }
 
 .blog-post-date {
-  color: var(--text-color-2);
+  color: var(--text-color);
   font-size: var(--fs-base);
   display: block;
   margin-bottom: 30px;
@@ -437,21 +437,21 @@
   padding-left: 20px;
   margin: 20px 0;
   font-style: italic;
-  color: var(--text-color-2);
+  color: var(--text-color);
 }
 
 /* Inline code (DSG-26): the text colour on the surface token with a
    hairline --border-color edge, like the rest of the monochrome system. */
 .markdown-body code {
   color: var(--text-color);
-  background: var(--primary-color);
+  background: var(--surface-color);
   border: 1px solid var(--border-color);
   padding: 3px 8px;
   border-radius: 0;
 }
 
 .markdown-body pre {
-  background: var(--primary-color);
+  background: var(--surface-color);
   padding: 20px;
   overflow-x: auto;
   margin: 20px 0;
@@ -486,7 +486,7 @@
 }
 
 .markdown-body th {
-  background: var(--primary-color);
+  background: var(--surface-color);
   font-family: var(--font-display);
   font-weight: 400;
   font-synthesis: none;

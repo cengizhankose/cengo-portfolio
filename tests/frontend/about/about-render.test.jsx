@@ -7,6 +7,8 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getContent } from "../../../src/content/index.js";
 import { About } from "../../../src/pages/about";
+import aboutStyles from "../../../src/pages/about/about.module.css";
+import proofStyles from "../../../src/components/proofstrip/proofstrip.module.css";
 
 const en = getContent("en");
 
@@ -53,7 +55,7 @@ describe("story (MKT-15)", () => {
   it("shows the lead line and the three paragraphs", () => {
     renderAbout();
 
-    expect(screen.getByText(en.about.title)).toHaveClass("about-lead");
+    expect(screen.getByText(en.about.title)).toHaveClass(aboutStyles.lead);
     for (const paragraph of en.about.story) {
       expect(screen.getByText(paragraph)).toBeInTheDocument();
     }
@@ -64,7 +66,9 @@ describe("work timeline (MKT-05, MKT-15, SEO-18)", () => {
   it("has one entry per role with its outcome under the title row", () => {
     const { container } = renderAbout();
 
-    const bodies = container.querySelectorAll("table.timeline > tbody");
+    const bodies = container.querySelectorAll(
+      `table.${aboutStyles.timeline} > tbody`,
+    );
     expect(bodies).toHaveLength(8);
     bodies.forEach((body, index) => {
       const row = en.timeline[index];
@@ -82,27 +86,27 @@ describe("work timeline (MKT-05, MKT-15, SEO-18)", () => {
     // The section is an anchor target (#timeline) and the table is named by
     // a visually hidden caption.
     expect(container.querySelector("#timeline")).toContainElement(
-      container.querySelector("table.timeline"),
+      container.querySelector(`table.${aboutStyles.timeline}`),
     );
     expect(screen.getByRole("table", { name: "Work timeline" })).toBe(
-      container.querySelector("table.timeline"),
+      container.querySelector(`table.${aboutStyles.timeline}`),
     );
   });
 
   it("lists the side projects without dates under Additional ventures", () => {
     const { container } = renderAbout();
 
-    const items = container.querySelectorAll(".about-ventures > li");
+    const items = container.querySelectorAll(`.${aboutStyles.ventures} > li`);
     expect(
       [...items].map(
-        (li) => li.querySelector(".about-venture__name").textContent,
+        (li) => li.querySelector(`.${aboutStyles.ventureName}`).textContent,
       ),
     ).toEqual(["HyperCut", "Courline", "777senselabs"]);
-    expect(container.querySelector(".about-ventures").textContent).not.toMatch(
-      /\b(19|20)\d{2}\b/,
-    );
+    expect(
+      container.querySelector(`.${aboutStyles.ventures}`).textContent,
+    ).not.toMatch(/\b(19|20)\d{2}\b/);
     // 777senselabs has no description in the CV: none is invented.
-    expect(items[2].querySelector(".about-venture__text")).toBeNull();
+    expect(items[2].querySelector(`.${aboutStyles.ventureText}`)).toBeNull();
   });
 });
 
@@ -110,7 +114,7 @@ describe("ProofStrip on the page (MKT-04)", () => {
   it("shows the four first places as links and the four employers", () => {
     const { container } = renderAbout();
 
-    const awards = container.querySelectorAll(".proof-awards li");
+    const awards = container.querySelectorAll(`.${proofStyles.proofAwards} li`);
     expect(awards).toHaveLength(4);
     expect(
       [...awards].map((li) => li.querySelector("a").getAttribute("href")),
@@ -122,7 +126,7 @@ describe("ProofStrip on the page (MKT-04)", () => {
     );
     expect(awards[0].querySelector("a")).toHaveAttribute("target", "_blank");
     expect(
-      [...container.querySelectorAll(".proof-companies li")].map(
+      [...container.querySelectorAll(`.${proofStyles.proofCompanies} li`)].map(
         (li) => li.textContent,
       ),
     ).toEqual(["Monster Notebook", "Drivee Teknoloji", "MakasApp", "Fitmondo"]);
@@ -150,7 +154,9 @@ describe("hackathon archive and talks (MKT-04, MKT-15)", () => {
   it("lists the nine shown records in #awards and keeps IstanHack out", () => {
     const { container } = renderAbout();
 
-    const archive = container.querySelector("#awards .awards-archive");
+    const archive = container.querySelector(
+      `#awards .${aboutStyles.awardsArchive}`,
+    );
     const items = archive.querySelectorAll("li");
     expect(items).toHaveLength(9);
     expect(items[0].textContent).toContain("ConvoAI World Istanbul");
@@ -168,7 +174,7 @@ describe("hackathon archive and talks (MKT-04, MKT-15)", () => {
   it("links every talk to its post", () => {
     const { container } = renderAbout();
 
-    const links = container.querySelectorAll("#talks .about-talks a");
+    const links = container.querySelectorAll(`#talks .${aboutStyles.talks} a`);
     expect(links).toHaveLength(6);
     expect([...links].map((a) => a.getAttribute("href"))).toEqual(
       en.about.talks.map((talk) => talk.url),
@@ -208,7 +214,7 @@ describe("closing call to action (MKT-15 step 7)", () => {
 
     const sections = container.querySelectorAll("section");
     const last = sections[sections.length - 1];
-    expect(last).toBe(container.querySelector("section.about-cta"));
+    expect(last).toBe(container.querySelector(`section.${aboutStyles.cta}`));
     expect(container.lastElementChild.lastElementChild).toBe(last);
 
     const link = within(last).getByRole("link", {

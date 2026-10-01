@@ -7,6 +7,7 @@ import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import switcherStyles from "../../../src/components/langswitch/langswitch.module.css";
 
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -48,7 +49,7 @@ function renderAt(path) {
 
 const nav = () => screen.getByRole("navigation", { name: /Language|Dil/ });
 const current = () => nav().querySelector('[aria-current="true"]');
-const other = () => nav().querySelector("a.lang-switch__item");
+const other = () => nav().querySelector(`a.${switcherStyles.item}`);
 const attrs = (el) => [
   el.getAttribute("href"),
   el.getAttribute("hreflang"),
@@ -89,7 +90,7 @@ describe("static pages (FE-14 criterion 5, DSG-19 criterion 3)", () => {
   it("keeps the order EN, TR in both languages and has one link only", () => {
     for (const path of ["/", "/tr"]) {
       const { unmount } = renderAt(path);
-      const items = [...nav().querySelectorAll(".lang-switch__item")];
+      const items = [...nav().querySelectorAll(`.${switcherStyles.item}`)];
       expect(items.map((item) => item.textContent.slice(0, 2))).toEqual([
         "EN",
         "TR",
@@ -241,7 +242,7 @@ describe("no remembered preference (T-12)", () => {
 
 describe("styles (DSG-19 step 7, criteria 3-4; checked on the CSS source)", () => {
   const css = readFileSync(
-    join(process.cwd(), "src/components/langswitch/style.css"),
+    join(process.cwd(), "src/components/langswitch/langswitch.module.css"),
     "utf8",
   ).replace(/\/\*[\s\S]*?\*\//g, "");
 
@@ -253,25 +254,23 @@ describe("styles (DSG-19 step 7, criteria 3-4; checked on the CSS source)", () =
   };
 
   it("every item is at least 44x44px, 50px high on desktop", () => {
-    expect(rule(".lang-switch__item")).toMatch(/min-width:\s*44px/);
-    expect(rule(".lang-switch__item")).toMatch(/min-height:\s*44px/);
+    expect(rule(".item")).toMatch(/min-width:\s*44px/);
+    expect(rule(".item")).toMatch(/min-height:\s*44px/);
     expect(css).toMatch(
-      /@media \(min-width: 992px\)\s*\{\s*\.lang-switch__item\s*\{\s*min-height:\s*50px;/,
+      /@media \(min-width: 992px\)\s*\{\s*\.item\s*\{\s*min-height:\s*50px;/,
     );
   });
 
   it("marks the current language by weight and underline, the other at 500", () => {
-    expect(rule(".lang-switch__item")).toMatch(/font:\s*500 /);
-    expect(rule(".lang-switch__item[aria-current]")).toMatch(
-      /font-weight:\s*700/,
-    );
-    expect(rule(".lang-switch__item[aria-current]")).toMatch(
+    expect(rule(".item")).toMatch(/font:\s*500 /);
+    expect(rule(".item[aria-current]")).toMatch(/font-weight:\s*700/);
+    expect(rule(".item[aria-current]")).toMatch(
       /box-shadow:\s*inset 0 -2px 0 var\(--text-color\)/,
     );
   });
 
   it("shows a 2px solid focus ring in the text colour", () => {
-    expect(rule("a.lang-switch__item:focus-visible")).toMatch(
+    expect(rule("a.item:focus-visible")).toMatch(
       /outline:\s*2px solid var\(--text-color\)/,
     );
   });

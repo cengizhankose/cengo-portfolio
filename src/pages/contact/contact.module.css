@@ -1,21 +1,21 @@
-.contact__form .form-control {
+.contactForm :global(.form-control) {
   padding: 1.375rem 0.75rem;
   line-height: 1.5;
   color: var(--text-color);
   background-color: var(--bg-color);
-  border-radius: 0 !important;
-  border: 1px solid var(--secondary-color);
+  border-radius: 0;
+  border: 1px solid var(--text-color);
 }
 
 /* Spacing comes from the mb-3 field wrappers (DSG-04, DSG-34). */
-.contact__form input.form-control {
+.contactForm input:global(.form-control) {
   height: calc(2.5em + 0.75rem + 2px);
 }
 
 /* Project type select (MKT-10). .form-control turns the native look off, so
    the arrow is drawn here from two gradients in the text colour: it follows
    the theme and needs no image. The height matches the inputs above. */
-.contact__form select.contact__select {
+.contactForm select.contactSelect {
   height: calc(2.5em + 0.75rem + 2px);
   padding-top: 0;
   padding-bottom: 0;
@@ -34,26 +34,26 @@
 /* The promise and the three steps above the form (MKT-10), and the direct
    ways in beside it (MKT-12). The padding lines the first text row up with
    the heading of the left column. */
-.contact__intro {
+.contactIntro {
   padding-top: 1.5rem;
 }
 
-.contact__intro ol {
+.contactIntro ol {
   margin-bottom: 1.5rem;
 }
 
-.contact__ways p {
+.contactWays p {
   margin-bottom: 1rem;
 }
 
 /* Visible labels and example-only placeholders (DSG-04). --text-muted is the
-   theme token from src/index.css (>= 4.5:1 on the page background). */
-.contact__form .form-label {
+   theme token from src/styles/tokens.css (>= 4.5:1 on the page background). */
+.contactForm :global(.form-label) {
   color: var(--text-color);
   font-weight: 500;
 }
 
-.contact__form .form-control::placeholder {
+.contactForm :global(.form-control)::placeholder {
   color: var(--text-muted);
   opacity: 1;
 }
@@ -61,31 +61,26 @@
 /* Focus (DSG-13): Bootstrap's .form-control:focus switches colour and
    background to --bs-body-*, so both are pinned to the theme here. The ring
    is the text colour, >= 3:1 on the background in both themes. */
-.contact__form .form-control:focus {
+.contactForm :global(.form-control):focus {
   color: var(--text-color);
   background-color: var(--bg-color);
   border-color: var(--text-color);
   box-shadow: none;
 }
 
-.contact__form .form-control:focus-visible {
+.contactForm :global(.form-control):focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: 2px;
 }
 
-.contact__form .ac_btn:focus-visible {
-  outline: 2px solid var(--text-color);
-  outline-offset: 3px;
-}
-
 /* The result alert takes focus after a send (FE-15): same ring as the form. */
-.co_alert:focus-visible {
+.resultAlert:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: 2px;
 }
 
 /* Honeypot (SEC-24): kept in the layout for bots, off screen for people. */
-.contact__hp {
+.honeypot {
   position: absolute;
   left: -10000px;
   width: 1px;
@@ -93,17 +88,13 @@
   overflow: hidden;
 }
 
-button.btn.ac_btn:hover {
-  color: var(--secondary-color);
-}
-
-.loading-bar {
+.loadingBar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: 10px;
-  z-index: 999999999;
+  z-index: var(--z-progress);
   background: var(--text-color);
   transform: translateX(100%);
   animation: shift-rightwards 1s ease-in-out infinite;
@@ -113,7 +104,7 @@ button.btn.ac_btn:hover {
 /* Reduced motion (DSG-07, FE-06): a still, full-width bar instead of the
    sliding one. "Sending…" on the button already says what is happening. */
 @media (prefers-reduced-motion: reduce) {
-  .loading-bar {
+  .loadingBar {
     animation: none;
     transform: none;
     opacity: 0.6;
@@ -133,4 +124,16 @@ button.btn.ac_btn:hover {
   100% {
     transform: translateX(100%);
   }
+}
+
+/* The privacy notice under the submit button (SEC-25, ANL-04). */
+.privacyNote {
+  margin: 1rem 0 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.privacyNote a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }

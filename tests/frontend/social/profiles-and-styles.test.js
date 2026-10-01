@@ -166,24 +166,24 @@ function rules(css, selector, media = null) {
 const rule = (...args) => Object.assign({}, ...rules(...args));
 
 describe("rail and menu footer CSS (DSG-12)", () => {
-  const rail = read("src/components/socialicons/style.css");
-  const header = read("src/header/style.css");
+  const rail = read("src/components/socialicons/socialicons.module.css");
+  const header = read("src/header/header.module.css");
   const MOBILE = "max-width: 991px";
 
   it("rail: 32px wide at left 24px, icons 32x32, 8px apart", () => {
-    expect(rule(rail, ".stick_follow_icon")).toMatchObject({
+    expect(rule(rail, ".rail")).toMatchObject({
       position: "fixed",
       left: "24px",
       width: "32px",
     });
-    expect(rule(rail, ".stick_follow_icon a")).toMatchObject({
+    expect(rule(rail, ".rail a")).toMatchObject({
       display: "inline-flex",
       "align-items": "center",
       "justify-content": "center",
       width: "32px",
       height: "32px",
     });
-    expect(rule(rail, ".stick_follow_icon ul")).toMatchObject({
+    expect(rule(rail, ".rail ul")).toMatchObject({
       display: "flex",
       "flex-direction": "column",
       gap: "8px",
@@ -191,45 +191,45 @@ describe("rail and menu footer CSS (DSG-12)", () => {
   });
 
   it("rail caption: vertical text in the flow, no rotated fixed-size box", () => {
-    expect(rule(rail, ".stick_follow_icon p")).toMatchObject({
+    expect(rule(rail, ".rail p")).toMatchObject({
       "writing-mode": "vertical-rl",
     });
     expect(rail).not.toMatch(/rotate\(-90deg\)/);
-    expect(rule(rail, ".stick_follow_icon")).not.toHaveProperty("height");
+    expect(rule(rail, ".rail")).not.toHaveProperty("height");
   });
 
   it("rail below 992px: in the flow, icons in one wrapping row, targets stay 32px", () => {
-    expect(rule(rail, ".stick_follow_icon", MOBILE)).toMatchObject({
+    expect(rule(rail, ".rail", MOBILE)).toMatchObject({
       position: "static",
     });
-    expect(rule(rail, ".stick_follow_icon ul", MOBILE)).toMatchObject({
+    expect(rule(rail, ".rail ul", MOBILE)).toMatchObject({
       "flex-direction": "row",
       "flex-wrap": "wrap",
     });
-    expect(rule(rail, ".stick_follow_icon a", MOBILE)).toEqual({});
+    expect(rule(rail, ".rail a", MOBILE)).toEqual({});
     // 6 x 32 + 5 x 8 = 232px <= 375 - 2 x 10px frame.
     expect(6 * 32 + 5 * 8).toBeLessThanOrEqual(355);
   });
 
   it("rail focus ring", () => {
-    expect(rule(rail, ".stick_follow_icon a:focus-visible")).toMatchObject({
+    expect(rule(rail, ".rail a:focus-visible")).toMatchObject({
       outline: "2px solid var(--text-color)",
       "outline-offset": "2px",
     });
   });
 
   it("menu footer: every link at least 24x24, 4px/12px gaps", () => {
-    expect(rule(header, ".menu_footer__social")).toMatchObject({
+    expect(rule(header, ".footerSocial")).toMatchObject({
       display: "flex",
       "flex-wrap": "wrap",
       gap: "4px 12px",
       "list-style": "none",
     });
-    expect(rule(header, ".menu_footer__social a")).toMatchObject({
+    expect(rule(header, ".footerSocial a")).toMatchObject({
       display: "inline-flex",
       "min-width": "24px",
       "min-height": "24px",
     });
-    expect(rule(header, ".menu_footer a")).not.toHaveProperty("margin-right");
+    expect(rule(header, ".menuFooter a")).not.toHaveProperty("margin-right");
   });
 });

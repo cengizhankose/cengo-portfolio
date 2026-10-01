@@ -7,6 +7,7 @@ import { NotFound } from "../pages/notfound";
 import { useT, useUiLocale } from "../i18n";
 import { usePageViewTracking } from "../lib/analytics/usePageViewTracking.js";
 import { pageRoutes } from "./pageRoutes";
+import styles from "./App.module.css";
 
 // The site shell: landmarks, the page change, route-change scroll and focus,
 // the page view and the route error boundary (FE-03).
@@ -17,7 +18,7 @@ import { pageRoutes } from "./pageRoutes";
 // moment the location changes, so its data request and its chunk start at
 // once. Nothing waits for an animation and no state mirrors the location.
 //   - The wrapper is keyed by the pathname: a new path mounts a fresh page
-//     (which plays the short entry fade in App.css); a hash or search change
+//     (which plays the short entry fade in App.module.css); a hash or search change
 //     and a click on the link of the page you are on keep the same node.
 //   - PERF-07: the page the visitor lands on is not faded in. Its content
 //     (the hero photo, the LCP element) is drawn opaque in the first frame;
@@ -56,7 +57,7 @@ function AnimatedRoutes({ focusTargetRef }) {
     <div
       key={pathname}
       data-route={pathname}
-      className={hasNavigated ? "page-enter" : undefined}
+      className={hasNavigated ? styles.pageEnter : undefined}
     >
       {/* FE-03: a page that throws (or whose chunk fails to load) falls back
           to the error screen here, inside <main>; the header and menu stay.
@@ -83,7 +84,7 @@ function AppRoutes() {
   const t = useT();
 
   return (
-    <div className="s_c">
+    <div className="page-shell">
       <main id="main" tabIndex={-1} ref={mainRef}>
         <AnimatedRoutes focusTargetRef={mainRef} />
       </main>

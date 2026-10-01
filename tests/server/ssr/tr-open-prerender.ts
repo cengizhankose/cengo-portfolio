@@ -7,6 +7,7 @@
 //
 //   bun tests/server/ssr/tr-open-prerender.ts <tmp dist dir>
 import { plugin } from "bun";
+import "../../frontend/css-arch/bun-css-modules";
 import { Hono } from "hono";
 
 plugin({

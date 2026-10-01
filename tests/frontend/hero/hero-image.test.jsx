@@ -10,6 +10,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ROOT } from "./support.js";
+import home from "../../../src/pages/home/home.module.css";
 
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -37,7 +38,7 @@ function renderHome(path = "/") {
   );
 }
 
-const box = () => document.querySelector(".h_bg-image");
+const box = () => document.querySelector(`.${home.heroImage}`);
 const photo = () => screen.getByRole("img", { name: "Cengizhan Köse" });
 
 beforeEach(() => {
@@ -103,9 +104,9 @@ describe.each(["/", "/tr"])("%s hero photo", (path) => {
   it("puts the text before the photo in the DOM, so phones show the name and CTAs first (FE-18 step 5, DSG-11 step 4)", () => {
     renderHome(path);
 
-    const text = document.querySelector(".intro_sec > .text");
-    const image = document.querySelector(".intro_sec > .h_bg-image");
-    expect([...document.querySelector(".intro_sec").children]).toEqual([
+    const text = document.querySelector(`.${home.hero} > .${home.heroText}`);
+    const image = document.querySelector(`.${home.hero} > .${home.heroImage}`);
+    expect([...document.querySelector(`.${home.hero}`).children]).toEqual([
       text,
       image,
     ]);

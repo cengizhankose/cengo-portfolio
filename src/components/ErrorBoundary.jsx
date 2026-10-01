@@ -2,8 +2,8 @@
 // lazy page chunk that fails to load (FE-05, W6), takes down only the route
 // content: the header, the menu and the social strip stay usable.
 //
-// src/app/routes.jsx wraps the route outlet as
-//   <ErrorBoundary key={pathname}>…</ErrorBoundary>
+// src/app/routes.jsx keys the wrapper around the route outlet by the pathname
+//   <div key={pathname}><ErrorBoundary>…</ErrorBoundary></div>
 // so moving to another page mounts a fresh boundary and the page renders
 // again (FE-03 criterion 3).
 //

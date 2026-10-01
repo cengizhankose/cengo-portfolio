@@ -1,21 +1,15 @@
-@media only screen and (max-width: 991px) {
-  .s_c {
-    padding-top: 40px;
-  }
-}
-
 /* Page change (PERF-13, FE-17). The new route is rendered at once; all that
    is left of a transition is this short entry fade, played by the wrapper
    routes.jsx mounts for a new pathname. There is no exit animation and
    nothing waits for one. The page the visitor lands on gets no fade (PERF-07:
    its LCP element, the hero photo on /, is painted opaque in the first
-   frame): routes.jsx leaves .page-enter off until the first pathname change.
+   frame): routes.jsx leaves .pageEnter off until the first pathname change.
    Reduced motion: no animation at all; nothing depends on it ending. */
-.page-enter {
-  animation: pageEnter 150ms ease-out both;
+.pageEnter {
+  animation: enter 150ms ease-out both;
 }
 
-@keyframes pageEnter {
+@keyframes enter {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -27,7 +21,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-enter {
+  .pageEnter {
     animation: none;
   }
 }

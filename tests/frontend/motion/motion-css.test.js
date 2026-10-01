@@ -13,11 +13,12 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { getContent } from "../../../src/content/index.js";
 import { ROOT, read, rule } from "./support.js";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
-const HOME = read("src/pages/home/style.css");
-const CURSOR = read("src/components/Cursor.css");
-const INDEX = read("src/index.css");
-const CONTACT = read("src/pages/contact/style.css");
+const HOME = read("src/pages/home/home.module.css");
+const CURSOR = read("src/components/Cursor.module.css");
+const INDEX = GLOBAL_CSS;
+const CONTACT = read("src/pages/contact/contact.module.css");
 const REDUCE = "(prefers-reduced-motion: reduce)";
 
 const seconds = (value) =>
@@ -95,22 +96,22 @@ describe("rotating line (PERF-12 rotator, DSG-07 timing)", () => {
   });
 
   it("keeps two lines for the line below 992px, where phrases wrap (DSG-10, PERF-20)", () => {
-    expect(rule(HOME, ".intro__tagline")).toMatchObject({
+    expect(rule(HOME, ".introTagline")).toMatchObject({
       "line-height": "1.3",
     });
-    expect(rule(HOME, ".intro__tagline")).not.toHaveProperty("min-height");
+    expect(rule(HOME, ".introTagline")).not.toHaveProperty("min-height");
     const MOBILE = "(max-width: 991.98px)";
-    expect(rule(HOME, ".intro__tagline", MOBILE)).toMatchObject({
+    expect(rule(HOME, ".introTagline", MOBILE)).toMatchObject({
       "min-height": "calc(2 * 1.3em)",
     });
     expect(
-      rule(HOME, ".intro__tagline", MOBILE, "@supports (min-height: 1lh)"),
+      rule(HOME, ".introTagline", MOBILE, "@supports (min-height: 1lh)"),
     ).toMatchObject({ "min-height": "2lh" });
   });
 
   it("uses Marcellus' only weight for the h1 (no synthetic bold) and the role on its own line", () => {
-    expect(rule(HOME, ".intro__name")["font-weight"]).toBe("400");
-    expect(rule(HOME, ".intro__role")).toMatchObject({
+    expect(rule(HOME, ".introName")["font-weight"]).toBe("400");
+    expect(rule(HOME, ".introRole")).toMatchObject({
       display: "block",
       "font-family": "var(--font-body)",
     });
@@ -118,7 +119,10 @@ describe("rotating line (PERF-12 rotator, DSG-07 timing)", () => {
   });
 
   it("no longer animates every property of the CTA buttons (W3 handoff)", () => {
-    const button = rule(HOME, ".ac_btn");
+    const button = rule(
+      read("src/components/actionbutton/button.module.css"),
+      ".button",
+    );
     expect(button).not.toHaveProperty("transition");
     expect(button["transition-property"]).toBe(
       "box-shadow, color, background-color, border-color",
@@ -128,7 +132,7 @@ describe("rotating line (PERF-12 rotator, DSG-07 timing)", () => {
 
 describe("contact loading bar under reduced motion (DSG-07 criterion 4)", () => {
   it("stands still, full width", () => {
-    expect(rule(CONTACT, ".loading-bar", REDUCE)).toMatchObject({
+    expect(rule(CONTACT, ".loadingBar", REDUCE)).toMatchObject({
       animation: "none",
       transform: "none",
     });
@@ -136,7 +140,7 @@ describe("contact loading bar under reduced motion (DSG-07 criterion 4)", () => 
 });
 
 describe("cursor ring styles (DSG-21, FE-07, PERF-11)", () => {
-  const ring = rule(CURSOR, ".cursor-ring");
+  const ring = rule(CURSOR, ".cursorRing");
 
   it("is a 32 px, 1.5 px outline ring that never takes the pointer", () => {
     expect(ring).toMatchObject({
@@ -154,10 +158,10 @@ describe("cursor ring styles (DSG-21, FE-07, PERF-11)", () => {
   });
 
   it("appears on the first move and grows over clickables with the hover colour", () => {
-    expect(rule(CURSOR, ".cursor-ring[data-visible]")).toEqual({
+    expect(rule(CURSOR, ".cursorRing[data-visible]")).toEqual({
       opacity: "1",
     });
-    expect(rule(CURSOR, ".cursor-ring[data-hover]")).toEqual({
+    expect(rule(CURSOR, ".cursorRing[data-hover]")).toEqual({
       "border-color": "var(--cursor-ring-hover-color)",
       scale: "1.5",
     });

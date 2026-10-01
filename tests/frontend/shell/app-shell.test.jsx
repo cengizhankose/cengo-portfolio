@@ -7,6 +7,7 @@
 //     cancelling the event.
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import cursorStyles from "../../../src/components/Cursor.module.css";
 
 function stubPage(name) {
   const Page = () => <h1>{name}</h1>;
@@ -78,7 +79,7 @@ describe("a cursor chunk that fails to load", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "Home page",
     );
-    expect(document.querySelector(".cursor-ring")).toBeNull();
+    expect(document.querySelector(`.${cursorStyles.cursorRing}`)).toBeNull();
   });
 });
 

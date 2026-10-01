@@ -5,6 +5,9 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../../../src/app/App";
+import home from "../../../src/pages/home/home.module.css";
+import headerStyles from "../../../src/header/header.module.css";
+import cursorStyles from "../../../src/components/Cursor.module.css";
 
 const count = (selector) => document.head.querySelectorAll(selector).length;
 
@@ -49,7 +52,7 @@ describe("App (smoke)", () => {
       "Cengizhan Köse Senior Fullstack Engineer",
     );
     expect(document.querySelectorAll("#home h2")).toHaveLength(0);
-    const rotator = document.querySelector(".rotator");
+    const rotator = document.querySelector(`.${home.rotator}`);
     expect(rotator).toHaveAttribute("aria-hidden", "true");
     expect(rotator.closest("h1")).toBeNull();
   });
@@ -62,7 +65,7 @@ describe("App (smoke)", () => {
     );
     await act(async () => {});
 
-    expect(document.querySelector(".cursor-ring")).toBeNull();
+    expect(document.querySelector(`.${cursorStyles.cursorRing}`)).toBeNull();
     expect(document.body.style.cursor).toBe("");
     expect(document.querySelectorAll('[style*="cursor"]')).toHaveLength(0);
   });
@@ -75,7 +78,9 @@ describe("App (smoke)", () => {
       .getAllByRole("link")
       .filter((link) => link.getAttribute("href") === "/");
     expect(homeLinks.length).toBeGreaterThan(0);
-    expect(container.querySelector("button.menu__button")).toBeInTheDocument();
+    expect(
+      container.querySelector(`button.${headerStyles.menuButton}`),
+    ).toBeInTheDocument();
   });
 
   it("writes the home meta without a head-manager provider (T-03)", async () => {
