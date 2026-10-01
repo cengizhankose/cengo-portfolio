@@ -3,6 +3,13 @@
    read the same; --text-muted is the AA-checked secondary text colour. */
 .section {
   position: relative;
+  /* Below the first screen: the browser skips layout and paint of a section
+     until it is near the viewport, and with it the web font files its text
+     alone would need (the proof strip's Turkish award name pulls in the
+     latin-ext face). Keeps the hero photo's bandwidth for the photo (LCP,
+     MKT-03 criterion 6). `auto` remembers the real height once drawn. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 32rem;
 }
 
 /* Links in the sections: plain underlined text, one weight of emphasis. */
@@ -99,7 +106,6 @@
 
 .serviceCta {
   margin: 0;
-  font-weight: 700;
 }
 
 .ctaLink {
@@ -115,6 +121,7 @@
    bottom space the sections above keep as section-gap. */
 .finalCta {
   margin-bottom: calc(3rem + 5.128vw);
+  contain-intrinsic-size: auto 16rem;
 }
 
 .finalLead {

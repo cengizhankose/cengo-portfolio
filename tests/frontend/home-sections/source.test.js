@@ -45,6 +45,41 @@ describe("the home page reads its data through swr only (MKT-03 criterion 4)", (
   });
 });
 
+describe("sections styles (MKT-03 criterion 6, PERF-08)", () => {
+  const CSS = [
+    "src/pages/home/sections/sections.module.css",
+    "src/components/latestposts/latestposts.module.css",
+  ];
+
+  it("skips layout and paint of the sections below the first screen", () => {
+    for (const file of CSS) {
+      expect(read(file), file).toMatch(/content-visibility:\s*auto/);
+      expect(read(file), file).toMatch(/contain-intrinsic-size:\s*auto /);
+    }
+  });
+
+  it("asks for no font weight the home page does not already load (Raleway 400, Marcellus 400)", () => {
+    for (const file of [...CSS, "src/components/cvlink/cvlink.module.css"]) {
+      const weights = [...read(file).matchAll(/font-weight:\s*(\d+)/g)].map(
+        (m) => m[1],
+      );
+      if (file.includes("cvlink")) continue; // About and Contact only
+      expect(
+        weights.filter((w) => w !== "400"),
+        file,
+      ).toEqual([]);
+    }
+  });
+
+  it("uses no catch-all transition", () => {
+    for (const file of CSS) {
+      expect(read(file), file).not.toMatch(
+        /transition(-property)?:[^;]*\ball\b/,
+      );
+    }
+  });
+});
+
 describe("services copy (MKT-13 criterion 1)", () => {
   it("has none of the old claims or banned adjectives in content and dictionaries", () => {
     expect(

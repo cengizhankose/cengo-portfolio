@@ -6,6 +6,7 @@
 //    of three, and nothing drawn while the API is loading, failing or
 //    answering with something that is not a list (FE-03).
 import { screen, waitFor } from "@testing-library/react";
+import axe from "axe-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { post, renderPage, sectionIds, stubFetch, json } from "./support.jsx";
 
@@ -255,5 +256,44 @@ describe("latest writing (SEO-17)", () => {
       endpoint: "list",
       status: "500",
     });
+  });
+});
+
+describe("accessibility (axe, jsdom: no layout, so contrast and target size stay with Lighthouse)", () => {
+  async function violations() {
+    const results = await axe.run(document, {
+      rules: {
+        "color-contrast": { enabled: false },
+        "target-size": { enabled: false },
+      },
+      resultTypes: ["violations"],
+    });
+    return results.violations.map(({ id, nodes }) => ({
+      id,
+      targets: nodes.map((node) => node.target.join(" ")),
+    }));
+  }
+
+  it.each([
+    ["/", "en"],
+    ["/tr", "tr"],
+  ])("%s has no axe violations in any section", async (path, locale) => {
+    document.documentElement.lang = locale;
+    // The app wraps every page in <main> (src/app/routes.jsx).
+    renderPage(
+      <main>
+        <Home />
+      </main>,
+      path,
+      {
+        fallback: withPosts(
+          locale,
+          [post(1, locale), post(2, locale)],
+          [post(3, locale === "en" ? "tr" : "en")],
+        ),
+      },
+    );
+    expect(sectionIds()).toEqual(ALL);
+    expect(await violations()).toEqual([]);
   });
 });

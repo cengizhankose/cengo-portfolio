@@ -3,6 +3,10 @@
    secondary text colour. */
 .section {
   position: relative;
+  /* Below the first screen, like the other home sections (see
+     src/pages/home/sections/sections.module.css). */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 24rem;
 }
 
 .posts {
