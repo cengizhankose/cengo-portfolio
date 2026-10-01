@@ -1,0 +1,82 @@
+/* Latest writing on the home page (MKT-03, SEO-17). Colours come from the
+   theme tokens, so both themes read the same; --text-muted is the AA-checked
+   secondary text colour. */
+.section {
+  position: relative;
+  /* Below the first screen, like the other home sections (see
+     src/pages/home/sections/sections.module.css). */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 24rem;
+}
+
+.posts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 2rem;
+}
+
+.post {
+  display: flex;
+  flex-direction: column;
+  padding-top: 1rem;
+  border-top: 2px solid var(--text-color);
+}
+
+.postTitle {
+  margin: 0 0 0.75rem;
+}
+
+.postTitle a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.postTitle a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.postTitle a:focus-visible,
+.more a:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 3px;
+}
+
+.badge {
+  padding: 0 0.375rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.04em;
+}
+
+.excerpt {
+  flex: 1;
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+}
+
+.date {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+.read {
+  margin: 0;
+}
+
+.read a {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.more {
+  margin: 1.5rem 0 0;
+}
+
+.more a {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}

@@ -1,0 +1,36 @@
+/* Downloadable CV links (ANL-12): plain text links, the first one (the page
+   language's file) set in bold. Colours come from the theme tokens. */
+.cvLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+
+.primary,
+.secondary {
+  display: inline-block;
+  min-height: 24px;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.primary {
+  font-weight: 700;
+}
+
+.secondary {
+  color: var(--text-muted);
+}
+
+.primary:hover,
+.secondary:hover {
+  text-decoration-thickness: 2px;
+}
+
+.primary:focus-visible,
+.secondary:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 3px;
+}

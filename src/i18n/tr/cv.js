@@ -1,5 +1,10 @@
-// TR interface text, namespace "cv" (T-12, FE-14). Same keys as
-// src/i18n/en/cv.js; a missing or empty value falls back to EN until the
-// strict parity test is switched on (W11, MKT-14 approves the TR voice).
-// Filled by the CV link/section (W11).
-export default {};
+// TR interface text, namespace "cv" (T-12, FE-14; ANL-12). Same keys as
+// src/i18n/en/cv.js. Sen form; drafted from the brief, not owner-approved.
+export default {
+  download: "CV’mi indir (PDF)",
+  other: "CV, {language} (PDF)",
+  language: {
+    en: "İngilizce",
+    tr: "Türkçe",
+  },
+};

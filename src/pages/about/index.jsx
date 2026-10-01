@@ -2,6 +2,7 @@ import styles from "./about.module.css";
 import { useEffect, useId } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { Link, useLocation } from "react-router-dom";
+import { CvLinks } from "../../components/cvlink";
 import { AwardLine, DotLine, ProofStrip } from "../../components/proofstrip";
 import { INTRO_REEL } from "../../content/projects.js";
 import {
@@ -11,10 +12,11 @@ import {
   useRoute,
   useT,
 } from "../../i18n";
-import { CTA } from "../../lib/analytics/events.js";
+import { CTA, LOCATIONS } from "../../lib/analytics/events.js";
 import { track } from "../../lib/analytics/index.js";
 import { getPageMeta } from "../../seo/pages.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
+import { ServiceLinks } from "../home/sections/ServiceLinks.jsx";
 
 // Heading outline (SEO-13, FE-27, MKT-15): one h1, an h2 per section, an h3
 // per service, per proof label and for the side projects. `h3` / `h5` classes
@@ -159,7 +161,8 @@ export const About = () => {
           {services.map((service) => (
             <div className="service_ py-4" key={service.id}>
               <h3 className={`h5 ${styles.serviceTitle}`}>{service.title}</h3>
-              <p className="service_desc">{service.description}</p>
+              <p className="service_desc">{service.outcome}</p>
+              <ServiceLinks service={service} />
             </div>
           ))}
         </Col>
@@ -239,6 +242,9 @@ export const About = () => {
         >
           {t("about.cta.button")}
         </Link>
+        {/* The CV in the page's language, then the other one (ANL-12); drawn
+            only for the files that exist (the cv content files). */}
+        <CvLinks location={LOCATIONS.ABOUT} />
       </section>
     </Container>
   );
