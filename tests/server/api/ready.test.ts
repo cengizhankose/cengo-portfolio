@@ -4,8 +4,11 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { Hono } from "hono";
 import { createApp } from "../../../src/api/app";
 import { readBuildInfo } from "../../../src/api/build-info";
+import { readyHandler } from "../../../src/api/ready";
+import type { AppEnv } from "../../../src/api/types";
 import {
   createPostQueries,
   PING_TIMEOUT_MS,
@@ -189,4 +192,126 @@ describe("readBuildInfo", () => {
       expect(dockerfile).toContain('ARG GIT_COMMIT=""');
     },
   );
+});
+
+// W11 handoff: /ready is anonymous, so a flood must not reach the pool one
+// `select 1` per request. Single-flight plus a short cache of the result.
+describe("/ready single-flight and cache", () => {
+  const BUILD = { commit: null, buildTime: null };
+  const countingQueries = (
+    ping: () => Promise<void>,
+  ): { queries: ReturnType<typeof fakeQueries>; pings: () => number } => {
+    let n = 0;
+    return {
+      queries: fakeQueries({
+        ping: async () => {
+          n++;
+          await ping();
+        },
+      }),
+      pings: () => n,
+    };
+  };
+
+  test("concurrent calls share one ping", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const { queries, pings } = countingQueries(() => gate);
+    const app = createApp({ queries, buildInfo: BUILD });
+    const calls = Array.from({ length: 50 }, () => app.request("/ready"));
+    await Bun.sleep(5);
+    expect(pings()).toBe(1); // 50 requests in flight, one connection used
+    release();
+    const responses = await Promise.all(calls);
+    expect(responses.map((r) => r.status)).toEqual(Array(50).fill(200));
+    expect(pings()).toBe(1);
+  });
+
+  test("a finished ping answers the next calls until the TTL runs out", async () => {
+    let clock = 1_000;
+    const { queries, pings } = countingQueries(async () => {});
+    const handler = readyHandler({
+      queries,
+      buildInfo: BUILD,
+      isShuttingDown: () => false,
+      cacheTtlMs: 1500,
+      now: () => clock,
+    });
+    const app = new Hono<AppEnv>();
+    app.get("/ready", handler);
+    await app.request("/ready");
+    clock += 1499;
+    await app.request("/ready");
+    expect(pings()).toBe(1);
+    clock += 1; // 1500 ms after the first answer: expired
+    await app.request("/ready");
+    expect(pings()).toBe(2);
+  });
+
+  test("a failure is kept for the TTL only, then the database is asked again", async () => {
+    let clock = 1_000;
+    let up = false;
+    const { queries, pings } = countingQueries(async () => {
+      if (!up) throw new Error("connect ECONNREFUSED");
+    });
+    const app = new Hono<AppEnv>();
+    app.get(
+      "/ready",
+      readyHandler({
+        queries,
+        buildInfo: BUILD,
+        isShuttingDown: () => false,
+        cacheTtlMs: 1500,
+        now: () => clock,
+      }),
+    );
+    const { result: first, lines } = await captureLogs(() =>
+      app.request("/ready"),
+    );
+    expect(first.status).toBe(503);
+    clock += 500;
+    const again = await app.request("/ready");
+    expect(again.status).toBe(503);
+    expect(pings()).toBe(1); // the failure answered from the cache
+    expect(lines.filter((l) => l.msg === "ready check failed")).toHaveLength(1);
+
+    up = true; // the database is back
+    clock += 1000; // TTL over
+    const recovered = await app.request("/ready");
+    expect(recovered.status).toBe(200);
+    expect(pings()).toBe(2);
+  });
+
+  test("a failed in-flight ping fails every waiting call and does not stick", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const { queries, pings } = countingQueries(async () => {
+      await gate;
+      throw new Error("boom");
+    });
+    const app = createApp({ queries, buildInfo: BUILD });
+    const { result: responses } = await captureLogs(async () => {
+      const calls = Array.from({ length: 5 }, () => app.request("/ready"));
+      await Bun.sleep(5);
+      release();
+      return Promise.all(calls);
+    });
+    const statuses = responses.map((r) => r.status);
+    expect(statuses).toEqual(Array(5).fill(503));
+    expect(pings()).toBe(1);
+  });
+
+  test("shutting down is checked before the cache", async () => {
+    let down = false;
+    const { queries, pings } = countingQueries(async () => {});
+    const app = createApp({
+      queries,
+      buildInfo: BUILD,
+      isShuttingDown: () => down,
+    });
+    expect((await app.request("/ready")).status).toBe(200);
+    down = true;
+    expect((await app.request("/ready")).status).toBe(503);
+    expect(pings()).toBe(1);
+  });
 });
