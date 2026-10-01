@@ -1,0 +1,28 @@
+# SEC-26 / BE-27: base images, the Bun toolchain and the workflows are updated
+# by pull request. Nothing merges by itself.
+version: 2
+updates:
+  # Dockerfile: the ARG BUN_IMAGE=oven/bun:<version>-alpine@sha256:<digest> line.
+  # The image version must move together with package.json "packageManager"
+  # and "@types/bun" (tests/server/docker fails until they match).
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+  # T-13: the Umami image reference (one FROM line, never built). After merging,
+  # the owner applies it to Out Plane (an owner step):
+  #   outplane build set --app "$UMAMI_APP" --image "$(sed -n 's/^FROM //p' ops/umami/Dockerfile)" --deploy
+  # Read the Umami release notes first (some releases run a DB migration).
+  - package-ecosystem: docker
+    directory: /ops/umami
+    schedule:
+      interval: weekly
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

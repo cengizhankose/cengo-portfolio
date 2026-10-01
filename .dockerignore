@@ -31,9 +31,13 @@ dist
 ehthumbs.db
 Thumbs.db
 
-# Git
+# Git and repository tooling that is not part of the app or its test gate
+# (ops/umami holds only the pinned Umami image reference, SEC-26)
 .git
 .gitignore
+.github
+.githooks
+ops
 
 # Docker
 Dockerfile*
