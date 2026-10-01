@@ -1,58 +1,56 @@
-/* The page's own section (FE-20 step 3): this used to be a global `section`
-   rule, which put position, width and a catch-all transition on every
-   <section> of every page. */
+/* Home page: the hero (FE-01, FE-18, DSG-11, K-06b; layout in
+   claudedocs/design/design-plan.md §6.2). The other sections are in
+   ./sections/sections.module.css.
+
+   Below 992px the hero is one column in DOM order: name, lines, CTAs, then
+   the photo, in normal flow under the fixed header. From 992px it is a
+   two-column grid one (small) viewport tall, pulled up under the header:
+   text left, photo right. Alignment rule: the text keeps one left edge, at
+   most 30rem wide, centred vertically in its half. Every vertical gap is a
+   --space-* step. */
 .home {
-  flex: 1 0 auto;
   position: relative;
-  width: 100%;
 }
 
-/* Hero layout (FE-18, DSG-11). Below 992px the section is one column in
-   DOM order: name, line, lead and CTAs first, the photo under them, all in
-   normal flow under the fixed header. From 992px the text and the photo
-   sit side by side, one viewport tall (the small viewport where the
-   browser has one, so the photo never runs under a toolbar), pulled up
-   under the header. */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.heroText {
+  display: flex;
+  align-items: center;
+}
+
+.heroIntro {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 30rem;
+  padding: var(--space-4) var(--space-4) var(--space-6);
+}
+
 @media (min-width: 992px) {
   .hero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     height: 100vh;
     height: 100svh;
     min-height: 700px;
-    margin-top: -60px;
+    margin-top: calc(-1 * (var(--frame-size) + var(--header-height)));
   }
-}
 
-.hero .heroText,
-.hero .heroImage {
-  width: 50%;
-}
-
-@media (max-width: 991.98px) {
-  .hero .heroText,
-  .hero .heroImage {
-    width: 100%;
-  }
-}
-
-.hero .heroIntro {
-  max-width: 450px;
-  margin: 0 auto;
-}
-
-@media (max-width: 991.98px) {
-  .hero .heroIntro {
-    max-width: 700px;
-    padding-left: 20px;
-    padding-right: 20px;
+  .heroIntro {
+    margin-inline: auto;
+    padding: var(--space-6);
   }
 }
 
 /* Hero heading (K-06b; SEO-12, FE-23, DSG-09). One static h1: the name in
    Marcellus 400 (its only weight: no synthetic bold, DSG-17), the role on
-   its own line in Raleway 400, told apart by case, spacing and colour, so
-   the home page needs no third font file (PERF-08). */
+   its own line in Raleway 400, told apart by family, size and colour, in
+   sentence case (FE-01 self-review: no all-caps label), so the home page
+   needs no third font file (PERF-08). */
 .introName {
-  margin-bottom: 1.25rem;
+  margin: 0 0 var(--space-4);
   font-size: var(--fs-2xl);
   font-weight: 400;
   line-height: 1.1;
@@ -60,14 +58,25 @@
 
 .introRole {
   display: block;
-  margin-top: 0.75rem;
+  margin-top: var(--space-2);
   color: var(--text-muted);
   font-family: var(--font-body);
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   font-weight: 400;
-  letter-spacing: 0.08em;
-  line-height: 1.4;
-  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+/* Subheadline (MKT-02, MKT-16): the lead and the short status line under it
+   read as one unit, then the turning line, the proof line and the CTAs.
+   --text-muted holds >= 4.5:1 on the page background in both themes. */
+.introLead {
+  margin: 0 0 var(--space-1);
+}
+
+.introStatus {
+  margin: 0 0 var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
 }
 
 /* The line under the h1 (K-06b): one pass through the phrases, then the
@@ -84,7 +93,7 @@
    last one fades in at 2.6s and is settled at 3s (< 5s, WCAG 2.2.2).
    Reduced motion: no animation, the last phrase from the start. */
 .introTagline {
-  margin-bottom: 0.75rem;
+  margin: 0 0 var(--space-3);
   font-size: var(--fs-md);
   line-height: 1.3;
 }
@@ -148,42 +157,33 @@
   }
 }
 
-/* Subheadline (MKT-02, MKT-16): the lead and the short status line under it
-   read as one unit, then the turning line, the proof line and the CTAs.
-   --text-muted is the theme token that holds >= 4.5:1 on the page background
-   in both themes (src/styles/tokens.css). */
-.introLead {
-  margin-bottom: 0.25rem;
-}
-
-.introStatus {
-  margin-bottom: 1.5rem;
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-}
-
+/* The proof line, under the one hairline of the hero (design plan §8:
+   one rule, not a rule between every block). */
 .introProof {
-  margin-bottom: 2rem;
+  margin: 0 0 var(--space-5);
   color: var(--text-muted);
   font-size: var(--fs-sm);
   letter-spacing: 0.04em;
 }
 
+.introProof::before {
+  content: "";
+  display: block;
+  width: var(--space-6);
+  height: 1px;
+  margin-bottom: var(--space-3);
+  background-color: var(--border-color);
+}
+
 /* CTAs (MKT-19, DSG-28): one button, one evidence link, the reply note under
    them. The button is an <a> itself (no block inside an inline link), so its
-   box and its focus ring are the same box. */
+   box and its focus outline are the same box; its look is the site's one
+   button (src/components/actionbutton/button.module.css). */
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1rem 1.5rem;
-}
-
-/* The button's own box, focus ring and hover are in
-   src/components/actionbutton/button.module.css. */
-.textLink:focus-visible {
-  outline: 2px solid var(--text-color);
-  outline-offset: 3px;
+  gap: var(--space-3) var(--space-4);
 }
 
 .textLink {
@@ -195,22 +195,26 @@
   text-decoration-thickness: 2px;
 }
 
+.textLink:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 3px;
+}
+
 .note {
-  margin: 0.75rem 0 0;
+  margin: var(--space-2) 0 0;
   color: var(--text-muted);
   font-size: var(--fs-sm);
 }
 
-/* Hero photo box (PERF-07, FE-18, DSG-11, DSG-29). The box has its own
-   size, and the photo fills it (absolutely positioned, object-fit: cover),
-   so neither depends on the other and nothing moves when the bytes arrive.
-   The photo is visible from its first decoded frame: no opacity:0 until
-   onLoad, no transition. Until then the box shows a neutral grey that
-   reads on both themes (the old rgba(0,0,0,.1) vanished on the dark one).
-   Below 992px the box is 4:5, a hair wider than the 1284x1654 photo, so
-   cover trims about 1.5% top and bottom; from 992px it is the column's
-   full height (at least 700px, like the section). */
-.hero .heroImage {
+/* Hero photo box (PERF-07, FE-18, DSG-11, DSG-29). The box has its own size
+   and the photo fills it (absolutely positioned, object-fit: cover), so
+   neither depends on the other and nothing moves when the bytes arrive. The
+   photo is visible from its first decoded frame: no opacity:0 until onLoad,
+   no transition. Until then the box shows a neutral grey that reads on both
+   themes. Below 992px the box is 4:5, a hair wider than the 1284x1654
+   photo, so cover trims about 1.5% top and bottom; from 992px it is the
+   grid row's full height (at least 700px, like the section). */
+.heroImage {
   position: relative;
   overflow: hidden;
   background-color: rgb(128 128 128 / 12%);
@@ -218,27 +222,24 @@
 }
 
 @media (max-width: 991.98px) {
-  .hero .heroImage {
-    height: auto;
-    min-height: 0;
+  .heroImage {
     aspect-ratio: 4 / 5;
-    margin-bottom: 24px;
+    margin-bottom: var(--space-4);
   }
 }
 
 @media (min-width: 992px) {
-  .hero .heroImage {
-    height: 100%;
+  .heroImage {
     min-height: 700px;
   }
 }
 
-.hero .heroImage picture {
+.heroImage picture {
   position: absolute;
   inset: 0;
 }
 
-.hero .heroImage img {
+.heroImage img {
   display: block;
   width: 100%;
   height: 100%;
