@@ -31,10 +31,11 @@ export const LOCALE_PREFIX = Object.freeze({ en: "", tr: "/tr" });
 // Which language is open for which kind of route. A route in a language that
 // is not listed here is a 404 on the server and NotFound on the client.
 //   post:   /tr/blog/:slug is open (SEO-11 Adım A), the TR post lives there.
-//   static: the TR pages open with one edit, adding 'tr' here, once the TR
-//           dictionary, content and meta are complete (SEO-11 Adım B, W11).
+//   static: both languages are open since W11 (SEO-11 Adım B, FE-14 Adım B,
+//           MKT-14): the TR dictionary, content and meta are complete and the
+//           parity test (tests/frontend/i18n) is strict.
 export const LIVE = Object.freeze({
-  static: Object.freeze(["en"]),
+  static: Object.freeze(["en", "tr"]),
   post: Object.freeze(["en", "tr"]),
 });
 
