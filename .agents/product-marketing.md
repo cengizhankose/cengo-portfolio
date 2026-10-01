@@ -175,8 +175,8 @@ Generic words (Home, Blog, About, Contact, Portfolio) are not fingerprints and s
 2. Fitmondo: years only, because the CV (Mar 2020) and LinkedIn (Nov 2020) disagree on the start month.
 3. HyperCut, Courline and 777senselabs: shown undated under "Additional ventures" / "Ek girişimler". Courline
    is another company's product and has no role in the CV; the owner confirms the wording and permission.
-4. IstanHack 2024 (second place): hidden, because no independent record exists. The "10 podiums" claim is the
-   CV's; the list shows nine until a record turns up.
+4. IstanHack 2024 (second place): hidden until a public link for it is added. The "10 podiums" claim is the
+   CV's; the list shows nine entries until then.
 5. Farmin: "Open Innovation Track, first place". SalesGym: "ConvoAI World Istanbul (Agora Voice AI Hackathon)".
    MultiversX project name: "Avenrise".
 6. References: the section stays hidden until at least two named, permitted references exist.
