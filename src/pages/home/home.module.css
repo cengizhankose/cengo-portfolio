@@ -6,7 +6,8 @@
    the photo, in normal flow under the fixed header. From 992px it is a
    two-column grid one (small) viewport tall, pulled up under the header:
    text left, photo right. Alignment rule: the text keeps one left edge, at
-   most 30rem wide, centred vertically in its half. Every vertical gap is a
+   most 32rem wide (the button and the evidence link fit on one line),
+   centred vertically in its half. Every vertical gap is a
    --space-* step. */
 .home {
   position: relative;
@@ -25,7 +26,7 @@
 .heroIntro {
   box-sizing: border-box;
   width: 100%;
-  max-width: 30rem;
+  max-width: 32rem;
   padding: var(--space-4) var(--space-4) var(--space-6);
 }
 
@@ -40,7 +41,7 @@
 
   .heroIntro {
     margin-inline: auto;
-    padding: var(--space-6);
+    padding: var(--space-6) var(--space-5);
   }
 }
 

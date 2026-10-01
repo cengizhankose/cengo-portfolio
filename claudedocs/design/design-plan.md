@@ -147,7 +147,7 @@ Kurallar:
 
 Mobil: tek sütun, önce metin ve düğmeler (ilk ekranda), sonra 4:5 fotoğraf kutusu.
 
-Hizalama kuralı: hero metni kendi sütununda en fazla 30rem genişliğinde tek bir sol kenara
+Hizalama kuralı: hero metni kendi sütununda en fazla 32rem genişliğinde (düğme ve kanıt linki tek satırda) tek bir sol kenara
 dizilir; sütunun içinde dikey ortalanır. Bütün dikey aralıklar `--space-*` adımlarıdır.
 Düğme sitenin tek düğme stilidir (`button.module.css` `.button`): 2 px kenarlı, sıfır
 yarıçaplı kutu; hover'da sert ofset gölge. Kayan halka katmanları kalkar.
