@@ -30,7 +30,7 @@
     "dev": "concurrently \"bun run api\" \"vite\"",
     "dev:vite": "vite",
     "api": "PORT=3001 bun --watch src/api/index.ts",
-    "build": "vite build",
+    "build": "vite build && vite build --ssr src/entry-server.jsx --outDir dist/server && bun scripts/prerender.ts",
     "preview": "vite preview",
     "lint": "eslint src --max-warnings=0",
     "format": "prettier --write .",
