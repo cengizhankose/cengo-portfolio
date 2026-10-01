@@ -3,6 +3,7 @@
 import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import home from "../../../src/pages/home/home.module.css";
 
 const availability = vi.hoisted(() => ({ status: "closed", text: "" }));
 
@@ -32,7 +33,7 @@ function status() {
       <Home />
     </MemoryRouter>,
   );
-  const line = document.querySelector(".intro__status");
+  const line = document.querySelector(`.${home.introStatus}`);
   return [line.textContent, line.getAttribute("data-status")];
 }
 

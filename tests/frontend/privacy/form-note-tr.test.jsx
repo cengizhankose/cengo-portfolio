@@ -4,6 +4,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import contact from "../../../src/pages/contact/contact.module.css";
 
 vi.mock("@emailjs/browser", () => ({ default: { send: vi.fn() } }));
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
@@ -28,7 +29,7 @@ describe("/tr/contact form note", () => {
         <ContactUs />
       </MemoryRouter>,
     );
-    const note = document.querySelector(".privacy-note");
+    const note = document.querySelector(`.${contact.privacyNote}`);
     expect(note).not.toBeNull();
     expect(note.textContent).toContain(T["privacy.formNote"]);
     expect(note.textContent).toContain("EmailJS");

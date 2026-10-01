@@ -9,22 +9,22 @@
 import { describe, expect, it } from "vitest";
 import { allSelectors, declared, read } from "./support.js";
 
-const HOME = read("src/pages/home/style.css");
+const HOME = read("src/pages/home/home.module.css");
 const APP = read("src/app/App.css");
 const MOBILE = "(max-width: 991.98px)";
 const DESKTOP = "(min-width: 992px)";
-const BOX = ".intro_sec .h_bg-image";
+const BOX = ".hero .heroImage";
 
 describe("hero section height (FE-18 step 6, DSG-11)", () => {
   it("has no fixed height below 992px: the section is as tall as its content", () => {
-    expect(declared(HOME, ".intro_sec")).toEqual({});
-    expect(declared(HOME, ".intro_sec", MOBILE)).toEqual({});
+    expect(declared(HOME, ".hero")).toEqual({});
+    expect(declared(HOME, ".hero", MOBILE)).toEqual({});
   });
 
   it("is one (small) viewport tall from 992px, with one height pair instead of the old double declaration", () => {
     // Later declarations win in `declared`, as in the cascade: 100svh with
     // the 100vh fallback before it in the source.
-    expect(declared(HOME, ".intro_sec", DESKTOP)).toEqual({
+    expect(declared(HOME, ".hero", DESKTOP)).toEqual({
       height: "100svh",
       "min-height": "700px",
       "margin-top": "-60px",

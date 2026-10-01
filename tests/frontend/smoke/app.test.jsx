@@ -5,6 +5,7 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../../../src/app/App";
+import home from "../../../src/pages/home/home.module.css";
 
 const count = (selector) => document.head.querySelectorAll(selector).length;
 
@@ -49,7 +50,7 @@ describe("App (smoke)", () => {
       "Cengizhan Köse Senior Fullstack Engineer",
     );
     expect(document.querySelectorAll("#home h2")).toHaveLength(0);
-    const rotator = document.querySelector(".rotator");
+    const rotator = document.querySelector(`.${home.rotator}`);
     expect(rotator).toHaveAttribute("aria-hidden", "true");
     expect(rotator.closest("h1")).toBeNull();
   });

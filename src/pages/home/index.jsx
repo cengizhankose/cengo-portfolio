@@ -1,5 +1,6 @@
 import { preload } from "react-dom";
-import "./style.css";
+import styles from "./home.module.css";
+import button from "../../components/actionbutton/button.module.css";
 import { Link } from "react-router-dom";
 import { useContent, useLocalePath, useRoute, useT } from "../../i18n";
 import { CTA } from "../../lib/analytics/events.js";
@@ -39,20 +40,22 @@ export const Home = () => {
   // the line and the CTAs are on the first screen and the photo follows;
   // from 992px the two columns sit side by side (text left, photo right).
   // PERF-07: the photo is drawn as soon as it decodes. No opacity:0 until
-  // onLoad; its box is grey until then (./style.css).
+  // onLoad; its box is grey until then (./home.module.css).
   return (
-    <section id="home" className="home">
-      <div className="intro_sec d-block d-lg-flex align-items-center ">
-        <div className="text h-100 d-lg-flex justify-content-center">
-          <div className="align-self-center ">
-            <div className="intro mx-auto">
+    <section id="home" className={styles.home}>
+      <div className={`${styles.hero} d-block d-lg-flex align-items-center`}>
+        <div
+          className={`${styles.heroText} h-100 d-lg-flex justify-content-center`}
+        >
+          <div className="align-self-center">
+            <div className={`${styles.heroIntro} mx-auto`}>
               {/* K-06b (SEO-12, FE-23, DSG-09): one static h1, name + role,
                   complete in the first render. The role keeps its own
                   language when it differs from the page's (TR pages). */}
-              <h1 className="intro__name">
+              <h1 className={styles.introName}>
                 {hero.name}{" "}
                 <span
-                  className="intro__role"
+                  className={styles.introRole}
                   lang={
                     hero.roleLang === route.locale ? undefined : hero.roleLang
                   }
@@ -63,16 +66,16 @@ export const Home = () => {
               {/* Subheadline (MKT-02, MKT-16): what he builds, then one short
                   line: where he works, or what he is open to once the owner
                   sets the availability (./heroStatus.js). */}
-              <p className="intro__lead">{hero.lead}</p>
-              <p className="intro__status" data-status={status.status}>
+              <p className={styles.introLead}>{hero.lead}</p>
+              <p className={styles.introStatus} data-status={status.status}>
                 {status.text}
               </p>
               {/* The line under it turns once and stops on its last phrase
-                  (CSS only, ./style.css; still under reduced motion).
+                  (CSS only, ./home.module.css; still under reduced motion).
                   Screen readers skip the moving copy and read the sentence
                   once from the hidden text (DSG-09, FE-23). */}
-              <p className="intro__tagline">
-                <span className="rotator" aria-hidden="true">
+              <p className={styles.introTagline}>
+                <span className={styles.rotator} aria-hidden="true">
                   {hero.phrases.map((phrase, index) => (
                     <span key={phrase} style={{ "--i": index }}>
                       {phrase}
@@ -81,28 +84,37 @@ export const Home = () => {
                 </span>
                 <span className="visually-hidden">{hero.phrasesText}</span>
               </p>
-              <p className="intro__proof">{hero.proofLine}</p>
+              <p className={styles.introProof}>{hero.proofLine}</p>
               {/* One action, one evidence link (MKT-19). The button is the
                   link itself, with no block element inside it, so the focus
                   ring wraps the whole button (DSG-28). */}
-              <div className="intro__cta pb-5">
-                <div className="intro_btn-action">
+              <div className="pb-5">
+                <div className={styles.actions}>
                   <Link
                     to={lp("/contact")}
                     id="button_h"
-                    className="ac_btn btn"
+                    className={`${button.button} ${button.hasRings} btn`}
                     onClick={() =>
                       track("cta_clicked", { cta_id: CTA.HERO_CONTACT })
                     }
                   >
                     {t("cta.primary")}
-                    <span className="ring one" aria-hidden="true" />
-                    <span className="ring two" aria-hidden="true" />
-                    <span className="ring three" aria-hidden="true" />
+                    <span
+                      className={`${button.ring} ${button.ringOne}`}
+                      aria-hidden="true"
+                    />
+                    <span
+                      className={`${button.ring} ${button.ringTwo}`}
+                      aria-hidden="true"
+                    />
+                    <span
+                      className={`${button.ring} ${button.ringThree}`}
+                      aria-hidden="true"
+                    />
                   </Link>
                   <Link
                     to={lp("/portfolio")}
-                    className="intro__textlink"
+                    className={styles.textLink}
                     onClick={() =>
                       track("cta_clicked", { cta_id: CTA.HERO_PORTFOLIO })
                     }
@@ -110,14 +122,14 @@ export const Home = () => {
                     {t("cta.secondary")} <span aria-hidden="true">→</span>
                   </Link>
                 </div>
-                <p className="intro__note">
+                <p className={styles.note}>
                   {t("cta.note", { time: contact.responseTime })}
                 </p>
               </div>
             </div>
           </div>
         </div>
-        <div className="h_bg-image position-relative">
+        <div className={`${styles.heroImage} position-relative`}>
           <picture>
             <source
               type="image/avif"

@@ -12,6 +12,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import AppRoutes from "../../../src/app/routes";
 import { StatusState } from "../../../src/components/statusstate";
 import { POST_EN, POST_TR, json, renderBlog } from "./support.jsx";
+import home from "../../../src/pages/home/home.module.css";
 
 const ROOT = process.cwd();
 
@@ -76,7 +77,7 @@ describe("unknown page (DSG-20 criterion 2, client half)", () => {
       </MemoryRouter>,
     );
     await screen.findByRole("heading", { level: 1, name: "Page not found" });
-    expect(document.querySelector(".intro_sec")).toBeNull();
+    expect(document.querySelector(`.${home.hero}`)).toBeNull();
     const state = document.querySelector(".status-state");
     expect(state).toHaveClass("not-found");
     expect(within(state).getByRole("link", { name: "Home" })).toHaveAttribute(

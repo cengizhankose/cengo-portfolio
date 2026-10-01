@@ -6,6 +6,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import home from "../../../src/pages/home/home.module.css";
+import buttonStyles from "../../../src/components/actionbutton/button.module.css";
 
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -53,13 +55,15 @@ describe.each([
     expect(
       normalise(screen.getByRole("heading", { level: 1 }).textContent),
     ).toBe(`${hero.name} ${hero.role}`);
-    expect(document.querySelector("h1 .Typewriter, h1 .rotator")).toBeNull();
+    expect(
+      document.querySelector(`h1 .Typewriter, h1 .${home.rotator}`),
+    ).toBeNull();
   });
 
   it("MKT-19: one button, to the contact page, with the decided label", () => {
     renderHome(path);
 
-    const buttons = document.querySelectorAll("#home .ac_btn");
+    const buttons = document.querySelectorAll(`#home .${buttonStyles.button}`);
     expect(buttons).toHaveLength(1);
     const button = buttons[0];
     expect(button.tagName).toBe("A");
@@ -72,15 +76,13 @@ describe.each([
   it("DSG-28: no block inside the button link, the rings are decorative spans", () => {
     renderHome(path);
 
-    expect(document.querySelectorAll(".intro_btn-action a div")).toHaveLength(
-      0,
-    );
+    expect(document.querySelectorAll(`.${home.actions} a div`)).toHaveLength(0);
     const button = document.getElementById("button_h");
-    const rings = [...button.querySelectorAll(".ring")];
+    const rings = [...button.querySelectorAll(`.${buttonStyles.ring}`)];
     expect(rings.map((ring) => [ring.tagName, ring.className])).toEqual([
-      ["SPAN", "ring one"],
-      ["SPAN", "ring two"],
-      ["SPAN", "ring three"],
+      ["SPAN", `${buttonStyles.ring} ${buttonStyles.ringOne}`],
+      ["SPAN", `${buttonStyles.ring} ${buttonStyles.ringTwo}`],
+      ["SPAN", `${buttonStyles.ring} ${buttonStyles.ringThree}`],
     ]);
     for (const ring of rings) {
       expect(ring).toHaveAttribute("aria-hidden", "true");
@@ -94,11 +96,11 @@ describe.each([
     renderHome(path);
 
     const link = document.querySelector(
-      '#home a[href$="/portfolio"]:not(.ac_btn)',
+      `#home a[href$="/portfolio"]:not(.${buttonStyles.button})`,
     );
     expect(link).not.toBeNull();
     expect(link.getAttribute("href")).toBe(portfolioHref);
-    expect(link.className).toBe("intro__textlink");
+    expect(link.className).toBe(home.textLink);
     expect(normalise(link.textContent)).toBe(`${t("cta.secondary")} →`);
     // The arrow is decoration: the accessible name is the label.
     expect(link.querySelector("[aria-hidden='true']").textContent).toBe("→");
@@ -109,8 +111,8 @@ describe.each([
     renderHome(path);
 
     const button = document.getElementById("button_h");
-    const link = document.querySelector(".intro__textlink");
-    const note = document.querySelector(".intro__note");
+    const link = document.querySelector(`.${home.textLink}`);
+    const note = document.querySelector(`.${home.note}`);
     expect(button.compareDocumentPosition(link)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
@@ -122,7 +124,7 @@ describe.each([
   it("MKT-19 / MKT-10: the note carries the one reply promise of the contact content", () => {
     renderHome(path);
 
-    const note = document.querySelector(".intro__note").textContent;
+    const note = document.querySelector(`.${home.note}`).textContent;
     expect(note).toBe(t("cta.note", { time: contact.responseTime }));
     expect(note).toContain(contact.responseTime);
     expect(note).not.toMatch(/[[\]{}]/);
@@ -138,13 +140,13 @@ describe.each([
       ),
     ];
     expect(stops[0]).toBe(document.getElementById("button_h"));
-    expect(stops[1]).toBe(document.querySelector(".intro__textlink"));
+    expect(stops[1]).toBe(document.querySelector(`.${home.textLink}`));
 
     await user.tab();
     expect(document.activeElement).toBe(document.getElementById("button_h"));
     await user.tab();
     expect(document.activeElement).toBe(
-      document.querySelector(".intro__textlink"),
+      document.querySelector(`.${home.textLink}`),
     );
   });
 
@@ -153,19 +155,21 @@ describe.each([
 
     const order = [
       document.querySelector("h1"),
-      document.querySelector(".intro__lead"),
-      document.querySelector(".intro__status"),
-      document.querySelector(".intro__tagline"),
-      document.querySelector(".intro__proof"),
-      document.querySelector(".intro_btn-action"),
+      document.querySelector(`.${home.introLead}`),
+      document.querySelector(`.${home.introStatus}`),
+      document.querySelector(`.${home.introTagline}`),
+      document.querySelector(`.${home.introProof}`),
+      document.querySelector(`.${home.actions}`),
     ];
     for (let i = 1; i < order.length; i += 1) {
       expect(order[i - 1].compareDocumentPosition(order[i])).toBe(
         Node.DOCUMENT_POSITION_FOLLOWING,
       );
     }
-    expect(document.querySelector(".intro__lead").textContent).toBe(hero.lead);
-    expect(document.querySelector(".intro__proof").textContent).toBe(
+    expect(document.querySelector(`.${home.introLead}`).textContent).toBe(
+      hero.lead,
+    );
+    expect(document.querySelector(`.${home.introProof}`).textContent).toBe(
       hero.proofLine,
     );
   });
@@ -173,7 +177,7 @@ describe.each([
   it("MKT-16: the availability is closed, so the status line is the location", () => {
     renderHome(path);
 
-    const status = document.querySelector(".intro__status");
+    const status = document.querySelector(`.${home.introStatus}`);
     expect(status.textContent).toBe(hero.location);
     expect(status).toHaveAttribute("data-status", "closed");
     expect(document.querySelector("#home").textContent).not.toMatch(/[[\]]/);
@@ -182,8 +186,8 @@ describe.each([
   it("MKT-16: the subheadline is at most two sentences", () => {
     renderHome(path);
 
-    const text = `${document.querySelector(".intro__lead").textContent} ${
-      document.querySelector(".intro__status").textContent
+    const text = `${document.querySelector(`.${home.introLead}`).textContent} ${
+      document.querySelector(`.${home.introStatus}`).textContent
     }`;
     expect(text.match(/[.!?](?:\s|$)/g)?.length ?? 0).toBeLessThanOrEqual(2);
   });
@@ -191,11 +195,12 @@ describe.each([
   it("MKT-02: screen readers get the sentence once, the moving line stays hidden", () => {
     renderHome(path);
 
-    const rotator = document.querySelector(".rotator");
+    const rotator = document.querySelector(`.${home.rotator}`);
     expect(rotator).toHaveAttribute("aria-hidden", "true");
     expect(rotator.closest("h1")).toBeNull();
     expect(
-      document.querySelector(".intro__tagline .visually-hidden").textContent,
+      document.querySelector(`.${home.introTagline} .visually-hidden`)
+        .textContent,
     ).toBe(hero.phrasesText);
     expect([...rotator.children].map((span) => span.textContent)).toEqual(
       hero.phrases,
@@ -211,7 +216,7 @@ describe.each([
       cta_id: "hero_contact",
     });
 
-    await user.click(document.querySelector(".intro__textlink"));
+    await user.click(document.querySelector(`.${home.textLink}`));
     expect(track).toHaveBeenLastCalledWith("cta_clicked", {
       cta_id: "hero_portfolio",
     });

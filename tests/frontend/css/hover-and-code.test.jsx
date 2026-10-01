@@ -118,7 +118,10 @@ describe("hover changes something visible (DSG-27)", () => {
 
   it("keeps the underline off links drawn as buttons", () => {
     expect(
-      declared(read("src/pages/home/style.css"), ".ac_btn:hover"),
+      declared(
+        read("src/components/actionbutton/button.module.css"),
+        ".button:hover",
+      ),
     ).toMatchObject({
       "text-decoration": "none",
     });

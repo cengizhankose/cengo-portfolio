@@ -1,0 +1,79 @@
+/* The site's one button: a 2px text-colour box that grows a hard offset
+   shadow on hover (the hero's contact button and the contact form's submit).
+   It is a CSS Module so the two pages share one definition without a global
+   class (FE-20). It sits next to Bootstrap's `.btn` in the markup; Bootstrap
+   is in the `vendor` layer, so these rules win without raising specificity. */
+.button {
+  position: relative;
+  padding: 4px 19px;
+  color: var(--text-color);
+  text-decoration: none;
+  border: var(--text-color) 2px solid;
+  border-radius: 0;
+  overflow: hidden;
+  /* Not `all`: the focus outline must not animate (W3 handoff, DSG-13, DSG-25). */
+  transition-property: box-shadow, color, background-color, border-color;
+  transition-duration: 0.6s;
+  transition-timing-function: cubic-bezier(0.55, 0, 0.1, 1);
+  cursor: pointer;
+}
+
+.button:hover {
+  color: var(--text-color);
+  text-decoration: none;
+  box-shadow:
+    8px 8px 0px var(--text-color),
+    -8px -8px 0px var(--text-color);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 3px;
+}
+
+/* The hero button also fills with three sliding layers (.ring*). On hover the
+   fill is the text colour, so the label flips to the surface colour. */
+.hasRings:hover {
+  color: var(--surface-color);
+}
+
+.ring {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: transparent;
+  transform: translate3d(0px, 90px, 0px);
+}
+
+.ringOne {
+  background-color: #000;
+  transition:
+    transform 0.3s cubic-bezier(0.55, 0, 0.1, 1),
+    opacity 0.3s ease;
+  z-index: -4;
+}
+
+.ringTwo {
+  background-color: var(--surface-color);
+  transition: transform 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+  z-index: -3;
+}
+
+.ringThree {
+  background-color: var(--text-color);
+  transition: transform 0.7s cubic-bezier(0.55, 0, 0.1, 1);
+  z-index: -3;
+}
+
+.button:hover .ringOne {
+  opacity: 1;
+  transform: translate3d(0px, 0px, 0px);
+}
+
+.button:hover .ringTwo,
+.button:hover .ringThree {
+  transform: translate3d(0px, 0px, 0px);
+}

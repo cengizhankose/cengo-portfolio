@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import "./style.css";
-import "../privacy/style.css";
+import styles from "./contact.module.css";
+import button from "../../components/actionbutton/button.module.css";
 import { Container, Row, Col, Alert } from "react-bootstrap";
 import { Link, useSearchParams } from "react-router-dom";
 import { email, emailjs } from "../../content/shared.js";
@@ -270,7 +270,7 @@ export const ContactUs = () => {
               show={formData.show}
               transition={false}
               variant={formData.status === "success" ? "success" : "danger"}
-              className="rounded-0 co_alert"
+              className={`rounded-0 ${styles.resultAlert}`}
               tabIndex={-1}
               onClose={closeAlert}
               closeLabel={t("contact.closeAlert")}
@@ -296,7 +296,7 @@ export const ContactUs = () => {
                 outbound_link_clicked with location contact_page, not "other"
                 (W8-ANL-locale-segmentation handoff). */}
             <address
-              className="contact__ways"
+              className={styles.contactWays}
               data-analytics-location={LOCATIONS.CONTACT_PAGE}
             >
               <p>
@@ -333,7 +333,7 @@ export const ContactUs = () => {
           </Col>
           <Col lg="7">
             {/* The promise and the process come before the form (MKT-10). */}
-            <div className="contact__intro">
+            <div className={styles.contactIntro}>
               <p>
                 {interpolate(contact.description, {
                   time: contact.responseTime,
@@ -348,7 +348,7 @@ export const ContactUs = () => {
             <form
               onSubmit={handleSubmit}
               onFocus={handleFormFocus}
-              className="contact__form w-100"
+              className={`${styles.contactForm} w-100`}
             >
               <Row>
                 <Col lg="6" className="mb-3">
@@ -389,7 +389,7 @@ export const ContactUs = () => {
                   {t("contact.form.projectType")}
                 </label>
                 <select
-                  className="form-control contact__select"
+                  className={`form-control ${styles.contactSelect}`}
                   id="project_type"
                   name="project_type"
                   autoComplete="off"
@@ -424,7 +424,7 @@ export const ContactUs = () => {
               </div>
               {/* Honeypot (SEC-24): off screen, out of the tab order and the
                   accessibility tree; see handleSubmit. */}
-              <div className="contact__hp" aria-hidden="true">
+              <div className={styles.honeypot} aria-hidden="true">
                 <input
                   type="text"
                   id={HONEYPOT}
@@ -441,7 +441,7 @@ export const ContactUs = () => {
               </div>
               <button
                 ref={submitRef}
-                className="btn ac_btn"
+                className={`btn ${button.button}`}
                 type="submit"
                 disabled={formData.loading}
                 aria-busy={formData.loading}
@@ -451,7 +451,7 @@ export const ContactUs = () => {
               </button>
               {/* Privacy notice (SEC-25, ANL-04): what happens to the data,
                   in the page's language, with the link to the privacy page. */}
-              <p className="privacy-note" id={NOTE_ID}>
+              <p className={styles.privacyNote} id={NOTE_ID}>
                 {t("privacy.formNote")}{" "}
                 <Link to={lp("/privacy")}>{t("privacy.formLink")}</Link>
               </p>
@@ -459,7 +459,7 @@ export const ContactUs = () => {
           </Col>
         </Row>
       </Container>
-      <div className={formData.loading ? "loading-bar" : "d-none"}></div>
+      <div className={formData.loading ? styles.loadingBar : "d-none"}></div>
     </>
   );
 };

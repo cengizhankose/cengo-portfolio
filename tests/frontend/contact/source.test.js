@@ -33,22 +33,26 @@ function declarations(css, selector) {
 }
 
 describe("contact form styles (DSG-04, DSG-13)", () => {
-  const css = read("src/pages/contact/style.css");
+  const css = read("src/pages/contact/contact.module.css");
 
   it("colours labels with the text token", () => {
-    expect(declarations(css, ".contact__form .form-label")).toMatchObject({
+    expect(
+      declarations(css, ".contactForm :global(.form-label)"),
+    ).toMatchObject({
       color: "var(--text-color)",
     });
   });
 
   it("colours placeholders with the --text-muted token at full opacity", () => {
     expect(
-      declarations(css, ".contact__form .form-control::placeholder"),
+      declarations(css, ".contactForm :global(.form-control)::placeholder"),
     ).toEqual({ color: "var(--text-muted)", opacity: "1" });
   });
 
   it("keeps the focused field on the theme colours without the blue glow", () => {
-    expect(declarations(css, ".contact__form .form-control:focus")).toEqual({
+    expect(
+      declarations(css, ".contactForm :global(.form-control):focus"),
+    ).toEqual({
       color: "var(--text-color)",
       "background-color": "var(--bg-color)",
       "border-color": "var(--text-color)",
@@ -58,28 +62,36 @@ describe("contact form styles (DSG-04, DSG-13)", () => {
 
   it("draws a 2px solid text-colour ring on focus-visible fields and the button", () => {
     expect(
-      declarations(css, ".contact__form .form-control:focus-visible"),
+      declarations(css, ".contactForm :global(.form-control):focus-visible"),
     ).toEqual({
       outline: "2px solid var(--text-color)",
       "outline-offset": "2px",
     });
-    expect(declarations(css, ".contact__form .ac_btn:focus-visible")).toEqual({
+    expect(
+      declarations(
+        read("src/components/actionbutton/button.module.css"),
+        ".button:focus-visible",
+      ),
+    ).toEqual({
       outline: "2px solid var(--text-color)",
       "outline-offset": "3px",
     });
-    expect(declarations(css, ".co_alert:focus-visible")).toEqual({
+    expect(declarations(css, ".resultAlert:focus-visible")).toEqual({
       outline: "2px solid var(--text-color)",
       "outline-offset": "2px",
     });
   });
 
   it("leaves field spacing to the mb-3 wrappers (DSG-34)", () => {
-    const inputs = declarations(css, ".contact__form input.form-control");
+    const inputs = declarations(
+      css,
+      ".contactForm input:global(.form-control)",
+    );
     expect(inputs).not.toHaveProperty("margin-bottom");
   });
 
   it("moves the honeypot off screen instead of display:none", () => {
-    const trap = declarations(css, ".contact__hp");
+    const trap = declarations(css, ".honeypot");
     expect(trap).toMatchObject({ position: "absolute", left: "-10000px" });
     expect(trap).not.toHaveProperty("display");
   });

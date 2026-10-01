@@ -29,6 +29,7 @@ vi.mock("@emailjs/browser", () => ({ default: { send: vi.fn() } }));
 vi.mock("../../../src/lib/analytics/index.js", () => ({ track: vi.fn() }));
 
 import emailjs from "@emailjs/browser";
+import contactStyles from "../../../src/pages/contact/contact.module.css";
 
 const { ContactUs } = await import("../../../src/pages/contact/index.jsx");
 const { getContent } = await import("../../../src/content/index.js");
@@ -150,7 +151,7 @@ describe.each([
     it("puts the reply promise and the three steps above the form, from the content", () => {
       renderContact(path);
 
-      const intro = document.querySelector(".contact__intro");
+      const intro = document.querySelector(`.${contactStyles.contactIntro}`);
       const form = document.querySelector("form");
       expect(intro.compareDocumentPosition(form)).toBe(
         Node.DOCUMENT_POSITION_FOLLOWING,

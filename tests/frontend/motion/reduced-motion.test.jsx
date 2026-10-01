@@ -139,7 +139,7 @@ describe("source guards (FE-06 criterion 1, DSG-07 criterion 1)", () => {
     expect(hits).toEqual(
       expect.arrayContaining([
         "src/styles/base.css",
-        "src/pages/home/style.css",
+        "src/pages/home/home.module.css",
         "src/lib/useMediaQuery.js",
       ]),
     );
