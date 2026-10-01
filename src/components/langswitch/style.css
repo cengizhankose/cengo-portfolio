@@ -21,9 +21,7 @@
   padding: 0 0.5rem;
   background: var(--bg-color);
   color: var(--text-color);
-  font:
-    500 0.875rem/1 Raleway,
-    sans-serif;
+  font: 500 var(--fs-sm) / 1 var(--font-body);
   letter-spacing: 0.04em;
   text-decoration: none;
 }

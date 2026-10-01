@@ -12,14 +12,14 @@
 .proofstrip__label {
   margin: 0 0 0.75rem;
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: var(--fs-base);
   font-weight: 400;
   letter-spacing: 0.04em;
 }
 
 .proofstrip--compact .proofstrip__label {
   margin-bottom: 0.5rem;
-  font-size: 0.9375rem;
+  font-size: var(--fs-sm);
 }
 
 /* Employers as plain text: wordmarks without logos (employer permission). */
@@ -29,13 +29,14 @@
   gap: 0.25rem 1.75rem;
   margin: 0;
   padding: 0;
-  font-family: Marcellus;
-  font-size: 1.25rem;
+  font-family: var(--font-display);
+  font-synthesis: none;
+  font-size: var(--fs-md);
   letter-spacing: 0.02em;
 }
 
 .proofstrip--compact .proof-companies {
-  font-size: 1.0625rem;
+  font-size: var(--fs-base);
 }
 
 .proof-awards {
@@ -53,13 +54,17 @@
 
 .proofstrip--compact .proof-awards {
   gap: 0.5rem;
-  font-size: 0.9375rem;
+  font-size: var(--fs-sm);
 }
 
 .proofstrip a {
   color: var(--text-color);
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+.proofstrip a:hover {
+  text-decoration-thickness: 2px;
 }
 
 .proofstrip a:focus-visible {
@@ -92,7 +97,7 @@
 
 .proof-testimonial figcaption {
   display: grid;
-  font-size: 0.9375rem;
+  font-size: var(--fs-sm);
 }
 
 .proof-testimonial__name {

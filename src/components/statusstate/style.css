@@ -1,5 +1,5 @@
 /* Shared status state (DSG-20): error, empty and not-found screens. Same
-   voice as the blog: Marcellus headings, one colour (--text-color on
+   voice as the blog: Marcellus headings (the global h1-h6 rule), one colour (--text-color on
    --bg-color), square corners, the blog cards' 4px rule for states that sit
    inside a page. Replaces src/pages/notfound/style.css. */
 .status-state {
@@ -29,22 +29,21 @@
 
 .status-state__title {
   margin: 0;
-  font-family: "Marcellus", serif;
   line-height: 1.2;
 }
 
 .status-state--page .status-state__title {
-  font-size: clamp(2rem, 6vw, 3rem);
+  font-size: var(--fs-2xl);
 }
 
 .status-state--inline .status-state__title {
-  font-size: 1.8rem;
+  font-size: var(--fs-lg);
 }
 
 .status-state__text {
   margin: 0;
   max-width: 36em;
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
   line-height: 1.6;
 }
 
@@ -71,7 +70,7 @@
   align-items: center;
   min-height: 44px;
   color: var(--text-color);
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -85,7 +84,7 @@
   min-height: 44px;
   padding: 0.5rem 1.25rem;
   font: inherit;
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
   color: var(--text-color);
   background: transparent;
   border: 2px solid var(--text-color);

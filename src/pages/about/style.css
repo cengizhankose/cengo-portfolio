@@ -21,8 +21,9 @@
 /* Lead line above the story (MKT-15): the claim the three paragraphs back up. */
 .about-lead {
   margin-bottom: 1.5rem;
-  font-family: Marcellus;
-  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+  font-family: var(--font-display);
+  font-synthesis: none;
+  font-size: var(--fs-md);
   line-height: 1.45;
 }
 
@@ -82,7 +83,7 @@
 .skill-group__name {
   margin: 0 0 0.5rem;
   color: var(--text-muted);
-  font-size: 0.9375rem;
+  font-size: var(--fs-sm);
 }
 
 .skill-group__items {
@@ -96,8 +97,7 @@
 .skill-chip {
   padding: 8px 10px;
   border: 1px solid var(--secondary-color);
-  font-family: "Raleway";
-  font-size: 16px;
+  font-size: var(--fs-base);
   font-weight: 700;
   line-height: 1.2;
 }
@@ -115,6 +115,11 @@
 .about-talks a {
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+.awards-archive a:hover,
+.about-talks a:hover {
+  text-decoration-thickness: 2px;
 }
 
 .awards-archive a:focus-visible,
@@ -150,6 +155,7 @@
 .about-cta__button:focus-visible {
   background-color: var(--secondary-color);
   color: var(--primary-color);
+  text-decoration: none;
 }
 
 .about-cta__button:focus-visible {
@@ -157,45 +163,9 @@
   outline-offset: 4px;
 }
 
-.section-title {
-  font-size: 45px;
-}
-
 .service__title {
   padding: 8px 0;
   border-bottom: solid 2px var(--secondary-color);
-}
-
-.service-section .service-category-title {
-  padding-bottom: 4px;
-}
-
-/*! CSS Used keyframes */
-
-@-webkit-keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    -webkit-transform: translate3d(0, 100%, 0);
-    transform: translate3d(0, 100%, 0);
-  }
-  to {
-    opacity: 1;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
-}
-
-@keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    -webkit-transform: translate3d(0, 100%, 0);
-    transform: translate3d(0, 100%, 0);
-  }
-  to {
-    opacity: 1;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
 }
 
 /* Intro reel (MKT-18): fills the column, keeps the 16:9 box before the

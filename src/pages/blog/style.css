@@ -7,8 +7,7 @@
 }
 
 .blog-title {
-  font-family: "Marcellus", serif;
-  font-size: 3rem;
+  font-size: var(--fs-2xl);
   color: var(--text-color);
   margin-bottom: 16px;
   text-align: center;
@@ -20,7 +19,7 @@
   margin: 0 auto 40px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
   line-height: 1.6;
 }
 
@@ -41,7 +40,11 @@
   gap: 30px;
 }
 
+/* The whole card is the link (DSG-27): the title link's ::after covers the
+   card (a stretched link, no second link in the markup). Hover underlines
+   the title; keyboard focus on the link rings the whole card. */
 .blog-card {
+  position: relative;
   border-left: 4px solid var(--text-color);
   padding: 20px;
   transition: transform 0.2s ease;
@@ -52,6 +55,11 @@
   transform: translateX(5px);
 }
 
+.blog-card:focus-within {
+  outline: 2px solid var(--text-color);
+  outline-offset: 4px;
+}
+
 .blog-cover {
   width: 100%;
   height: 200px;
@@ -60,19 +68,31 @@
 }
 
 .blog-post-title {
-  font-family: "Marcellus", serif;
-  font-size: 1.8rem;
+  font-size: var(--fs-lg);
   margin-bottom: 10px;
 }
 
 .blog-post-title a {
   color: var(--text-color);
   text-decoration: none;
-  transition: color 0.2s;
 }
 
-.blog-post-title a:hover {
-  color: var(--text-color-2);
+.blog-post-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.blog-post-title a:hover,
+.blog-card:hover .blog-post-title a {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* The card's ring stands for the link's own. */
+.blog-post-title a:focus-visible {
+  outline: none;
 }
 
 .blog-excerpt {
@@ -83,7 +103,7 @@
 
 .blog-date {
   color: var(--text-color-2);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   display: block;
 }
 
@@ -103,7 +123,7 @@
   color: var(--text-color);
   text-decoration: none;
   margin-bottom: 30px;
-  font-size: 1.1rem;
+  font-size: var(--fs-base);
   transition: transform 0.2s;
 }
 
@@ -123,8 +143,7 @@
 }
 
 .blog-post-title-full {
-  font-family: "Marcellus", serif;
-  font-size: 2.5rem;
+  font-size: var(--fs-2xl);
   color: var(--text-color);
   margin: 20px 0;
 }
@@ -134,7 +153,7 @@
 .blog-post-byline {
   margin: 0 0 8px;
   color: var(--text-color);
-  font-size: 1.05rem;
+  font-size: var(--fs-base);
 }
 
 .blog-post-byline a {
@@ -145,7 +164,7 @@
 
 .blog-post-date {
   color: var(--text-color-2);
-  font-size: 1rem;
+  font-size: var(--fs-base);
   display: block;
   margin-bottom: 30px;
 }
@@ -153,7 +172,31 @@
 .blog-content {
   line-height: 1.8;
   color: var(--text-color);
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
+}
+
+/* Blog: posts in the other language (T-12, DSG-19 step 4). The group comes
+   after the page language's posts; each title carries a monochrome language
+   badge. The badge text is the page text colour (contrast as body text); the
+   screen-reader text next to it says the language in words. (Moved here
+   from src/index.css: only the blog index renders these.) */
+.blog-other {
+  margin-top: 4rem;
+}
+
+.blog-other__title {
+  font-size: var(--fs-lg);
+  margin-bottom: 1.5rem;
+}
+
+.lang-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.375rem;
+  border: 1px solid currentColor;
+  font: 700 var(--fs-sm) / 1 var(--font-body);
+  letter-spacing: 0.04em;
+  vertical-align: middle;
 }
 
 /* Error and empty states use the shared StatusState (src/components/
@@ -161,7 +204,7 @@
 
 /* Only the other-language group failed (T-12): its inline state takes the
    group's place under the page language's posts, with the group's spacing
-   (.blog-other in src/index.css). */
+   (.blog-other above). */
 .blog-container .blog-other-error {
   margin-top: 4rem;
 }
@@ -197,14 +240,15 @@
 
 .author-box__name {
   margin: 0;
-  font-family: "Marcellus", serif;
-  font-size: 1.4rem;
+  font-family: var(--font-display);
+  font-synthesis: none;
+  font-size: var(--fs-lg);
 }
 
 .author-box__role {
   margin: 0 0 0.5rem;
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
 }
 
 .author-box__bio {
@@ -232,14 +276,16 @@
 
 .author-box__links a:hover,
 .post-footer__follow a:hover,
-.post-footer__cta a:hover {
+.post-footer__cta a:hover,
+.blog-post-byline a:hover,
+.blog-empty-feed a:hover {
   opacity: 0.8;
 }
 
 .ai-disclosure {
   margin: 1rem 0 0;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   line-height: 1.5;
 }
 
@@ -249,8 +295,9 @@
 
 .post-footer__cta {
   margin: 1.5rem 0 0;
-  font-family: "Marcellus", serif;
-  font-size: 1.3rem;
+  font-family: var(--font-display);
+  font-synthesis: none;
+  font-size: var(--fs-md);
 }
 
 @media (max-width: 480px) {
@@ -341,7 +388,6 @@
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
-  font-family: "Marcellus", serif;
   margin-top: 40px;
   margin-bottom: 20px;
   color: var(--text-color);
@@ -349,17 +395,17 @@
 }
 
 .markdown-body h1 {
-  font-size: 2.2rem;
+  font-size: var(--fs-xl);
   border-left: 4px solid var(--text-color);
   padding-left: 15px;
 }
 
 .markdown-body h2 {
-  font-size: 1.8rem;
+  font-size: var(--fs-xl);
 }
 
 .markdown-body h3 {
-  font-size: 1.5rem;
+  font-size: var(--fs-lg);
 }
 
 .markdown-body p {
@@ -394,12 +440,14 @@
   color: var(--text-color-2);
 }
 
+/* Inline code (DSG-26): the text colour on the surface token with a
+   hairline --border-color edge, like the rest of the monochrome system. */
 .markdown-body code {
-  font-family: "Source Code Pro", monospace;
+  color: var(--text-color);
   background: var(--primary-color);
+  border: 1px solid var(--border-color);
   padding: 3px 8px;
   border-radius: 0;
-  font-size: 0.9em;
 }
 
 .markdown-body pre {
@@ -412,8 +460,9 @@
 
 .markdown-body pre code {
   padding: 0;
+  color: inherit;
   background: transparent;
-  font-size: 0.9em;
+  border: 0;
 }
 
 .markdown-body img {
@@ -438,7 +487,9 @@
 
 .markdown-body th {
   background: var(--primary-color);
-  font-family: "Marcellus", serif;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-synthesis: none;
 }
 
 .markdown-body hr {
@@ -498,7 +549,7 @@
   min-height: 14rem;
   border: 1px dashed var(--border-color);
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
 }
 
 /* On a wide screen the frame grows past the 760px text column (centred on

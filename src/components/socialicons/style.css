@@ -45,6 +45,10 @@
   fill: var(--text-color);
 }
 
+.stick_follow_icon a:hover {
+  opacity: 0.7;
+}
+
 .stick_follow_icon a:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: 2px;
@@ -58,8 +62,7 @@
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   color: var(--text-color);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--fs-sm);
   line-height: 1.2;
   white-space: nowrap;
 }
@@ -94,7 +97,7 @@
   .stick_follow_icon p {
     writing-mode: horizontal-tb;
     transform: none;
-    font-size: 17px;
+    font-size: var(--fs-base);
   }
 
   .stick_follow_icon p::after {
