@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./contact.module.css";
+import { CvLinks } from "../../components/cvlink";
 import button from "../../components/actionbutton/button.module.css";
 import { Container, Row, Col, Alert } from "react-bootstrap";
 import { Link, useSearchParams } from "react-router-dom";
@@ -330,6 +331,8 @@ export const ContactUs = () => {
                 </a>
               </p>
             </address>
+            {/* The CV in the page's language, then the other one (ANL-12). */}
+            <CvLinks location={LOCATIONS.CONTACT} />
           </Col>
           <Col lg="7">
             {/* The promise and the process come before the form (MKT-10). */}
