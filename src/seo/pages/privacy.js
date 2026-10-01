@@ -13,6 +13,6 @@ export default {
   tr: {
     title: buildTitle("Gizlilik"),
     description:
-      "Cengizhan Köse'nin sitesinin gizlilik bildirimi: iletişim formu ve çerezsiz istatistiklerin topladığı veriler, alıcılar, saklama süreleri ve haklarınız.",
+      "Cengizhan Köse'nin sitesinin gizlilik bildirimi: iletişim formu ve çerezsiz istatistiklerin topladığı veriler, alıcılar, saklama süreleri ve haklarının özeti.",
   },
 };

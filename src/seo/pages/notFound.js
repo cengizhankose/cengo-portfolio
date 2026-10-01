@@ -15,7 +15,7 @@ export default {
   tr: {
     title: buildTitle("Sayfa bulunamadı"),
     description:
-      "Aradığınız sayfa yok ya da taşınmış. Ana sayfaya dönün ya da blogdaki son yazıları okuyun.",
+      "Aradığın sayfa yok ya da taşınmış. Ana sayfaya dön ya da blogdaki son yazıları oku.",
     robots: "noindex",
   },
 };
