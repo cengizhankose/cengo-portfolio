@@ -45,6 +45,13 @@ export function manualChunks(id) {
   return undefined;
 }
 
+// PERF-03: `vite build --ssr src/entry-server.jsx --outDir dist/server` is the
+// server bundle of the same config (an object, not a function: tests read it
+// as plain data, tests/server/api/dev-servers.test.ts). Vite's own
+// `isSsrBuild` flag only exists for the function form, so the flag is read
+// from the command line.
+const isSsrBuild = process.argv.includes("--ssr");
+
 export default defineConfig({
   plugins: [react()],
   base: "/",
@@ -53,19 +60,42 @@ export default defineConfig({
       scss: scssOptions,
     },
   },
+  // PERF-03 (T-06 Aşama 2): `vite build --ssr src/entry-server.jsx --outDir
+  // dist/server` bundles the server render with every dependency inside it, so
+  // the production image needs no node_modules/react to draw a page
+  // (PERF-24, W10-BE-docker-image). Only for that build: the component tests
+  // (Vitest) keep their own dependency handling.
+  ssr: isSsrBuild ? { noExternal: true } : undefined,
   build: {
     outDir: "dist",
+    // The client build writes dist/.vite/ssr-manifest.json (module -> chunk
+    // files), which src/server/ssr.ts reads for the <link rel="modulepreload">
+    // hints of the blog pages (the dot directory is never served,
+    // src/server/static.ts).
+    ssrManifest: !isSsrBuild,
+    // public/ is copied once, by the client build.
+    copyPublicDir: !isSsrBuild,
     sourcemap: false,
     rollupOptions: {
-      output: {
-        manualChunks,
-        entryFileNames: "assets/[name]-[hash].js",
-        chunkFileNames: "assets/[name]-[hash].js",
-        assetFileNames: "assets/[name]-[hash].[ext]",
-      },
+      output: isSsrBuild
+        ? {
+            // One fixed entry name: src/server/ssr.ts and scripts/prerender.ts
+            // import dist/server/entry-server.js.
+            entryFileNames: "entry-server.js",
+            chunkFileNames: "chunks/[name]-[hash].js",
+            assetFileNames: "assets/[name]-[hash].[ext]",
+          }
+        : {
+            manualChunks,
+            entryFileNames: "assets/[name]-[hash].js",
+            chunkFileNames: "assets/[name]-[hash].js",
+            assetFileNames: "assets/[name]-[hash].[ext]",
+          },
     },
     assetsDir: "assets",
-    minify: "terser",
+    // The server bundle is not sent to browsers: no minification, readable
+    // stack traces in the server log.
+    minify: isSsrBuild ? false : "terser",
     terserOptions: {
       compress: {
         drop_console: true,
@@ -88,15 +118,20 @@ export default defineConfig({
     port: 4173,
     host,
   },
-  // Component tests (T-02): Vitest + jsdom, only tests/frontend/**.
-  // Server/API tests live in tests/server/** and run under `bun test`.
+  // Component tests (T-02): Vitest + jsdom, tests/frontend/**. Server/API
+  // tests live in tests/server/** and run under `bun test`.
   test: {
     environment: "jsdom",
     setupFiles: [
       "tests/frontend/setup.js",
       "tests/frontend/split/setup-async-timeout.js",
     ],
-    include: ["tests/frontend/**/*.test.{js,jsx}"],
+    // tests/server/ssr/*.vitest.jsx: PERF-03 hydration checks that need a DOM
+    // (the suffix keeps `bun test`, which collects *.test.*, away from them).
+    include: [
+      "tests/frontend/**/*.test.{js,jsx}",
+      "tests/server/ssr/**/*.vitest.{js,jsx}",
+    ],
     restoreMocks: true,
     unstubGlobals: true,
   },
