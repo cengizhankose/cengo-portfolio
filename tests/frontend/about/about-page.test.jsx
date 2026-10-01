@@ -73,7 +73,7 @@ describe("About heading outline (SEO-13, FE-27, MKT-15)", () => {
     renderAbout();
 
     for (const heading of document.querySelectorAll("h2")) {
-      expect(heading).toHaveClass("h3", "color_sec");
+      expect(heading).toHaveClass("h3");
     }
     for (const heading of document.querySelectorAll(".service_ h3")) {
       expect(heading).toHaveClass("h5", "service__title");
@@ -124,7 +124,9 @@ describe("About grid and attributes (SEO-20, DSG-34, FE-28)", () => {
   it("puts all seven section titles, Services included, in a col-lg-5 column", () => {
     renderAbout();
 
-    expect(document.querySelectorAll(".sec_sp > .col-lg-5")).toHaveLength(7);
+    expect(document.querySelectorAll(".section-gap > .col-lg-5")).toHaveLength(
+      7,
+    );
     const services = screen.getByRole("heading", {
       level: 2,
       name: "Services",
@@ -135,7 +137,7 @@ describe("About grid and attributes (SEO-20, DSG-34, FE-28)", () => {
   it("uses the Bootstrap 5 names for the divider alignment", () => {
     renderAbout();
 
-    const divider = document.querySelector("hr.t_border");
+    const divider = document.querySelector("hr.section-rule");
     expect(divider).toHaveClass("ms-0", "text-start");
     expect(divider).not.toHaveClass("ml-0");
     expect(divider).not.toHaveClass("text-left");

@@ -43,7 +43,7 @@ function Section({ id, title, children }) {
   return (
     <Row className="privacy__section">
       <Col lg="5">
-        <h2 className="h3 color_sec py-4" id={id}>
+        <h2 className="h3 py-4" id={id}>
           {title}
         </h2>
       </Col>
@@ -88,7 +88,7 @@ export const Privacy = () => {
       <Row className="mb-5 mt-3">
         <Col lg="8">
           <h1 className="display-4 mb-4">{t("privacy.title")}</h1>
-          <hr className="t_border my-4 ms-0 text-start" />
+          <hr className="section-rule my-4 ms-0 text-start" />
           <p className="privacy__lead">{privacy.intro}</p>
           <p className="privacy__updated">
             <time dateTime={LAST_UPDATED}>

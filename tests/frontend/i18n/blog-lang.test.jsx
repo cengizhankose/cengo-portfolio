@@ -9,6 +9,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import BlogHome, { groupPosts } from "../../../src/pages/blog/BlogHome";
 import BlogPost from "../../../src/pages/blog/BlogPost";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
 const EN_DATE =
   /^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}$/;
@@ -245,10 +246,7 @@ describe("a TR post page (FE-14 criterion 4, DSG-19 criteria 1-2, SEO-21)", () =
 });
 
 describe("hyphenation (FE-14 step 10, DSG-19 step 3; checked on the CSS source)", () => {
-  const css = readFileSync(
-    join(process.cwd(), "src/index.css"),
-    "utf8",
-  ).replace(/\/\*[\s\S]*?\*\//g, "");
+  const css = GLOBAL_CSS.replace(/\/\*[\s\S]*?\*\//g, "");
   const rule = (selector) => {
     for (const match of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
       if (match[1].trim() === selector) return match[2];

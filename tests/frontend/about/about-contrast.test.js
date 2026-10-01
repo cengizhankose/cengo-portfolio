@@ -9,10 +9,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
 const ROOT = process.cwd();
 const read = (file) => readFileSync(join(ROOT, file), "utf8");
-const INDEX = read("src/index.css");
+const INDEX = GLOBAL_CSS;
 const ABOUT = read("src/pages/about/style.css");
 const STRIP = read("src/components/proofstrip/style.css");
 

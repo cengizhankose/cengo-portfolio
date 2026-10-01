@@ -83,7 +83,7 @@ function AppRoutes() {
   const t = useT();
 
   return (
-    <div className="s_c">
+    <div className="page-shell">
       <main id="main" tabIndex={-1} ref={mainRef}>
         <AnimatedRoutes focusTargetRef={mainRef} />
       </main>

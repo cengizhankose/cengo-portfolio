@@ -138,7 +138,7 @@ describe("source guards (FE-06 criterion 1, DSG-07 criterion 1)", () => {
     );
     expect(hits).toEqual(
       expect.arrayContaining([
-        "src/index.css",
+        "src/styles/base.css",
         "src/pages/home/style.css",
         "src/lib/useMediaQuery.js",
       ]),
@@ -158,8 +158,8 @@ describe("source guards (FE-06 criterion 1, DSG-07 criterion 1)", () => {
   });
 });
 
-describe("global reduced-motion block in src/index.css (FE-06 step 1)", () => {
-  const css = read("src/index.css");
+describe("global reduced-motion block in src/styles/base.css (FE-06 step 1)", () => {
+  const css = read("src/styles/base.css");
   const block = rule(
     css,
     "*, *::before, *::after",

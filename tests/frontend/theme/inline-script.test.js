@@ -11,10 +11,11 @@ import { join } from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
 import { describe, expect, it } from "vitest";
 import { THEME_COLORS } from "../../../src/lib/theme.js";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
 const ROOT = join(import.meta.dirname, "..", "..", "..");
 const HTML = readFileSync(join(ROOT, "index.html"), "utf8");
-const CSS = readFileSync(join(ROOT, "src", "index.css"), "utf8");
+const CSS = GLOBAL_CSS;
 const LIGHT_QUERY = "(prefers-color-scheme: light)";
 
 /**

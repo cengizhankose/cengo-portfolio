@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import "../styles/layers.css";
 import "../styles/bootstrap-subset.scss";
 import { BrowserRouter as Router } from "react-router-dom";
 import AppRoutes from "./routes";

@@ -1,12 +1,6 @@
 /* Portfolio (FE-04, DSG-08, MKT-01, MKT-18). Colours come from the theme
    tokens (--text-color, --text-muted, --border-color), so both themes read the
-   same; --text-muted is the AA-checked secondary text colour. The rule line
-   is repeated here because its only other definition lives in the About
-   stylesheet, which is not loaded on this page. */
-.portfolio .t_border {
-  border-color: var(--text-color);
-}
-
+   same; --text-muted is the AA-checked secondary text colour. */
 .portfolio__lead {
   max-width: 40rem;
   margin: 0;

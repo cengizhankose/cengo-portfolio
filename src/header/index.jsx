@@ -116,8 +116,8 @@ const Headermain = () => {
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const content = document.querySelector(".s_c");
-    document.body.classList.add("ovhidden");
+    const content = document.querySelector(".page-shell");
+    document.body.classList.add("scroll-locked");
     content?.setAttribute("inert", "");
     firstLinkRef.current?.focus();
 
@@ -133,7 +133,7 @@ const Headermain = () => {
 
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.classList.remove("ovhidden");
+      document.body.classList.remove("scroll-locked");
       content?.removeAttribute("inert");
     };
   }, [isOpen]);

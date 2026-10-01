@@ -260,10 +260,10 @@ export const ContactUs = () => {
         <Row className="mb-5 mt-3">
           <Col lg="8">
             <h1 className="display-4 mb-4">{t("contact.title")}</h1>
-            <hr className="t_border my-4 ms-0 text-start" />
+            <hr className="section-rule my-4 ms-0 text-start" />
           </Col>
         </Row>
-        <Row className="sec_sp">
+        <Row className="section-gap">
           <Col lg="12">
             <Alert
               ref={alertRef}
@@ -289,7 +289,7 @@ export const ContactUs = () => {
             </Alert>
           </Col>
           <Col lg="5" className="mb-5">
-            <h2 className="h3 color_sec py-4">{t("contact.reachMe")}</h2>
+            <h2 className="h3 py-4">{t("contact.reachMe")}</h2>
             {/* Low-friction ways in besides the form (MKT-12): the domain
                 address, a booking link once the owner has one, LinkedIn. */}
             {/* data-analytics-location: the LinkedIn and booking clicks are

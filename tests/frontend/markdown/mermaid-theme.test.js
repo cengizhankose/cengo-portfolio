@@ -15,11 +15,12 @@ import {
   toHex,
   tokensForTheme,
 } from "../../../src/lib/mermaidTheme.js";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
 const ROOT = join(import.meta.dirname, "..", "..", "..");
-const INDEX_CSS = readFileSync(join(ROOT, "src", "index.css"), "utf8");
+const INDEX_CSS = GLOBAL_CSS;
 
-// The declarations of a top-level rule in src/index.css.
+// The declarations of a top-level rule in src/styles/tokens.css.
 function tokenBlock(selector) {
   const start = INDEX_CSS.indexOf(`\n${selector} {`);
   expect(start, `${selector} block`).toBeGreaterThanOrEqual(0);
@@ -75,7 +76,7 @@ describe("colour helpers", () => {
   });
 });
 
-describe("THEME_TOKENS equals src/index.css", () => {
+describe("THEME_TOKENS equals src/styles/tokens.css", () => {
   it.each(Object.entries(BLOCKS))("%s", (theme, selector) => {
     const css = tokenBlock(selector);
     const tokens = THEME_TOKENS[theme];

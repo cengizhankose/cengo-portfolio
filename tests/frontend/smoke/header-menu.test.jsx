@@ -49,12 +49,12 @@ describe("Headermain menu (smoke)", () => {
     await user.click(menuButton);
     expect(menu).toHaveClass("menu__opend");
     expect(menuButton).toHaveAttribute("aria-expanded", "true");
-    expect(document.body).toHaveClass("ovhidden");
+    expect(document.body).toHaveClass("scroll-locked");
 
     await user.click(menuButton);
     expect(menu).not.toHaveClass("menu__opend");
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
-    expect(document.body).not.toHaveClass("ovhidden");
+    expect(document.body).not.toHaveClass("scroll-locked");
   });
 
   it("closes the open menu when a section link is chosen", async () => {
@@ -66,7 +66,7 @@ describe("Headermain menu (smoke)", () => {
 
     expect(menu).not.toHaveClass("menu__opend");
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
-    expect(document.body).not.toHaveClass("ovhidden");
+    expect(document.body).not.toHaveClass("scroll-locked");
   });
 
   // W2-FE-nav-a11y review (ledger): choosing the page that is already open
@@ -76,7 +76,7 @@ describe("Headermain menu (smoke)", () => {
     render(
       <MemoryRouter initialEntries={["/about"]}>
         <Headermain />
-        <div className="s_c">
+        <div className="page-shell">
           <main id="main" tabIndex={-1} />
         </div>
       </MemoryRouter>,
@@ -85,7 +85,7 @@ describe("Headermain menu (smoke)", () => {
     await user.click(screen.getByRole("link", { name: "About" }));
 
     expect(document.activeElement).toBe(document.getElementById("main"));
-    expect(document.querySelector(".s_c")).not.toHaveAttribute("inert");
+    expect(document.querySelector(".page-shell")).not.toHaveAttribute("inert");
   });
 
   it("leaves focus to the route change when another page is chosen", async () => {
@@ -93,7 +93,7 @@ describe("Headermain menu (smoke)", () => {
     render(
       <MemoryRouter initialEntries={["/about"]}>
         <Headermain />
-        <div className="s_c">
+        <div className="page-shell">
           <main id="main" tabIndex={-1} />
         </div>
       </MemoryRouter>,

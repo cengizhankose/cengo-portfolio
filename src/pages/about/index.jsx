@@ -52,12 +52,12 @@ export const About = () => {
       <Row className="mb-5 mt-3">
         <Col lg="8">
           <h1 className="display-4 mb-4">{t("about.title")}</h1>
-          <hr className="t_border my-4 ms-0 text-start" />
+          <hr className="section-rule my-4 ms-0 text-start" />
         </Col>
       </Row>
-      <Row className="sec_sp">
+      <Row className="section-gap">
         <Col lg="5">
-          <h2 className="h3 color_sec py-4">{t("about.intro")}</h2>
+          <h2 className="h3 py-4">{t("about.intro")}</h2>
         </Col>
         <Col lg="7" className="d-flex align-items-center">
           <div>
@@ -68,17 +68,17 @@ export const About = () => {
           </div>
         </Col>
       </Row>
-      <Row className="sec_sp">
+      <Row className="section-gap">
         <Col lg="5">
-          <h2 className="h3 color_sec py-4">{t("about.proof")}</h2>
+          <h2 className="h3 py-4">{t("about.proof")}</h2>
         </Col>
         <Col lg="7">
           <ProofStrip />
         </Col>
       </Row>
-      <Row className="sec_sp about-anchor" id="timeline">
+      <Row className="section-gap about-anchor" id="timeline">
         <Col lg="5">
-          <h2 className="h3 color_sec py-4">{t("about.timeline")}</h2>
+          <h2 className="h3 py-4">{t("about.timeline")}</h2>
         </Col>
         <Col lg="7">
           {/* One body per role: the row with title, employer and dates, then
@@ -121,9 +121,9 @@ export const About = () => {
           </ul>
         </Col>
       </Row>
-      <Row className="sec_sp">
+      <Row className="section-gap">
         <Col lg="5">
-          <h2 className="h3 color_sec py-4">{t("about.skills")}</h2>
+          <h2 className="h3 py-4">{t("about.skills")}</h2>
         </Col>
         <Col lg="7">
           <ul className="skill-groups list-unstyled mb-0">
@@ -147,9 +147,9 @@ export const About = () => {
           </ul>
         </Col>
       </Row>
-      <Row className="sec_sp">
+      <Row className="section-gap">
         <Col lg="5">
-          <h2 className="h3 color_sec py-4">{t("about.services")}</h2>
+          <h2 className="h3 py-4">{t("about.services")}</h2>
         </Col>
         <Col lg="7">
           {services.map((service) => (
@@ -160,9 +160,9 @@ export const About = () => {
           ))}
         </Col>
       </Row>
-      <Row className="sec_sp about-anchor" id="awards">
+      <Row className="section-gap about-anchor" id="awards">
         <Col lg="5">
-          <h2 className="h3 color_sec py-4">{t("about.awards")}</h2>
+          <h2 className="h3 py-4">{t("about.awards")}</h2>
         </Col>
         <Col lg="7">
           <ol className="awards-archive list-unstyled mb-0">
@@ -177,9 +177,9 @@ export const About = () => {
         </Col>
       </Row>
       {INTRO_REEL.published && (
-        <Row className="sec_sp about-anchor" id="reel">
+        <Row className="section-gap about-anchor" id="reel">
           <Col lg="5">
-            <h2 className="h3 color_sec py-4">{t("portfolio.reel.title")}</h2>
+            <h2 className="h3 py-4">{t("portfolio.reel.title")}</h2>
           </Col>
           <Col lg="7">
             {/* 15 seconds, no autoplay (reduced motion, data use): the file
@@ -209,9 +209,9 @@ export const About = () => {
           </Col>
         </Row>
       )}
-      <Row className="sec_sp about-anchor" id="talks">
+      <Row className="section-gap about-anchor" id="talks">
         <Col lg="5">
-          <h2 className="h3 color_sec py-4">{t("about.talks")}</h2>
+          <h2 className="h3 py-4">{t("about.talks")}</h2>
         </Col>
         <Col lg="7">
           <ul className="about-talks list-unstyled mb-0">
@@ -224,7 +224,7 @@ export const About = () => {
         </Col>
       </Row>
       <section className="about-cta" aria-labelledby={`${ids}-cta`}>
-        <h2 className="h3 color_sec" id={`${ids}-cta`}>
+        <h2 className="h3" id={`${ids}-cta`}>
           {t("about.cta.title")}
         </h2>
         <p>{t("about.cta.text")}</p>

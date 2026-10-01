@@ -6,11 +6,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
-const CSS = readFileSync(
-  join(import.meta.dirname, "..", "..", "..", "src", "index.css"),
-  "utf8",
-);
+const CSS = GLOBAL_CSS;
 
 function declarations(selector) {
   const start = CSS.indexOf(`\n${selector} {`);
@@ -49,7 +47,7 @@ const THEMES = [
   ['[data-theme="light"]', "light", "#595959", "#ffffff"],
 ];
 
-describe("theme tokens in src/index.css", () => {
+describe("theme tokens in src/styles/tokens.css", () => {
   it.each(THEMES)("%s declares color-scheme: %s", (selector, scheme) => {
     expect(declarations(selector)["color-scheme"]).toBe(scheme);
   });
@@ -62,7 +60,7 @@ describe("theme tokens in src/index.css", () => {
       expect(tokens["--bg-color"]).toBe(bg);
       expect(contrast(muted, bg)).toBeGreaterThanOrEqual(4.5);
       expect(
-        contrast(tokens["--text-muted"], tokens["--primary-color"]),
+        contrast(tokens["--text-muted"], tokens["--surface-color"]),
       ).toBeGreaterThanOrEqual(4.5);
     },
   );

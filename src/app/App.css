@@ -1,9 +1,3 @@
-@media only screen and (max-width: 991px) {
-  .s_c {
-    padding-top: 40px;
-  }
-}
-
 /* Page change (PERF-13, FE-17). The new route is rendered at once; all that
    is left of a transition is this short entry fade, played by the wrapper
    routes.jsx mounts for a new pathname. There is no exit animation and

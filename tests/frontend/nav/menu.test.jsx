@@ -24,7 +24,7 @@ vi.mock("../../../src/pages/blog/BlogPost", async () => ({
   default: (await import("./support/pages.jsx")).BlogPost,
 }));
 
-const isLocked = () => document.body.classList.contains("ovhidden");
+const isLocked = () => document.body.classList.contains("scroll-locked");
 const menuPanel = () => document.getElementById("site-navigation");
 
 describe("menu button (closed)", () => {

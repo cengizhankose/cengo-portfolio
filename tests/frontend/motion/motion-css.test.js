@@ -13,10 +13,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { getContent } from "../../../src/content/index.js";
 import { ROOT, read, rule } from "./support.js";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
 const HOME = read("src/pages/home/style.css");
 const CURSOR = read("src/components/Cursor.css");
-const INDEX = read("src/index.css");
+const INDEX = GLOBAL_CSS;
 const CONTACT = read("src/pages/contact/style.css");
 const REDUCE = "(prefers-reduced-motion: reduce)";
 

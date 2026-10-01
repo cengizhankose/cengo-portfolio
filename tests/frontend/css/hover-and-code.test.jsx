@@ -7,8 +7,9 @@ import { screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST_EN, POST_TR, json, renderBlog } from "../blog/support.jsx";
 import { declared, read, stylesheets } from "./support.js";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
-const INDEX = read("src/index.css");
+const INDEX = GLOBAL_CSS;
 const HEADER = read("src/header/style.css");
 const BLOG = read("src/pages/blog/style.css");
 

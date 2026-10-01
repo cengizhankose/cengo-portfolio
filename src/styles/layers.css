@@ -1,0 +1,12 @@
+/* Cascade layers, lowest first (FE-20 step 2). This file is imported before
+   everything else (src/app/App.jsx), so the order is fixed here and never
+   depends on which stylesheet the bundler happens to emit first.
+
+   vendor   the Bootstrap subset (src/styles/bootstrap-subset.scss)
+   tokens   src/styles/tokens.css: custom properties
+   base     src/styles/base.css: element defaults, the few global classes
+   (no layer)  component and page styles (the CSS Modules next to the
+            components): styles outside a layer beat every layer, so a local
+            rule overrides Bootstrap at any specificity and never needs
+            !important. */
+@layer vendor, tokens, base;

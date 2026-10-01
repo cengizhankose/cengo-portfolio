@@ -38,7 +38,7 @@ a.lang-switch__item:hover {
 }
 
 /* Inset like .nav_ac: an outward ring would slide under the fixed page frame
-   (.br-top, z-index 999999) at the top of the header. */
+   (.br-top, --z-frame) at the top of the header. */
 a.lang-switch__item:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: -4px;

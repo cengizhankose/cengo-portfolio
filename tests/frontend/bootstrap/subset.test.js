@@ -279,7 +279,7 @@ describe(".navbar-brand is local (PERF-09 step 4, FE-21 step 4)", () => {
       padding: "5px 15px",
       margin: "0",
       "font-size": "var(--fs-md)",
-      color: "var(--text-color-2)",
+      color: "var(--text-color)",
     });
   });
 });

@@ -15,8 +15,9 @@ import {
   rules,
   stylesheets,
 } from "./support.js";
+import { GLOBAL_CSS } from "../css-arch/global-css.js";
 
-const INDEX = read("src/index.css");
+const INDEX = GLOBAL_CSS;
 const SCALE = ["sm", "base", "md", "lg", "xl", "2xl"];
 
 const fontSizes = () =>

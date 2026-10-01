@@ -9,6 +9,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { ESLint } from "eslint";
 import { describe, expect, it } from "vitest";
+import { BASE_CSS, TOKENS_CSS } from "../css-arch/global-css.js";
 
 const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 const read = (file) => readFileSync(`${ROOT}${file}`, "utf8");
@@ -81,12 +82,16 @@ describe("header focus styles (DSG-02, DSG-03, FE-02)", () => {
 });
 
 describe("skip link and <main> styles (FE-10, DSG-14)", () => {
-  const css = read("src/index.css");
+  const css = BASE_CSS;
 
   it("keeps the skip link off screen until focused, above the page frame", () => {
     const base = declarations(css, ".skip-link");
     expect(base).toMatchObject({ position: "fixed", top: "16px" });
-    expect(Number(base["z-index"])).toBeGreaterThan(999999);
+    // The skip link sits on the --z-skip-link layer, above the page frame.
+    expect(base["z-index"]).toBe("var(--z-skip-link)");
+    const z = (name) =>
+      Number(new RegExp(`--z-${name}:\\s*(\\d+)`).exec(TOKENS_CSS)[1]);
+    expect(z("skip-link")).toBeGreaterThan(z("frame"));
     expect(base.transform).toMatch(/^translateY\(/);
     expect(declarations(css, ".skip-link:focus")).toMatchObject({
       transform: "none",

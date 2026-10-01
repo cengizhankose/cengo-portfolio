@@ -3,8 +3,8 @@
   line-height: 1.5;
   color: var(--text-color);
   background-color: var(--bg-color);
-  border-radius: 0 !important;
-  border: 1px solid var(--secondary-color);
+  border-radius: 0;
+  border: 1px solid var(--text-color);
 }
 
 /* Spacing comes from the mb-3 field wrappers (DSG-04, DSG-34). */
@@ -94,7 +94,7 @@
 }
 
 button.btn.ac_btn:hover {
-  color: var(--secondary-color);
+  color: var(--text-color);
 }
 
 .loading-bar {
@@ -103,7 +103,7 @@ button.btn.ac_btn:hover {
   left: 0;
   right: 0;
   height: 10px;
-  z-index: 999999999;
+  z-index: var(--z-progress);
   background: var(--text-color);
   transform: translateX(100%);
   animation: shift-rightwards 1s ease-in-out infinite;

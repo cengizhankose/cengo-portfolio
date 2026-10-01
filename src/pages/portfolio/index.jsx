@@ -48,7 +48,7 @@ export const Portfolio = () => {
       <Row className="mb-5 mt-3">
         <Col lg="8">
           <h1 className="display-4 mb-4">{t("portfolio.title")}</h1>
-          <hr className="t_border my-4 ms-0 text-start" />
+          <hr className="section-rule my-4 ms-0 text-start" />
           {cases.length > 0 && (
             <p className="portfolio__lead">{t("portfolio.lead")}</p>
           )}
@@ -56,7 +56,7 @@ export const Portfolio = () => {
       </Row>
 
       {cases.length === 0 ? (
-        <Row className="sec_sp">
+        <Row className="section-gap">
           <Col lg="8">
             <p className="portfolio__lead">{t("portfolio.empty")}</p>
             <ul className="portfolio__empty-links list-unstyled">
@@ -110,7 +110,7 @@ export const Portfolio = () => {
 
       {repos.length > 0 && (
         <section className="portfolio-repos" aria-labelledby="portfolio-repos">
-          <h2 className="h3 color_sec py-4" id="portfolio-repos">
+          <h2 className="h3 py-4" id="portfolio-repos">
             {t("portfolio.repos.title")}
           </h2>
           <ul className="repo-list list-unstyled">
