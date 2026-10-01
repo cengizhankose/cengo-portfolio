@@ -1,0 +1,132 @@
+/* Home page sections below the hero (MKT-03, MKT-13). Colours come from the
+   theme tokens (--text-color, --text-muted, --border-color), so both themes
+   read the same; --text-muted is the AA-checked secondary text colour. */
+.section {
+  position: relative;
+}
+
+/* Links in the sections: plain underlined text, one weight of emphasis. */
+.textLink {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.textLink:hover {
+  text-decoration-thickness: 2px;
+}
+
+.textLink:focus-visible,
+.ctaLink:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 3px;
+}
+
+/* Selected work: three cards, side by side from 18rem each. */
+.workGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+}
+
+.workCard {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border: 1px solid var(--border-color);
+}
+
+.workAward {
+  align-self: flex-start;
+  margin: 0 0 0.75rem;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+}
+
+.workTitle {
+  margin: 0 0 0.75rem;
+}
+
+.workResult {
+  flex: 1;
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+}
+
+.workLink,
+.sectionMore {
+  margin: 0;
+}
+
+.sectionMore {
+  margin-top: 1.5rem;
+}
+
+/* Services: an outcome, one proof link and one call to action each. */
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 2rem 3rem;
+  margin: 0;
+  padding: 0;
+}
+
+.service {
+  display: flex;
+  flex-direction: column;
+}
+
+.serviceTitle {
+  margin: 0 0 0.75rem;
+  padding: 8px 0;
+  border-bottom: solid 2px var(--text-color);
+}
+
+.serviceOutcome {
+  margin: 0 0 1rem;
+}
+
+.serviceProof {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+.serviceCta {
+  margin: 0;
+  font-weight: 700;
+}
+
+.ctaLink {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.ctaLink:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* The closing call to action: the page ends on it, so it carries the
+   bottom space the sections above keep as section-gap. */
+.finalCta {
+  margin-bottom: calc(3rem + 5.128vw);
+}
+
+.finalLead {
+  max-width: 40rem;
+  margin: 0.75rem 0 1.5rem;
+  color: var(--text-muted);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+}
+
+.finalNote {
+  margin: 0.75rem 0 0;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
