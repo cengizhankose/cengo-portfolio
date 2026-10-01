@@ -3,31 +3,29 @@ import { useEffect, useRef } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { Link, useLocation } from "react-router-dom";
 import ExternalLink from "../../components/ExternalLink.jsx";
-import {
-  FEATURED_REPOS,
-  HACKATHON_ARCHIVE,
-  publishedProjects,
-} from "../../content/projects.js";
+import { FEATURED_REPOS, publishedProjects } from "../../content/projects.js";
 import { useContent, useLocalePath, useRoute, useT } from "../../i18n";
 import { usePrefersReducedMotion } from "../../lib/useMediaQuery.js";
 import { getPageMeta } from "../../seo/pages.js";
 import { SOCIAL_PROFILES } from "../../seo/site.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
+import { Awards } from "./Awards.jsx";
 import ProjectCard from "./ProjectCard.jsx";
 import { projectLinkProps } from "./tracking.js";
 
 const GITHUB = SOCIAL_PROFILES.find((profile) => profile.id === "github");
 
-// The portfolio (FE-04 Aşama B, DSG-08, MKT-01, ANL-11, MKT-18): the
-// published cases in registry order, the hackathon archive teaser, the
-// selected GitHub repos and a closing call to action. What is published is
-// decided in src/content/projects.js; a record waiting for permission or
+// The portfolio (FE-04 Aşama B, DSG-08, MKT-01, ANL-11, MKT-18, W13): the
+// published cases in registry order, each with the project's own screenshot,
+// then the hackathon podiums with the photos of the owner's posts (#awards),
+// the selected GitHub repos and a closing call to action. What is published
+// is decided in src/content/projects.js; a record waiting for permission or
 // confirmation never reaches this page.
 export const Portfolio = () => {
   const route = useRoute();
   const t = useT();
   const lp = useLocalePath();
-  const { projects, featuredRepos, awards } = useContent();
+  const { projects, featuredRepos } = useContent();
   const { hash } = useLocation();
   // Read when the hash changes; turning the setting on or off by itself must
   // not scroll the page again.
@@ -40,7 +38,7 @@ export const Portfolio = () => {
 
   // The router does not scroll to a hash: the home work cards and the service
   // proof links (/portfolio#project-<id>) land on their case through this,
-  // the same way the About page does for #awards. Reduced motion: no smooth
+  // and links to the podiums on #awards. Reduced motion: no smooth
   // scrolling, the page jumps.
   useEffect(() => {
     if (!hash) return;
@@ -56,7 +54,7 @@ export const Portfolio = () => {
   }, [hash]);
 
   // Cases that have their text; `position` counts the tracked items of the
-  // page in order (cases, archive, repos).
+  // page in order (cases, the hackathon section, repos).
   const cases = publishedProjects()
     .map((project) => ({
       project,
@@ -100,44 +98,26 @@ export const Portfolio = () => {
         </Row>
       ) : (
         <>
-          <ul className={`${styles.projectGrid} list-unstyled`}>
+          <ol className={`${styles.cases} list-unstyled section-gap`}>
             {cases.map(({ project, text }, index) => (
               <li key={project.id}>
                 <ProjectCard
                   project={project}
                   text={text}
                   position={index + 1}
+                  eager={index === 0}
                 />
               </li>
             ))}
-          </ul>
+          </ol>
 
-          <section
-            className={styles.archive}
-            aria-labelledby="portfolio-archive-title"
-          >
-            <h2 className="h4" id="portfolio-archive-title">
-              {t("portfolio.archive.title", { count: awards.length })}
-            </h2>
-            <p>{t("portfolio.archive.text")}</p>
-            <Link
-              to={`${lp(HACKATHON_ARCHIVE.path)}#${HACKATHON_ARCHIVE.hash}`}
-              {...projectLinkProps(
-                HACKATHON_ARCHIVE.id,
-                "case_study",
-                archivePosition,
-              )}
-            >
-              {t("portfolio.archive.cta")}
-              <span aria-hidden="true"> →</span>
-            </Link>
-          </section>
+          <Awards position={archivePosition} />
         </>
       )}
 
       {repos.length > 0 && (
-        <section className={styles.repos} aria-labelledby="portfolio-repos">
-          <h2 className="h3 py-4" id="portfolio-repos">
+        <section className="section-gap" aria-labelledby="portfolio-repos">
+          <h2 className={styles.sectionTitle} id="portfolio-repos">
             {t("portfolio.repos.title")}
           </h2>
           <ul className={`${styles.repoList} list-unstyled`}>

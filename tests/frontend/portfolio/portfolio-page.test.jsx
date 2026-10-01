@@ -1,6 +1,6 @@
 // The rendered portfolio in both languages (FE-04 Aşama B, DSG-08, MKT-01,
-// ANL-11, MKT-18). The TR pages are not live yet (LIVE.static = ['en']), so the
-// route table is mocked as after SEO-11 Adım B to render /tr/portfolio.
+// ANL-11, MKT-18, W13 redesign: case screenshots and the hackathon podiums).
+// The route table is mocked as after SEO-11 Adım B to render /tr/portfolio.
 // Analytics is mocked: the test reads what each link would send.
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -25,6 +25,7 @@ const { default: Headermain } = await import("../../../src/header");
 const { getContent } = await import("../../../src/content/index.js");
 const { PROJECTS, FEATURED_REPOS } =
   await import("../../../src/content/projects.js");
+const { awardRecord } = await import("../../../src/content/awards.js");
 const { translate } = await import("../../../src/i18n/translate.js");
 const { track } = await import("../../../src/lib/analytics/index.js");
 const { sanitizeProps } = await import("../../../src/lib/analytics/events.js");
@@ -80,7 +81,7 @@ describe.each([
     expect(document.querySelectorAll("[data-project-id]")).toHaveLength(3);
   });
 
-  it("every card has an h2, problem / role / result, tags and a real link", () => {
+  it("every case has an h2, a summary, problem / what I built / result, tags and a real link", () => {
     renderPage(path);
 
     for (const card of cards()) {
@@ -90,19 +91,22 @@ describe.each([
       const heading = within(card).getByRole("heading", { level: 2 });
       expect(heading.textContent).toBe(text.title);
       expect(card).toHaveAccessibleName(text.title);
+      expect(
+        card.querySelector(`.${portfolioStyles.cardSummary}`).textContent,
+      ).toBe(text.summary);
 
       const terms = [...card.querySelectorAll("dt")].map(
         (dt) => dt.textContent,
       );
       expect(terms).toEqual([
         t("portfolio.problem"),
-        t("portfolio.role"),
+        t("portfolio.built"),
         t("portfolio.result"),
       ]);
       const definitions = [...card.querySelectorAll("dd")].map(
         (dd) => dd.textContent,
       );
-      expect(definitions).toEqual([text.problem, text.role, text.result]);
+      expect(definitions).toEqual([text.problem, text.built, text.result]);
 
       const links = within(card).getAllByRole("link");
       expect(links.length).toBeGreaterThanOrEqual(1);
@@ -175,24 +179,91 @@ describe.each([
     ).toContain("Efe Akkurt");
   });
 
-  it("closes the cases with the hackathon archive and the awards link (MKT-01 step 3)", () => {
+  it("shows each case's own screenshot: the first loads at once, the rest lazily (W13)", () => {
+    renderPage(path);
+
+    cards().forEach((card, index) => {
+      const text = content.projects.find(
+        (entry) => entry.id === card.dataset.projectId,
+      );
+      const img = card.querySelector("picture img");
+      expect(img, card.dataset.projectId).not.toBeNull();
+      expect(img).toHaveAttribute("alt", text.imageAlt);
+      expect(img).toHaveAttribute("loading", index === 0 ? "eager" : "lazy");
+      expect(img).toHaveAttribute("decoding", "async");
+      // The case number is decoration.
+      const number = card.querySelector(`.${portfolioStyles.cardIndex}`);
+      expect(number.textContent).toBe(`0${index + 1}`);
+      expect(number).toHaveAttribute("aria-hidden", "true");
+    });
+  });
+
+  it("follows the cases with the hackathon podiums under #awards (MKT-01 step 3, W13)", () => {
     renderPage(path);
 
     const section = screen
       .getByRole("heading", {
         level: 2,
-        name: t("portfolio.archive.title", { count: content.awards.length }),
+        name: t("portfolio.awards.title", { count: content.awards.length }),
       })
       .closest("section");
+    expect(section.id).toBe("awards");
     expect(section.closest("article")).toBeNull();
+    expect(section.textContent).toContain(t("portfolio.awards.text"));
+    // After the last case, before the selected repos.
     expect(
-      within(section).getByRole("link", {
-        name: new RegExp(t("portfolio.archive.cta")),
-      }),
-    ).toHaveAttribute("href", archiveHref);
-    expect(section.textContent).toContain(t("portfolio.archive.text"));
-    // "10 podiums" is the awards archive's own count.
+      cards().at(-1).compareDocumentPosition(section) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // "10 podiums" is the archive's own count; nine are shown.
     expect(content.awards).toHaveLength(10);
+    const visible = content.awards.filter((award) => !award.hidden);
+    const tiles = [...section.querySelectorAll("li[data-award-id]")];
+    expect(tiles.map((tile) => tile.dataset.awardId)).toEqual(
+      visible.map((award) => award.id),
+    );
+    expect(section.textContent).not.toMatch(/IstanHack/);
+
+    for (const [index, tile] of tiles.entries()) {
+      const award = visible[index];
+      const record = awardRecord(award.id);
+      expect(within(tile).getByRole("heading", { level: 3 })).toHaveTextContent(
+        award.event,
+      );
+      for (const part of [award.place, award.project, award.summary]) {
+        expect(tile.textContent, award.id).toContain(part);
+      }
+      expect(tile.textContent).toContain(String(award.year));
+
+      const link = within(tile).getByRole("link");
+      expect(link).toHaveAttribute("href", award.url);
+      expect(link.textContent).toContain(award.linkLabel);
+      if (record.hreflang) {
+        expect(link).toHaveAttribute("hreflang", record.hreflang);
+      } else {
+        expect(link).not.toHaveAttribute("hreflang");
+      }
+
+      const img = tile.querySelector("img");
+      if (record.image) {
+        // The photo from the owner's post: alt text, square, lazy.
+        expect(img, award.id).not.toBeNull();
+        expect(img).toHaveAttribute("alt", award.imageAlt);
+        expect(img).toHaveAttribute("loading", "lazy");
+        expect(img).toHaveAttribute("decoding", "async");
+        expect(img.getAttribute("width")).toBe(img.getAttribute("height"));
+        expect(img.getAttribute("src")).toMatch(
+          new RegExp(`^/img/awards/${record.image.name}-v1-\\d+\\.webp$`),
+        );
+        expect(tile.querySelectorAll("source")).toHaveLength(2);
+      } else {
+        // No photo: the place as a numeral, hidden from assistive technology.
+        expect(img, award.id).toBeNull();
+        const numeral = tile.querySelector("svg");
+        expect(numeral).toHaveAttribute("aria-hidden", "true");
+        expect(numeral.textContent).toBe(String(record.rank));
+      }
+    }
   });
 
   it("lists the three selected repos under their own h2, with the profile link (MKT-18)", () => {
@@ -292,14 +363,13 @@ describe.each([
         "project_clicked",
         { project_id: "effort_lab", link_type: "demo", position: 3 },
       ],
-      [
-        "project_clicked",
-        {
-          project_id: "hackathon_archive",
-          link_type: "case_study",
-          position: 4,
-        },
-      ],
+      // One per shown podium (W13): the evidence links of #awards.
+      ...content.awards
+        .filter((award) => !award.hidden)
+        .map(() => [
+          "project_clicked",
+          { project_id: "hackathon_archive", link_type: "post", position: 4 },
+        ]),
       [
         "project_clicked",
         { project_id: "voxly", link_type: "repo", position: 5 },
@@ -381,13 +451,20 @@ describe.each([
     ).toEqual([]);
   });
 
-  it("uses h1, then only h2 (heading order)", () => {
+  it("uses one h1, h2 for the cases and sections, h3 only for the podiums (heading order)", () => {
     renderPage(path);
 
-    const levels = [...document.querySelectorAll("h1, h2, h3, h4, h5, h6")].map(
-      (heading) => Number(heading.tagName[1]),
-    );
+    const headings = [...document.querySelectorAll("h1, h2, h3, h4, h5, h6")];
+    const levels = headings.map((heading) => Number(heading.tagName[1]));
     expect(levels[0]).toBe(1);
-    expect(levels.slice(1).every((level) => level === 2)).toBe(true);
+    expect(levels.filter((level) => level === 1)).toHaveLength(1);
+    // No level is skipped on the way down.
+    levels.slice(1).forEach((level, index) => {
+      expect(level - levels[index]).toBeLessThanOrEqual(1);
+    });
+    expect(Math.max(...levels)).toBe(3);
+    for (const heading of headings.filter((h) => h.tagName === "H3")) {
+      expect(heading.closest("#awards li[data-award-id]")).not.toBeNull();
+    }
   });
 });
