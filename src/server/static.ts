@@ -496,25 +496,36 @@ export function mountSite(
     return renderNotFound(c, route, true);
   };
 
-  // The blog index: one list per group of the page (src/lib/swrFallback.js,
-  // T-12), newest first, cards only. The same lists are the swr data of the
-  // server render and go into the page for their API keys, so the app shows
-  // them without asking again.
+  // The lists behind the blog index and the home page's latest-writing block
+  // (src/lib/swrFallback.js, T-12): one per group of the page, newest first,
+  // cards only, keyed by their API URL. They are the swr data of the server
+  // render and go into the page, so the app shows them without asking again.
+  // Throws when the database does not answer.
+  const indexFallback = async (
+    list: NonNullable<PostQueries["listPublishedPosts"]>,
+    route: Route,
+  ): Promise<Record<string, unknown>> => {
+    const lists = blogIndexLists(route.locale);
+    const rows = await Promise.all(
+      lists.map((entry) =>
+        list({
+          lang: entry.lang as Locale,
+          missingIn: (entry as { missingIn?: Locale }).missingIn,
+          limit: LIST_DEFAULT_LIMIT,
+        }),
+      ),
+    );
+    return Object.fromEntries(
+      lists.map(({ key }, index) => [key, rows[index].map(toCard)]),
+    );
+  };
+
   const renderBlog = async (c: Context, route: Route) => {
     const list = queries?.listPublishedPosts;
     if (!list) return renderShell(c, 200);
-    const lists = blogIndexLists(route.locale);
-    let rows: Awaited<ReturnType<NonNullable<typeof list>>>[];
+    let fallback: Record<string, unknown>;
     try {
-      rows = await Promise.all(
-        lists.map((entry) =>
-          list({
-            lang: entry.lang as Locale,
-            missingIn: (entry as { missingIn?: Locale }).missingIn,
-            limit: LIST_DEFAULT_LIMIT,
-          }),
-        ),
-      );
+      fallback = await indexFallback(list, route);
     } catch (error) {
       log("error", "post list failed", {
         reqId: c.get("requestId"),
@@ -523,15 +534,39 @@ export function mountSite(
       });
       return renderUnavailable(c);
     }
-    const cards = rows.map((posts) => posts.map(toCard));
-    const fallback = Object.fromEntries(
-      lists.map(({ key }, index) => [key, cards[index]]),
-    );
     return respond(
       c,
       await composePage(route, route.locale, {}, fallback, "home"),
       200,
     );
+  };
+
+  // The home page (SEO-17): the build's file has no latest-writing block (the
+  // posts live in the database), so it is drawn per request like the blog
+  // index, from the same lists. The block's links are then in the raw HTML,
+  // and hydration finds the same data. Unlike the blog, a database that
+  // does not answer is not an error here: the prerendered file is served.
+  const renderHome = async (
+    c: Context,
+    route: Route,
+    list: NonNullable<PostQueries["listPublishedPosts"]>,
+    file: string,
+  ) => {
+    try {
+      const fallback = await indexFallback(list, route);
+      return respond(
+        c,
+        await composePage(route, route.locale, {}, fallback),
+        200,
+      );
+    } catch (error) {
+      log("error", "home post list failed", {
+        reqId: c.get("requestId"),
+        path: requestUrl(c).pathname,
+        ...errorFields(error),
+      });
+      return sendHtml(c, file, 200);
+    }
   };
 
   // A live static page the build did not prerender (a language opened after
@@ -570,6 +605,10 @@ export function mountSite(
     // served like any HTML document: from memory, ETag, no-cache.
     const file = prerendered.get(`${route.locale}:${route.path}`);
     if (file) {
+      const list = queries?.listPublishedPosts;
+      if (seo && route.path === "/" && list) {
+        return renderHome(c, route, list, file);
+      }
       return sendHtml(c, file, 200, robots ? { "X-Robots-Tag": robots } : {});
     }
     if (seo) {

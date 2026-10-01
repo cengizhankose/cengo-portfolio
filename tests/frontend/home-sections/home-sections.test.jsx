@@ -5,7 +5,7 @@
 //  - the latest-writing block: the T-12 order, the language badge, the limit
 //    of three, and nothing drawn while the API is loading, failing or
 //    answering with something that is not a list (FE-03).
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import axe from "axe-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { post, renderPage, sectionIds, stubFetch, json } from "./support.jsx";
@@ -26,6 +26,7 @@ const { getContent } = await import("../../../src/content/index.js");
 const { translate } = await import("../../../src/i18n/translate.js");
 const { postsKey } = await import("../../../src/lib/swr.js");
 const { track } = await import("../../../src/lib/analytics/index.js");
+const { CTA } = await import("../../../src/lib/analytics/events.js");
 
 const ALL = ["home", "proof", "work", "services", "blog", "cta"];
 const WITHOUT_BLOG = ALL.filter((id) => id !== "blog");
@@ -144,6 +145,18 @@ describe.each([
     expect(cta.textContent).toContain(
       t("cta.note", { time: contact.responseTime }),
     );
+  });
+
+  it("a click on the closing call to action is its own cta_id, not the hero's (ANL-12 follow-up)", () => {
+    renderPage(<Home />, path, { fallback: withPosts(locale, own) });
+
+    expect(CTA.HOME_FINAL_CONTACT).toBe("home_final_contact");
+    track.mockClear();
+    fireEvent.click(document.getElementById("cta").querySelector("a"));
+    expect(track).toHaveBeenCalledTimes(1);
+    expect(track).toHaveBeenCalledWith("cta_clicked", {
+      cta_id: "home_final_contact",
+    });
   });
 });
 

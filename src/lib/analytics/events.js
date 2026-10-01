@@ -97,6 +97,7 @@ export const CTA = Object.freeze({
   ABOUT_CONTACT: "about_contact", // CTA that closes the About page (MKT-15)
   BLOG_END_CONTACT: "blog_end_contact", // end-of-post CTA (MKT-07)
   SERVICE_CONTACT: "service_contact", // per-service CTA, with project_type (MKT-13)
+  HOME_FINAL_CONTACT: "home_final_contact", // closing CTA of the home page (MKT-03)
 });
 export const CTA_IDS = Object.freeze(Object.values(CTA));
 
