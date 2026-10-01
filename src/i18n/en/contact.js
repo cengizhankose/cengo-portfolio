@@ -5,7 +5,7 @@
 // `{latestPost}` as a link to the blog whose text is contact.latestPost
 // (src/pages/contact).
 export default {
-  title: "Contact me",
+  title: "Let’s work together",
   reachMe: "Reach me directly",
   emailLabel: "Email:",
   bookCall: "Book a 20-minute intro call",
