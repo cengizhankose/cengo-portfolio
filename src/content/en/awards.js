@@ -34,7 +34,7 @@ export default [
     summary:
       "SalesGym, a training platform where AI agents play realistic buyers, progress is measured and managers get a dashboard. I built it alone in eight hours.",
     imageAlt:
-      "Me biting the giant Sales Gym winner’s cheque in front of the ConvoAI World Istanbul screen.",
+      "Me biting the giant Sales Gym prize check in front of the ConvoAI World Istanbul screen.",
     linkLabel: "My post on LinkedIn",
   },
   {
@@ -128,7 +128,7 @@ export default [
     summary:
       "Shuddy, a real-time shopping app in React Native and Firebase. I built it, its business plan and its design alone in 40 hours; first of 13 teams.",
     imageAlt:
-      "Me holding the Teknasyon Hackathon’22 first-place cheque between cardboard figures of Frodo and Gandalf.",
+      "Me holding the Teknasyon Hackathon’22 first-place prize check between cardboard figures of Frodo and Gandalf.",
     linkLabel: "My post on LinkedIn (TR)",
   },
   {

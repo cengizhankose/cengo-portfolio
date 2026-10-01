@@ -27,7 +27,7 @@ export default [
     title: "SalesGym — AI sales practice on live video",
     awardLabel: "1st place · ConvoAI World Istanbul · 2026",
     summary:
-      "A sales training platform: reps practise calls with AI buyer personas on live video and are scored while they talk.",
+      "A sales training platform: reps practice calls with AI buyer personas on live video and are scored while they talk.",
     problem:
       "Sales training is expensive and inconsistent, and role-play with colleagues rarely feels like a real buyer.",
     built:
@@ -47,7 +47,7 @@ export default [
     problem:
       "DeFi yield opportunities are scattered across protocols and their risks are hard to compare.",
     built:
-      "Technical lead and backend developer, built with Efe Akkurt. A pnpm monorepo: a Next.js 15 app, an adapter layer that normalises protocol data (DefiLlama first), scores risk and caches it in SQLite, and Algorand smart contracts, a TEAL router with an ARC-4 ABI, for deposits and withdrawals.",
+      "Technical lead and backend developer, built with Efe Akkurt. A pnpm monorepo: a Next.js 15 app, an adapter layer that normalizes protocol data (DefiLlama first), scores risk and caches it in SQLite, and Algorand smart contracts, a TEAL router with an ARC-4 ABI, for deposits and withdrawals.",
     result:
       "1st place, Open Innovation Track, AlgoHack Istanbul (Algorand Foundation × Rise In), 2025, with a $2,500 prize. The follow-up, reset, took 2nd place at HackStellar Istanbul.",
     cta: { repo: "View on GitHub", post: "Read the organizer’s recap" },
