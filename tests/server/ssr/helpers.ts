@@ -7,9 +7,16 @@ import type {
 } from "../../../src/db/queries/posts";
 import { resolveForLocale } from "../../../src/db/queries/posts";
 import { mountSite, type MountSiteOptions } from "../../../src/server/static";
+import type { RenderPage } from "../../../src/server/ssr";
 import { FIXTURE_DIST } from "../helpers";
+// @ts-expect-error: a .jsx module without declarations. Bun compiles the JSX
+// and ignores the stylesheet imports, so the tests draw the real pages.
+import { render as renderApp } from "../../../src/entry-server.jsx";
 
 export { FIXTURE_DIST };
+
+/** The real server render (src/entry-server.jsx) straight from source (PERF-03). */
+export const render: RenderPage = renderApp;
 
 /** Three headings (one h2, two h3), a list, a table, a footnote and a diagram. */
 export const POST_MARKDOWN = `Intro paragraph with **bold** text and a [link](https://example.com/page).
@@ -141,13 +148,13 @@ export function fakeQueries({
   };
 }
 
-/** mountSite over the fixture dist with injection on. */
+/** mountSite over the fixture dist with injection on and the real server render. */
 export function siteWith(
   queries: MountSiteOptions["queries"],
   options: Partial<MountSiteOptions> = {},
 ): Hono {
   const app = new Hono();
-  mountSite(app, { distDir: FIXTURE_DIST, queries, ...options });
+  mountSite(app, { distDir: FIXTURE_DIST, queries, render, ...options });
   return app;
 }
 
@@ -155,9 +162,9 @@ export function siteWith(
 export const count = (text: string, pattern: RegExp) =>
   (text.match(pattern) ?? []).length;
 
-/** The text of <div id="root">…</div> (the snapshot), or "". */
+/** The text of <div id="root">…</div> (the server render), or "". */
 export function rootOf(page: string): string {
-  const start = page.indexOf('<div id="root">');
+  const start = page.indexOf('<div id="root"');
   const end = page.indexOf('<script id="__SEO_DATA__"');
   if (start === -1) return "";
   return page.slice(start, end === -1 ? undefined : end);

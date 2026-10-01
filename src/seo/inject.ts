@@ -7,7 +7,9 @@
 //      (description, robots, canonical, hreflang, Open Graph/Twitter, JSON-LD)
 //      and adds `headTags` (src/seo/head.ts) before </head>, so every tag is
 //      printed once however the shell was built;
-//   3. puts `bodyHtml` (src/seo/snapshot.ts) into <div id="root">;
+//   3. puts `bodyHtml` (the server render, src/entry-server.jsx) into
+//      <div id="root">, marked `data-ssr` when React is to hydrate it
+//      (`hydrate`, src/entry-client.jsx);
 //   4. appends the first data of the page as a JSON block before </body>.
 //
 // The JSON block is not executable (`type="application/json"`), so the CSP
@@ -15,8 +17,9 @@
 // text in the data can close the element (tests/server/ssr/inject.test.ts).
 // src/seo/readSeoData.js reads it in the browser (T-04 swr fallback).
 //
-// The same function serves PERF-03 (T-06 Aşama 2): the server render's HTML
-// goes in as `bodyHtml` through the same hat.
+// PERF-03 (T-06 Aşama 2): one function for every HTML the server makes. The
+// build-time prerender (scripts/prerender.ts) and the request-time blog render
+// (src/server/static.ts) both pass React's HTML in as `bodyHtml`.
 //
 // Startup: assertShellMarkers() checks that the shell still has the markers
 // this file rewrites. A build change that removes one stops the process at
@@ -28,6 +31,8 @@ import { serializeJsonLd } from "./jsonld.js";
 import { SEO_DATA_ID } from "./readSeoData.js";
 
 const ROOT_MARKER = '<div id="root"></div>';
+/** On #root when its content is a server render to hydrate (src/entry-client.jsx reads it). */
+export const SSR_ATTRIBUTE = "data-ssr";
 const HTML_OPEN = /<html\b([^>]*)>/i;
 const HEAD_CLOSE = /<\/head>/i;
 const BODY_CLOSE = /<\/body>/i;
@@ -74,11 +79,11 @@ export function readShell(file: string): string {
  * contain `marker`, in name order.
  *
  * A page that Vite splits into its own chunk (the blog) brings its stylesheet
- * with the chunk, after the app has started. The snapshot of such a page uses
- * those class names from the first paint, so the server links the stylesheet in
- * the <head> (renderHeadTags `stylesheets`): without it the snapshot is drawn
- * unstyled and jumps when the chunk's CSS arrives (layout shift). The file is
- * found by a class name the snapshot itself prints, because the hashed file name
+ * with the chunk, after the app has started. The server render of such a page
+ * uses those class names from the first paint, so the server links the
+ * stylesheet in the <head> (renderHeadTags `stylesheets`): without it the page
+ * is drawn unstyled and jumps when the chunk's CSS arrives (layout shift). The
+ * file is found by a class name the page itself prints, because the hashed file name
  * says nothing about the page; Vite's runtime loader skips a stylesheet that is
  * already linked by the same href, so it is fetched once. Reads the files once,
  * at startup. An empty list (dev, a build without the chunk) prints nothing.
@@ -132,8 +137,15 @@ export interface InjectInput {
   lang?: string | null;
   /** Head tags from renderHeadTags(). */
   headTags: string;
-  /** The snapshot for <div id="root"> (renderSnapshot()); empty keeps the root empty. */
+  /** The server render for <div id="root"> (src/entry-server.jsx); empty keeps the root empty. */
   bodyHtml?: string;
+  /**
+   * The body is React's own output for this URL: #root gets `data-ssr`, and
+   * the browser hydrates it instead of drawing the page again. Leave it off
+   * for any other body (a 404 page, a fallback); the browser then replaces it.
+   * Ignored while `bodyHtml` is empty.
+   */
+  hydrate?: boolean;
   /** First data for swr, written as the JSON block; nothing is written for an empty map. */
   data?: Record<string, unknown> | null;
 }
@@ -144,7 +156,7 @@ export interface InjectInput {
  */
 export function injectIntoShell(
   shell: string,
-  { lang, headTags, bodyHtml = "", data }: InjectInput,
+  { lang, headTags, bodyHtml = "", hydrate = false, data }: InjectInput,
 ): string {
   let out = shell;
 
@@ -166,7 +178,10 @@ export function injectIntoShell(
   );
 
   if (bodyHtml !== "") {
-    out = out.replace(ROOT_MARKER, () => `<div id="root">${bodyHtml}</div>`);
+    const root = hydrate
+      ? `<div id="root" ${SSR_ATTRIBUTE}>`
+      : '<div id="root">';
+    out = out.replace(ROOT_MARKER, () => `${root}${bodyHtml}</div>`);
   }
 
   if (data && Object.keys(data).length > 0) {
@@ -177,7 +192,7 @@ export function injectIntoShell(
   return out;
 }
 
-/** What the server writes into the shell's <head> for a page without a snapshot (SEO-02 step 4). */
+/** What the server writes into the shell's <head> for a page without a server render (SEO-02 step 4). */
 export interface ShellMeta {
   title?: string | null;
   robots?: string | null;

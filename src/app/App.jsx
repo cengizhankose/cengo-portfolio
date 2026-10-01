@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import "../styles/bootstrap-subset.scss";
 import { BrowserRouter as Router } from "react-router-dom";
 import AppRoutes from "./routes";
+import { IntentPrefetch } from "../hooks/useIntentPrefetch";
 import Headermain from "../header";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { reloadForNewRelease } from "../components/routefallback/lazyPage.js";
@@ -60,15 +61,43 @@ function useReloadOnStaleChunk() {
   }, []);
 }
 
-export default function App() {
+// PERF-03 (T-06 Aşama 2): everything inside the router, and nothing else. The
+// router is chosen by the entry point: BrowserRouter in src/entry-client.jsx,
+// StaticRouter in src/entry-server.jsx (the prerender and the blog render), so
+// the same tree is drawn on the server and hydrated in the browser.
+export function AppShell() {
   useReloadOnStaleChunk();
   return (
-    <Router basename={import.meta.env.BASE_URL}>
+    <>
       {/* Scroll to top, focus and the page view on a page change all live in
           the route shell (routes.jsx): one place, one commit. */}
       <Headermain />
       <AppRoutes />
       <CursorGate />
+    </>
+  );
+}
+
+// What both entries draw inside their router: the shell and the blog intent
+// preload (PERF-14), which renders nothing and only listens. One component, so
+// the server and the browser build the same element tree; useId values depend
+// on its shape and a mismatch would break hydration.
+export function AppRoot() {
+  return (
+    <>
+      <IntentPrefetch />
+      <AppShell />
+    </>
+  );
+}
+
+// The whole app with the browser's router and without the intent preload: what
+// the component tests render. The production entry (src/entry-client.jsx)
+// builds the router itself and draws AppRoot.
+export default function App() {
+  return (
+    <Router basename={import.meta.env.BASE_URL}>
+      <AppShell />
     </Router>
   );
 }

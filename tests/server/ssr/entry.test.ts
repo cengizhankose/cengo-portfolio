@@ -1,52 +1,105 @@
 /**
- * How the pieces are wired (SEO-01 steps 8-11, PERF-01): the client entry
- * takes the server's data, the blog page shares the grouping rule with the
- * snapshot, the modules the server and the client share stay pure, and the
- * runtime packages the snapshot needs are dependencies the image installs.
+ * How the pieces are wired (SEO-01 steps 8-11, PERF-01, PERF-03): the client
+ * entry hydrates the server's HTML and takes the server's data, the server
+ * entry draws the same tree, the build produces the server bundle and the
+ * prerendered pages, and the modules the server and the browser share stay
+ * pure.
  */
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const REPO = join(import.meta.dir, "..", "..", "..");
 const read = (file: string) => readFileSync(join(REPO, file), "utf8");
 const code = (file: string) => read(file).replace(/^\s*\/\/.*$/gm, "");
 
-describe("src/main.jsx", () => {
-  const main = code("src/main.jsx");
+describe("src/entry-client.jsx", () => {
+  const entry = code("src/entry-client.jsx");
+
+  test("replaces src/main.jsx as the one entry the page loads", () => {
+    expect(existsSync(join(REPO, "src/main.jsx"))).toBe(false);
+    expect(read("index.html")).toContain('src="/src/entry-client.jsx"');
+    expect(read("index.html")).not.toContain("main.jsx");
+  });
 
   test("gives swr the server's data as its fallback", () => {
-    expect(main).toContain('from "./seo/readSeoData.js"');
-    expect(main).toContain('from "./lib/swrFallback.js"');
-    expect(main).toMatch(/fallback:\s*toSWRFallback\(readSeoData\(\)\)/);
+    expect(entry).toContain('from "./seo/readSeoData.js"');
+    expect(entry).toContain('from "./lib/swrFallback.js"');
+    expect(entry).toMatch(/fallback:\s*toSWRFallback\(readSeoData\(\)\)/);
   });
 
-  test("still mounts with createRoot and calls initAnalytics once, after the render", () => {
-    expect(main).toContain("createRoot(");
-    expect(main).not.toContain("hydrateRoot");
-    expect(main.match(/initAnalytics\(\)/g)).toHaveLength(1);
-    expect(main.indexOf("root.render(")).toBeLessThan(
-      main.indexOf("initAnalytics()"),
+  test("hydrates a server render (data-ssr) and draws a plain shell with createRoot", () => {
+    expect(entry).toContain('hasAttribute("data-ssr")');
+    expect(entry).toMatch(
+      /if \(hydrating\) hydrateRoot\(container, app\);\s*else createRoot\(container\)\.render\(app\)/,
     );
   });
 
-  test("reloads once for a lazy import that is gone after a deploy (FE-05 step 4)", () => {
-    expect(main).toContain('addEventListener("vite:preloadError"');
-    expect(main).toMatch(/reloadForNewRelease\(\)/);
-    // The default is prevented only when the page did reload; otherwise the
-    // error must reach the route's error boundary.
-    expect(main).toMatch(
-      /if \(reloadForNewRelease\(\)\) event\.preventDefault\(\)/,
+  test("calls initAnalytics once, after the render", () => {
+    expect(entry.match(/initAnalytics\(\)/g)).toHaveLength(1);
+    expect(entry.indexOf("hydrateRoot(container, app)")).toBeLessThan(
+      entry.indexOf("initAnalytics()"),
     );
   });
 
-  test("keeps the server's snapshot on screen while a lazy page chunk loads", () => {
-    expect(main).toContain("container.hasChildNodes()");
-    expect(main).toContain("chunkLoaderForRoute(matchRoute(");
+  test("loads the lazy page chunk before it hydrates, and adds no preloadError listener of its own", () => {
+    expect(entry).toContain("chunkLoaderForRoute(matchRoute(");
+    expect(entry).not.toContain("vite:preloadError");
+    // The one listener lives in App.jsx (FE-05 step 4).
+    expect(code("src/app/App.jsx")).toContain('"vite:preloadError"');
+  });
+
+  test("builds the same tree as the server: StrictMode > SWRConfig > router > AppRoot", () => {
+    const server = code("src/entry-server.jsx");
+    for (const source of [entry, server]) {
+      expect(source).toContain("<StrictMode>");
+      expect(source).toContain("<SWRConfig");
+      expect(source).toContain("<AppRoot />");
+      expect(source).toContain("basename={import.meta.env.BASE_URL}");
+    }
+    expect(entry).toContain("<BrowserRouter");
+    expect(server).toContain("<StaticRouter");
+    // IntentPrefetch sits inside AppRoot next to AppShell, so neither entry
+    // places anything of its own beside them (useId depends on the tree's
+    // shape).
+    expect(entry).not.toContain("IntentPrefetch");
+    expect(server).not.toContain("IntentPrefetch");
+    expect(code("src/app/App.jsx")).toMatch(
+      /function AppRoot\(\)[\s\S]*<IntentPrefetch \/>\s*<AppShell \/>/,
+    );
+  });
+
+  test("keeps the font and global styles import order (fonts.css before index.css)", () => {
+    expect(entry.indexOf("./styles/fonts.css")).toBeGreaterThan(-1);
+    expect(entry.indexOf("./styles/fonts.css")).toBeLessThan(
+      entry.indexOf("./index.css"),
+    );
   });
 });
 
-describe("the blog index and the snapshot share the grouping rule", () => {
+describe("src/entry-server.jsx", () => {
+  const entry = code("src/entry-server.jsx");
+
+  test("waits for every boundary with prerender and keeps the output free of inline scripts", () => {
+    expect(entry).toContain('from "react-dom/static"');
+    expect(entry).toContain("progressiveChunkSize: Infinity");
+  });
+
+  test("throws a render error instead of serving half a page", () => {
+    expect(entry).toMatch(/onError:\s*\(error\)\s*=>/);
+    expect(entry).toMatch(/if \(errors\.length > 0\)\s*{\s*throw new Error/);
+  });
+
+  test("touches no browser global", () => {
+    expect(entry).not.toMatch(/\b(window|document|localStorage|navigator)\b/);
+  });
+
+  test("does not draw the head: usePageMeta is an effect and the head has one source (T-03)", () => {
+    expect(entry).not.toMatch(/Helmet|usePageMeta|renderHeadTags/);
+  });
+});
+
+describe("the blog index and the page share the grouping rule", () => {
   test("BlogHome imports it and no longer defines it", () => {
     const page = code("src/pages/blog/BlogHome.jsx");
     expect(page).toContain('from "../../lib/postGroups.js"');
@@ -54,12 +107,6 @@ describe("the blog index and the snapshot share the grouping rule", () => {
     expect(page).not.toMatch(/function groupPosts\b/);
     // The old export stays for its callers.
     expect(page).toMatch(/export const groupPosts = groupPostsForLocale/);
-  });
-
-  test("the snapshot imports the same module", () => {
-    expect(code("src/seo/snapshot.ts")).toContain(
-      'from "../lib/postGroups.js"',
-    );
   });
 });
 
@@ -75,12 +122,12 @@ describe("modules shared by the server and the browser stay pure", () => {
     expect(source).not.toMatch(/import\.meta\.env/);
   });
 
-  test("the server layer imports no component and no stylesheet", () => {
+  test("the server layer imports no component, no stylesheet and no React package", () => {
     for (const file of [
       "src/seo/head.ts",
       "src/seo/inject.ts",
-      "src/seo/snapshot.ts",
-      "src/seo/markdown.ts",
+      "src/server/static.ts",
+      "src/server/ssr.ts",
     ]) {
       const imports = code(file).match(/from\s+["'][^"']+["']/g) ?? [];
       for (const statement of imports) {
@@ -90,48 +137,101 @@ describe("modules shared by the server and the browser stay pure", () => {
         expect(statement, `${file}: ${statement}`).not.toMatch(
           /\/components\//,
         );
+        expect(statement, `${file}: ${statement}`).not.toMatch(
+          /["'](react|react-dom|react-router|react-router-dom|swr)(\/[^"']*)?["']/,
+        );
       }
     }
   });
 
-  test("the hero hint and the markup name their files from heroImage.js only", () => {
+  test("the hero hint names its files from heroImage.js only", () => {
     expect(code("src/seo/pages/home.js")).toContain(
       'from "../../pages/home/heroImage.js"',
     );
-    expect(code("src/seo/snapshot.ts")).toContain(
-      'from "../pages/home/heroImage.js"',
-    );
-  });
-
-  test("the snapshot runs the page's own markdown pipeline, not a second allowlist", () => {
-    const markdown = code("src/seo/markdown.ts");
-    expect(markdown).toContain('from "../lib/markdown/pipeline.js"');
-    expect(markdown).not.toContain("defaultSchema");
-    expect(markdown).not.toContain("allowDangerousHtml: false");
   });
 });
 
-describe("runtime packages and the image", () => {
-  const pkg = JSON.parse(read("package.json"));
+describe("the snapshot is gone (PERF-03 step 9)", () => {
+  test("no second render path: src/seo/snapshot.ts and its markdown module do not exist", () => {
+    expect(existsSync(join(REPO, "src/seo/snapshot.ts"))).toBe(false);
+    expect(existsSync(join(REPO, "src/seo/markdown.ts"))).toBe(false);
+  });
 
-  test("every package the server layer imports is a dependency (not a dev one)", () => {
-    for (const name of [
-      "unified",
-      "remark-parse",
-      "remark-gfm",
-      "remark-rehype",
-      "rehype-raw",
-      "rehype-sanitize",
-      "rehype-stringify",
-      "swr",
-      "hono",
+  test("nothing in the server layer still imports them", () => {
+    for (const file of [
+      "src/server/static.ts",
+      "src/seo/inject.ts",
+      "src/seo/head.ts",
+      "scripts/prerender.ts",
+      "server.ts",
     ]) {
-      expect(pkg.dependencies?.[name], name).toBeDefined();
-      expect(pkg.devDependencies?.[name], name).toBeUndefined();
+      expect(code(file), file).not.toMatch(
+        /seo\/(snapshot|markdown)|renderSnapshot|renderNotFoundSnapshot/,
+      );
     }
   });
 
-  test("the production stage copies all of src/ (seo, lib, content, i18n, pages/home/heroImage.js)", () => {
-    expect(read("Dockerfile")).toMatch(/^COPY src \.\/src$/m);
+  test("the server's own graph needs no markdown packages any more", () => {
+    for (const file of [
+      "src/server/static.ts",
+      "src/server/ssr.ts",
+      "src/seo/inject.ts",
+      "src/seo/head.ts",
+      "src/seo/pages.js",
+    ]) {
+      expect(code(file), file).not.toMatch(
+        /from\s+["'](unified|remark-[a-z]+|rehype-[a-z]+)["']/,
+      );
+    }
+  });
+});
+
+describe("the build (package.json, vite.config.js)", () => {
+  const pkg = JSON.parse(read("package.json"));
+
+  test("build = client bundle, server bundle, prerender, in that order", () => {
+    const steps = String(pkg.scripts.build)
+      .split("&&")
+      .map((step) => step.trim());
+    expect(steps).toEqual([
+      "vite build",
+      "vite build --ssr src/entry-server.jsx --outDir dist/server",
+      "bun scripts/prerender.ts",
+    ]);
+  });
+
+  test("the client build writes the ssr manifest; the server build copies no public/ and names its entry", () => {
+    const config = read("vite.config.js");
+    expect(config).toContain("ssrManifest: !isSsrBuild");
+    expect(config).toContain("copyPublicDir: !isSsrBuild");
+    expect(config).toContain('entryFileNames: "entry-server.js"');
+    expect(config).toMatch(/ssr:\s*isSsrBuild\s*\?\s*{\s*noExternal:\s*true/);
+    expect(config).toContain('process.argv.includes("--ssr")');
+  });
+
+  test("the config stays a plain object (tests read it as data)", async () => {
+    const { default: config } = (await import(
+      "../../../vite.config.js" as string
+    )) as { default: any };
+    expect(config.build.ssrManifest).toBe(true); // a client build: no --ssr in argv
+    expect(config.ssr).toBeUndefined();
+    expect(config.build.copyPublicDir).toBe(true);
+  });
+
+  test("the production image copies dist/ (with dist/server) and all of src/", () => {
+    const dockerfile = read("Dockerfile");
+    expect(dockerfile).toMatch(/^COPY --from=builder \/app\/dist \.\/dist$/m);
+    expect(dockerfile).toMatch(/^COPY src \.\/src$/m);
+  });
+});
+
+describe("runtime packages", () => {
+  const pkg = JSON.parse(read("package.json"));
+
+  test("the packages the server process itself imports are dependencies (not dev ones)", () => {
+    for (const name of ["hono", "drizzle-orm", "postgres", "zod"]) {
+      expect(pkg.dependencies?.[name], name).toBeDefined();
+      expect(pkg.devDependencies?.[name], name).toBeUndefined();
+    }
   });
 });
