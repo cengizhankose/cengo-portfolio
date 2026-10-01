@@ -31,6 +31,19 @@
   outline-offset: 3px;
 }
 
+/* Bootstrap's .btn state rules (hover, focus, active, disabled) set
+   border-color from --bs-btn-* variables this button never defines, so the
+   border has always gone transparent in those states (the offset shadow and
+   the focus ring then stand alone). Local styles now win over the vendor
+   layer, which would bring the border back; it is stated here instead so the
+   look does not change (FE-20, DSG-25 criterion 2). */
+.button:hover,
+.button:focus-visible,
+.button:active,
+.button:disabled {
+  border-color: transparent;
+}
+
 /* The hero button also fills with three sliding layers (.ring*). On hover the
    fill is the text colour, so the label flips to the surface colour. */
 .hasRings:hover {
