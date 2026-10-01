@@ -1,4 +1,5 @@
 import { FaTrophy } from "react-icons/fa";
+import styles from "./portfolio.module.css";
 import { useT } from "../../i18n";
 import ExternalLink from "../../components/ExternalLink.jsx";
 import { PROJECT_IMAGE, projectSrc, projectSrcSet } from "./projectImage.js";
@@ -22,12 +23,12 @@ export default function ProjectCard({ project, text, position }) {
 
   return (
     <article
-      className="project-card"
+      className={styles.card}
       data-project-id={project.id}
       aria-labelledby={titleId}
     >
       {image && text.imageAlt && (
-        <picture className="project-card__media">
+        <picture className={styles.cardMedia}>
           <source
             type="image/avif"
             srcSet={projectSrcSet(image.name, "avif")}
@@ -50,32 +51,32 @@ export default function ProjectCard({ project, text, position }) {
           />
         </picture>
       )}
-      <div className="project-card__body">
+      <div className={styles.cardBody}>
         {text.awardLabel && (
-          <p className="project-card__award">
+          <p className={styles.cardAward}>
             <FaTrophy aria-hidden="true" focusable="false" /> {text.awardLabel}
           </p>
         )}
-        <h2 className="project-card__title h4" id={titleId}>
+        <h2 className={`${styles.cardTitle} h4`} id={titleId}>
           {text.title}
         </h2>
-        <dl className="project-card__facts">
+        <dl className={styles.cardFacts}>
           {["problem", "role", "result"].map((key) => (
-            <div key={key} className="project-card__fact">
+            <div key={key} className={styles.cardFact}>
               <dt>{t(`portfolio.${key}`)}</dt>
               <dd>{text[key]}</dd>
             </div>
           ))}
         </dl>
         <ul
-          className="project-card__tags list-unstyled"
+          className={`${styles.cardTags} list-unstyled`}
           aria-label={t("portfolio.stack")}
         >
           {project.stack.slice(0, MAX_TAGS).map((tag) => (
             <li key={tag}>{tag}</li>
           ))}
         </ul>
-        <ul className="project-card__links list-unstyled">
+        <ul className={`${styles.cardLinks} list-unstyled`}>
           {project.links.map((link) => (
             <li key={link.type}>
               <ExternalLink

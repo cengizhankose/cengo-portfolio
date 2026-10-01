@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import portfolioStyles from "../../../src/pages/portfolio/portfolio.module.css";
 
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -36,7 +37,9 @@ const renderPage = (path) =>
   );
 
 const words = (element) => element.textContent.trim().split(/\s+/).length;
-const cards = () => [...document.querySelectorAll("article.project-card")];
+const cards = () => [
+  ...document.querySelectorAll(`article.${portfolioStyles.card}`),
+];
 const externalLinks = (root = document) => [
   ...root.querySelectorAll('a[href^="http"]'),
 ];
@@ -108,7 +111,7 @@ describe.each([
         expect(link.getAttribute("href")).not.toBe("#");
       }
       expect(
-        card.querySelectorAll(".project-card__tags li").length,
+        card.querySelectorAll(`.${portfolioStyles.cardTags} li`).length,
       ).toBeLessThanOrEqual(5);
     }
   });
@@ -116,7 +119,9 @@ describe.each([
   it("the badge is on the two podium cases only (DSG-08 criterion 4)", () => {
     renderPage(path);
 
-    const badges = [...document.querySelectorAll(".project-card__award")];
+    const badges = [
+      ...document.querySelectorAll(`.${portfolioStyles.cardAward}`),
+    ];
     expect(badges).toHaveLength(2);
     expect(
       badges.map((badge) => badge.closest("article").dataset.projectId),
@@ -125,7 +130,7 @@ describe.each([
     expect(
       document
         .querySelector('[data-project-id="effort_lab"]')
-        .querySelector(".project-card__award"),
+        .querySelector(`.${portfolioStyles.cardAward}`),
     ).toBeNull();
     // The trophy is decoration.
     for (const badge of badges) {
@@ -209,7 +214,7 @@ describe.each([
       expect(section.textContent).toContain(repo.what);
     }
     // No "what I learned" line until the owner writes one.
-    expect(section.querySelector(".repo-list__learned")).toBeNull();
+    expect(section.querySelector(`.${portfolioStyles.repoLearned}`)).toBeNull();
   });
 
   it("the menu has one portfolio link in the page's language (FE-04 exit)", () => {

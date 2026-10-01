@@ -237,7 +237,10 @@ describe("components kept on purpose", () => {
     expect(cell.color).toMatch(/var\(--bs-table-color\)/);
     // DSG-01's override (two classes) outranks .table (one class).
     expect(
-      declarations(read("src/pages/about/style.css"), ".About-header .table"),
+      declarations(
+        read("src/pages/about/about.module.css"),
+        ".page :global(.table)",
+      ),
     ).toMatchObject({
       "--bs-table-bg": "transparent",
       "--bs-table-color": "var(--text-color)",

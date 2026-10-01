@@ -9,6 +9,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { getContent } from "../../../src/content/index.js";
 import { About } from "../../../src/pages/about";
+import aboutStyles from "../../../src/pages/about/about.module.css";
 
 const { services, skills } = getContent("en");
 
@@ -76,7 +77,7 @@ describe("About heading outline (SEO-13, FE-27, MKT-15)", () => {
       expect(heading).toHaveClass("h3");
     }
     for (const heading of document.querySelectorAll(".service_ h3")) {
-      expect(heading).toHaveClass("h5", "service__title");
+      expect(heading).toHaveClass("h5", aboutStyles.serviceTitle);
     }
   });
 
@@ -88,14 +89,18 @@ describe("About heading outline (SEO-13, FE-27, MKT-15)", () => {
     expect(groups).toHaveLength(skills.length);
     expect(
       [...groups].map(
-        (li) => li.querySelector(".skill-group__name").textContent,
+        (li) => li.querySelector(`.${aboutStyles.skillGroupName}`).textContent,
       ),
     ).toEqual(skills.map((group) => group.name));
     expect(
-      [...document.querySelectorAll(".skill-chip")].map((li) => li.textContent),
+      [...document.querySelectorAll(`.${aboutStyles.skillChip}`)].map(
+        (li) => li.textContent,
+      ),
     ).toEqual(skills.flatMap((group) => group.items));
     // Each chip list is named by its group label.
-    for (const list of document.querySelectorAll(".skill-group__items")) {
+    for (const list of document.querySelectorAll(
+      `.${aboutStyles.skillGroupItems}`,
+    )) {
       const label = document.getElementById(
         list.getAttribute("aria-labelledby"),
       );

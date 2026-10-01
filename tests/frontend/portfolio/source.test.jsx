@@ -11,7 +11,7 @@ import { ROOT, declared, read } from "../hero/support.js";
 
 vi.mock("../../../src/lib/analytics/index.js", () => ({ track: vi.fn() }));
 
-const css = read("src/pages/portfolio/style.css");
+const css = read("src/pages/portfolio/portfolio.module.css");
 
 describe("one click, one event (ANL-09 / ANL-11)", () => {
   it("the outbound listener skips every project link and counts the GitHub profile link", () => {
@@ -48,7 +48,7 @@ describe("one click, one event (ANL-09 / ANL-11)", () => {
 
 describe("portfolio stylesheet (DSG-08 step 9, DSG-25)", () => {
   it("lays the cards out as an auto-fill grid of 18rem columns with a 2rem gap", () => {
-    expect(declared(css, ".project-grid")).toMatchObject({
+    expect(declared(css, ".projectGrid")).toMatchObject({
       display: "grid",
       "grid-template-columns": "repeat(auto-fill, minmax(18rem, 1fr))",
       gap: "2rem",
@@ -56,16 +56,16 @@ describe("portfolio stylesheet (DSG-08 step 9, DSG-25)", () => {
   });
 
   it("keeps the image box 16:10 and cropped", () => {
-    expect(declared(css, ".project-card__media")).toMatchObject({
+    expect(declared(css, ".cardMedia")).toMatchObject({
       "aspect-ratio": "16 / 10",
     });
-    expect(declared(css, ".project-card__media img")).toMatchObject({
+    expect(declared(css, ".cardMedia img")).toMatchObject({
       "object-fit": "cover",
     });
   });
 
   it("draws the badge monochrome from the theme tokens", () => {
-    const badge = declared(css, ".project-card__award");
+    const badge = declared(css, ".cardAward");
     expect(badge["border-radius"]).toBe("0.75rem");
     expect(badge.border).toBe("1px solid var(--border-color)");
     expect(badge.color).toBe("var(--text-color)");
@@ -75,13 +75,11 @@ describe("portfolio stylesheet (DSG-08 step 9, DSG-25)", () => {
     expect(css).not.toMatch(/transition:\s*all/);
     const gated = declared(
       css,
-      ".project-card:hover .project-card__media img",
+      ".card:hover .cardMedia img",
       "(prefers-reduced-motion: no-preference)",
     );
     expect(gated.transform).toBe("scale(1.03)");
-    expect(
-      declared(css, ".project-card:hover .project-card__media img"),
-    ).toEqual({});
+    expect(declared(css, ".card:hover .cardMedia img")).toEqual({});
   });
 
   it("uses only theme tokens for colour, so both themes read the same", () => {

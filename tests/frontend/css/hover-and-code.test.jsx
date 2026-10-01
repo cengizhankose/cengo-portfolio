@@ -126,7 +126,7 @@ describe("hover changes something visible (DSG-27)", () => {
       "text-decoration": "none",
     });
     expect(
-      declared(read("src/pages/about/style.css"), ".about-cta__button:hover"),
+      declared(read("src/pages/about/about.module.css"), ".ctaButton:hover"),
     ).toMatchObject({ "text-decoration": "none" });
   });
 });

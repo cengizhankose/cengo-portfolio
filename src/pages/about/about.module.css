@@ -1,6 +1,6 @@
 /* Bootstrap 5.3 paints table cells with --bs-body-bg (white); bind the table
    variables to the theme instead so the timeline reads in both themes (DSG-01). */
-.About-header .table {
+.page :global(.table) {
   --bs-table-bg: transparent;
   --bs-table-color: var(--text-color);
   --bs-table-border-color: color-mix(
@@ -11,7 +11,7 @@
 }
 
 /* Lead line above the story (MKT-15): the claim the three paragraphs back up. */
-.about-lead {
+.lead {
   margin-bottom: 1.5rem;
   font-family: var(--font-display);
   font-synthesis: none;
@@ -24,61 +24,61 @@
    under every cell: the role row drops its bottom border so both rows read as
    one entry. The cell colours stay on the theme through the DSG-01 variables
    above. */
-.About-header .timeline .timeline__role > * {
+.page .timeline .role > * {
   border-bottom-width: 0;
   padding-bottom: 0.25rem;
 }
 
-.About-header .timeline .timeline__role {
+.page .timeline .role {
   font-weight: 700;
 }
 
-.About-header .timeline .timeline__date {
+.page .timeline .date {
   text-align: end;
   white-space: nowrap;
 }
 
-.About-header .timeline .timeline__outcome > td {
+.page .timeline .outcome > td {
   padding-top: 0;
   padding-bottom: 1rem;
   color: var(--text-muted);
 }
 
-.about-ventures__title {
+.venturesTitle {
   margin: 2.5rem 0 1rem;
   padding: 8px 0;
   border-bottom: solid 2px var(--text-color);
 }
 
-.about-ventures > li + li {
+.ventures > li + li {
   margin-top: 1rem;
 }
 
-.about-ventures p {
+.ventures p {
   margin: 0;
 }
 
-.about-venture__name {
+.ventureName {
   font-weight: 700;
 }
 
-.about-venture__text {
+.ventureText {
   margin-top: 0.25rem;
   color: var(--text-muted);
 }
 
 /* Skills (MKT-05 step 4): five groups, each a list of technology chips. */
-.skill-group + .skill-group {
+.skillGroup + .skillGroup {
   margin-top: 1.5rem;
 }
 
-.skill-group__name {
+.skillGroupName {
   margin: 0 0 0.5rem;
   color: var(--text-muted);
   font-size: var(--fs-sm);
 }
 
-.skill-group__items {
+.skillGroupItems {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -86,7 +86,7 @@
   padding: 0;
 }
 
-.skill-chip {
+.skillChip {
   padding: 8px 10px;
   border: 1px solid var(--text-color);
   font-size: var(--fs-base);
@@ -95,42 +95,42 @@
 }
 
 /* Hackathon archive and talks: one line per entry, each line one link. */
-.awards-archive,
-.about-talks {
+.awardsArchive,
+.talks {
   display: grid;
   gap: 0.75rem;
   padding: 0;
   line-height: 1.45;
 }
 
-.awards-archive a,
-.about-talks a {
+.awardsArchive a,
+.talks a {
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 
-.awards-archive a:hover,
-.about-talks a:hover {
+.awardsArchive a:hover,
+.talks a:hover {
   text-decoration-thickness: 2px;
 }
 
-.awards-archive a:focus-visible,
-.about-talks a:focus-visible {
+.awardsArchive a:focus-visible,
+.talks a:focus-visible {
   outline: 2px solid currentcolor;
   outline-offset: 3px;
 }
 
 /* In-page targets (#awards, #talks) stop below the fixed top bar. */
-.about-anchor {
+.anchor {
   scroll-margin-top: 4.5rem;
 }
 
 /* Closing call to action (MKT-15 step 7): the page ends on the contact link. */
-.about-cta {
+.cta {
   margin-bottom: calc(3rem + 5.128vw);
 }
 
-.about-cta__button {
+.ctaButton {
   display: inline-block;
   min-height: 44px;
   padding: 0.6rem 1.5rem;
@@ -143,26 +143,26 @@
   transition-timing-function: cubic-bezier(0.55, 0, 0.1, 1);
 }
 
-.about-cta__button:hover,
-.about-cta__button:focus-visible {
+.ctaButton:hover,
+.ctaButton:focus-visible {
   background-color: var(--text-color);
   color: var(--surface-color);
   text-decoration: none;
 }
 
-.about-cta__button:focus-visible {
+.ctaButton:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: 4px;
 }
 
-.service__title {
+.serviceTitle {
   padding: 8px 0;
   border-bottom: solid 2px var(--text-color);
 }
 
 /* Intro reel (MKT-18): fills the column, keeps the 16:9 box before the
    poster arrives (the width and height attributes carry the ratio). */
-.about-reel {
+.reel {
   display: block;
   width: 100%;
   height: auto;

@@ -1,4 +1,4 @@
-import "./style.css";
+import styles from "./about.module.css";
 import { useEffect, useId } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { Link, useLocation } from "react-router-dom";
@@ -47,8 +47,8 @@ export const About = () => {
   }, [hash]);
 
   return (
-    // `About-header` scopes the DSG-01 table rule in ./style.css.
-    <Container className="About-header">
+    // `styles.page` scopes the DSG-01 table rule in ./about.module.css.
+    <Container className={styles.page}>
       <Row className="mb-5 mt-3">
         <Col lg="8">
           <h1 className="display-4 mb-4">{t("about.title")}</h1>
@@ -61,7 +61,7 @@ export const About = () => {
         </Col>
         <Col lg="7" className="d-flex align-items-center">
           <div>
-            <p className="about-lead">{about.title}</p>
+            <p className={styles.lead}>{about.title}</p>
             {about.story.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
@@ -76,7 +76,7 @@ export const About = () => {
           <ProofStrip />
         </Col>
       </Row>
-      <Row className="section-gap about-anchor" id="timeline">
+      <Row className={`section-gap ${styles.anchor}`} id="timeline">
         <Col lg="5">
           <h2 className="h3 py-4">{t("about.timeline")}</h2>
         </Col>
@@ -85,18 +85,18 @@ export const About = () => {
               the row with the outcome (MKT-15, SEO-18). The DSG-01 rule keeps
               the cells on the theme colours. The caption names the table for
               assistive technology; the h2 beside it is the visible title. */}
-          <table className="table caption-top timeline">
+          <table className={`table caption-top ${styles.timeline}`}>
             <caption className="visually-hidden">{t("about.timeline")}</caption>
             {timeline.map((data) => (
               <tbody key={data.id}>
-                <tr className="timeline__role">
+                <tr className={styles.role}>
                   <th scope="row" id={`${ids}-${data.id}`}>
                     {data.jobtitle}
                   </th>
                   <td>{data.where}</td>
-                  <td className="timeline__date">{data.date}</td>
+                  <td className={styles.date}>{data.date}</td>
                 </tr>
-                <tr className="timeline__outcome">
+                <tr className={styles.outcome}>
                   <td colSpan={3} headers={`${ids}-${data.id}`}>
                     {data.outcome}
                   </td>
@@ -104,17 +104,19 @@ export const About = () => {
               </tbody>
             ))}
           </table>
-          <h3 className="h5 about-ventures__title">{t("about.ventures")}</h3>
-          <ul className="about-ventures list-unstyled">
+          <h3 className={`h5 ${styles.venturesTitle}`}>
+            {t("about.ventures")}
+          </h3>
+          <ul className={`${styles.ventures} list-unstyled`}>
             {about.ventures.map((venture) => (
               <li key={venture.id}>
                 <p className="about-venture__head">
-                  <span className="about-venture__name">{venture.name}</span>
+                  <span className={styles.ventureName}>{venture.name}</span>
                   <span aria-hidden="true"> · </span>
                   <span>{venture.role}</span>
                 </p>
                 {venture.description && (
-                  <p className="about-venture__text">{venture.description}</p>
+                  <p className={styles.ventureText}>{venture.description}</p>
                 )}
               </li>
             ))}
@@ -128,16 +130,16 @@ export const About = () => {
         <Col lg="7">
           <ul className="skill-groups list-unstyled mb-0">
             {skills.map((group) => (
-              <li key={group.id} className="skill-group">
-                <p className="skill-group__name" id={`${ids}-${group.id}`}>
+              <li key={group.id} className={styles.skillGroup}>
+                <p className={styles.skillGroupName} id={`${ids}-${group.id}`}>
                   {group.name}
                 </p>
                 <ul
-                  className="skill-group__items list-unstyled"
+                  className={`${styles.skillGroupItems} list-unstyled`}
                   aria-labelledby={`${ids}-${group.id}`}
                 >
                   {group.items.map((item) => (
-                    <li key={item} className="skill-chip">
+                    <li key={item} className={styles.skillChip}>
                       {item}
                     </li>
                   ))}
@@ -154,18 +156,18 @@ export const About = () => {
         <Col lg="7">
           {services.map((service) => (
             <div className="service_ py-4" key={service.id}>
-              <h3 className="h5 service__title">{service.title}</h3>
+              <h3 className={`h5 ${styles.serviceTitle}`}>{service.title}</h3>
               <p className="service_desc">{service.description}</p>
             </div>
           ))}
         </Col>
       </Row>
-      <Row className="section-gap about-anchor" id="awards">
+      <Row className={`section-gap ${styles.anchor}`} id="awards">
         <Col lg="5">
           <h2 className="h3 py-4">{t("about.awards")}</h2>
         </Col>
         <Col lg="7">
-          <ol className="awards-archive list-unstyled mb-0">
+          <ol className={`${styles.awardsArchive} list-unstyled mb-0`}>
             {awards
               .filter((award) => !award.hidden)
               .map((award) => (
@@ -177,7 +179,7 @@ export const About = () => {
         </Col>
       </Row>
       {INTRO_REEL.published && (
-        <Row className="section-gap about-anchor" id="reel">
+        <Row className={`section-gap ${styles.anchor}`} id="reel">
           <Col lg="5">
             <h2 className="h3 py-4">{t("portfolio.reel.title")}</h2>
           </Col>
@@ -185,7 +187,7 @@ export const About = () => {
             {/* 15 seconds, no autoplay (reduced motion, data use): the file
                 loads only when the visitor presses play (preload="none"). */}
             <video
-              className="about-reel"
+              className={styles.reel}
               controls
               preload="none"
               playsInline
@@ -209,12 +211,12 @@ export const About = () => {
           </Col>
         </Row>
       )}
-      <Row className="section-gap about-anchor" id="talks">
+      <Row className={`section-gap ${styles.anchor}`} id="talks">
         <Col lg="5">
           <h2 className="h3 py-4">{t("about.talks")}</h2>
         </Col>
         <Col lg="7">
-          <ul className="about-talks list-unstyled mb-0">
+          <ul className={`${styles.talks} list-unstyled mb-0`}>
             {about.talks.map((talk) => (
               <li key={talk.id}>
                 <DotLine parts={[talk.event, talk.year]} href={talk.url} />
@@ -223,12 +225,12 @@ export const About = () => {
           </ul>
         </Col>
       </Row>
-      <section className="about-cta" aria-labelledby={`${ids}-cta`}>
+      <section className={styles.cta} aria-labelledby={`${ids}-cta`}>
         <h2 className="h3" id={`${ids}-cta`}>
           {t("about.cta.title")}
         </h2>
         <p>{t("about.cta.text")}</p>
-        <Link to={lp("/contact")} className="about-cta__button">
+        <Link to={lp("/contact")} className={styles.ctaButton}>
           {t("about.cta.button")}
         </Link>
       </section>

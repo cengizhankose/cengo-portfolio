@@ -134,7 +134,7 @@ describe("no synthetic bold (DSG-17, FE-19 step 3)", () => {
 
   it("gives heading classes and the logo no weight above 400", () => {
     const headingLike =
-      /(^|\s|>)(h[1-6]|\.introName|\.blog-title|\.blog-post-title(-full)?|\.status-state__title|\.nav_ac|\.proofstrip__label|\.project-card__title)(\s|$|:|\.)/;
+      /(^|\s|>)(h[1-6]|\.introName|\.blog-title|\.blog-post-title(-full)?|\.status-state__title|\.nav_ac|\.proofstrip__label|\.cardTitle)(\s|$|:|\.)/;
     const off = weights()
       .filter(([, value]) => Number(value) > 400)
       .filter(([, , selector]) =>

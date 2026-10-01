@@ -14,7 +14,7 @@ import { GLOBAL_CSS } from "../css-arch/global-css.js";
 const ROOT = process.cwd();
 const read = (file) => readFileSync(join(ROOT, file), "utf8");
 const INDEX = GLOBAL_CSS;
-const ABOUT = read("src/pages/about/style.css");
+const ABOUT = read("src/pages/about/about.module.css");
 const STRIP = read("src/components/proofstrip/style.css");
 
 function declarations(css, selector) {
@@ -68,16 +68,13 @@ describe.each(THEMES)(
 
     it("keeps the timeline rows and their outcomes at 4.5:1 or better", () => {
       // Role row: the DSG-01 table variable paints the cells with --text-color.
-      const table = declarations(ABOUT, ".About-header .table");
+      const table = declarations(ABOUT, ".page :global(.table)");
       expect(table["--bs-table-bg"]).toBe("transparent");
       expect(
         contrast(resolve(tokens, table["--bs-table-color"]), bg),
       ).toBeGreaterThanOrEqual(4.5);
       // Outcome row: the muted token.
-      const outcome = declarations(
-        ABOUT,
-        ".About-header .timeline .timeline__outcome > td",
-      );
+      const outcome = declarations(ABOUT, ".page .timeline .outcome > td");
       expect(outcome.color).toBe("var(--text-muted)");
       expect(
         contrast(resolve(tokens, outcome.color), bg),
@@ -85,8 +82,8 @@ describe.each(THEMES)(
     });
 
     it.each([
-      [ABOUT, ".skill-group__name"],
-      [ABOUT, ".about-venture__text"],
+      [ABOUT, ".skillGroupName"],
+      [ABOUT, ".ventureText"],
       [STRIP, ".proofstrip__label"],
       [STRIP, ".proof-testimonial__role"],
     ])("keeps %#: secondary text on the muted token", (css, rule) => {
@@ -96,13 +93,13 @@ describe.each(THEMES)(
     });
 
     it("keeps the call to action button legible, resting and hovered", () => {
-      const resting = declarations(ABOUT, ".about-cta__button");
+      const resting = declarations(ABOUT, ".ctaButton");
       expect(
         contrast(resolve(tokens, resting.color), bg),
       ).toBeGreaterThanOrEqual(4.5);
       const hover = declarations(
         ABOUT,
-        ".about-cta__button:hover,\n.about-cta__button:focus-visible",
+        ".ctaButton:hover,\n.ctaButton:focus-visible",
       );
       expect(
         contrast(
