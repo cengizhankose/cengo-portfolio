@@ -348,3 +348,24 @@ describe.skipIf(!inCheckout(".dockerignore"))(".dockerignore (W10)", () => {
     expect(patterns).not.toContain("content");
   });
 });
+
+// The builder's gate runs inside the image, where .dockerignore removed the
+// files below. A test that reads one of them unguarded fails `docker build`
+// even though it passes in a checkout (review of W10: ssr/entry.test.ts did).
+describe("tests that read files the Docker context leaves out", () => {
+  const EXCLUDED_READ =
+    /(?:read|readFileSync|readFile|Bun\.file|existsSync)\([^)]*["'`](?:\.\/)?(?:Dockerfile[\w.-]*|docker-compose[\w.-]*|\.dockerignore|\.github\/|\.githooks\/|ops\/)/;
+
+  test("every one of them goes through inCheckout", async () => {
+    const offenders: string[] = [];
+    const root = join(REPO_ROOT, "tests", "server");
+    for await (const file of new Bun.Glob("**/*.ts").scan({ cwd: root })) {
+      if (file === "docker/image.test.ts") continue; // guarded per describe, checked by hand
+      const source = await Bun.file(join(root, file)).text();
+      if (EXCLUDED_READ.test(source) && !source.includes("inCheckout(")) {
+        offenders.push(relative(REPO_ROOT, join(root, file)));
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});
