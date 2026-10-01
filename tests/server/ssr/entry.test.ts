@@ -8,6 +8,7 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { inCheckout } from "../helpers";
 
 const REPO = join(import.meta.dir, "..", "..", "..");
 const read = (file: string) => readFileSync(join(REPO, file), "utf8");
@@ -218,7 +219,9 @@ describe("the build (package.json, vite.config.js)", () => {
     expect(config.build.copyPublicDir).toBe(true);
   });
 
-  test("the production image copies dist/ (with dist/server) and all of src/", () => {
+  // .dockerignore drops Dockerfile*: inside the image's builder gate the file
+  // is absent, so this only runs in a checkout (W10-BE-docker-image)
+  test.skipIf(!inCheckout("Dockerfile"))("the production image copies dist/ (with dist/server) and all of src/", () => {
     const dockerfile = read("Dockerfile");
     expect(dockerfile).toMatch(/^COPY --from=builder \/app\/dist \.\/dist$/m);
     expect(dockerfile).toMatch(/^COPY src \.\/src$/m);
