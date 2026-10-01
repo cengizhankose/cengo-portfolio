@@ -29,7 +29,9 @@ export function FinalCta() {
         <Link
           to={lp("/contact")}
           className={`${button.button} btn`}
-          onClick={() => track("cta_clicked", { cta_id: CTA.HOME_FINAL_CONTACT })}
+          onClick={() =>
+            track("cta_clicked", { cta_id: CTA.HOME_FINAL_CONTACT })
+          }
         >
           {t("cta.primary")}
         </Link>

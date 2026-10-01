@@ -52,7 +52,9 @@ export const Portfolio = () => {
     }
     document
       .getElementById(target)
-      ?.scrollIntoView?.({ behavior: reducedMotion.current ? "auto" : "smooth" });
+      ?.scrollIntoView?.({
+        behavior: reducedMotion.current ? "auto" : "smooth",
+      });
   }, [hash]);
 
   // Cases that have their text; `position` counts the tracked items of the

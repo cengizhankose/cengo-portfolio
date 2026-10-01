@@ -48,9 +48,7 @@ const renderAt = (path) =>
       <Routes>
         <Route
           path="/"
-          element={
-            <Link to="/portfolio#project-farmin">Farmin case</Link>
-          }
+          element={<Link to="/portfolio#project-farmin">Farmin case</Link>}
         />
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/tr/portfolio" element={<Portfolio />} />
