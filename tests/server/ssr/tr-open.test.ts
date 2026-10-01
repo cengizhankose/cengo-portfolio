@@ -26,7 +26,7 @@ beforeAll(async () => {
   rmSync(join(dist, "server"), { recursive: true, force: true });
   rmSync(join(dist, "prerendered"), { recursive: true, force: true });
   const proc = Bun.spawn(
-    ["bun", join(import.meta.dir, "tr-open-prerender.ts"), dist],
+    [process.execPath, join(import.meta.dir, "tr-open-prerender.ts"), dist],
     { stdout: "pipe", stderr: "pipe" },
   );
   const [stdout, stderr] = await Promise.all([

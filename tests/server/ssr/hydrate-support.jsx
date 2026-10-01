@@ -10,7 +10,7 @@
 //               BrowserRouter > AppRoot), collecting what React reports.
 import { act } from "@testing-library/react";
 import { execFileSync } from "node:child_process";
-import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -67,7 +67,7 @@ const keyOf = (url, data) => `${url}\u0000${JSON.stringify(data)}`;
 export function drawPages(pages, { openTr = false } = {}) {
   const stdout = execFileSync(
     "bun",
-    [join(import.meta.dirname, "render-pages.ts")],
+    [fileURLToPath(new URL("./render-pages.ts", import.meta.url))],
     {
       input: JSON.stringify(pages.map(([url, data]) => [url, WIRE(data)])),
       encoding: "utf8",
