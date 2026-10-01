@@ -4,8 +4,7 @@
 //   script-src   'self', a sha256 hash per inline <script> of the built HTML
 //                (read once at startup, e.g. the theme init script), the
 //                self-hosted Umami tracker (T-13) and the Cloudflare Web
-//                Analytics beacon (T-09: remove both beacon hosts in the PR
-//                that turns the beacon off, PERF-25).
+//                Analytics beacon (T-09, until PERF-25 turns it off).
 //   connect-src  'self', Umami events (T-13), the Cloudflare beacon (T-09) and
 //                EmailJS (contact form).
 //   style-src    'unsafe-inline' is a style relaxation, not a script one:
@@ -21,6 +20,16 @@
 // non-executable `<script type="application/…json">` and need no hash;
 // any new *executable* inline script must be in the built HTML so it is
 // hashed here, or be moved to a file.
+//
+// CF_WEB_ANALYTICS (T-09 / PERF-25): one flag for the Cloudflare beacon.
+// Default on (unset, empty or anything but off/0/false/no/disabled): both
+// beacon hosts stay in script-src and connect-src. Off: they leave the policy.
+// The same flag drops the `cloudflare_web_analytics` entry from the privacy
+// notice (src/content/*/privacy.js reads VITE_CF_WEB_ANALYTICS, which the
+// Dockerfile fills from CF_WEB_ANALYTICS at build time, because the notice is
+// prerendered). The switch-off, two weeks after Umami goes live: the owner
+// turns the beacon off in Cloudflare, then sets CF_WEB_ANALYTICS=off in the
+// Out Plane env and deploys. Umami's host is never touched by the flag.
 //
 // CSP_MODE=enforce sends Content-Security-Policy; anything else (default)
 // sends Content-Security-Policy-Report-Only (SEC-04 steps 3 and 5). Going
@@ -47,21 +56,39 @@ export const CF_BEACON_REPORT_ORIGIN = "https://cloudflareinsights.com";
 /** Contact form (SEC-24). */
 export const EMAILJS_ORIGIN = "https://api.emailjs.com";
 
+/**
+ * CF_WEB_ANALYTICS as a boolean: on by default; only an explicit off value
+ * (off, 0, false, no, disabled, any case, trimmed) turns the beacon hosts off.
+ */
+export function cfWebAnalyticsFromEnv(value: string | undefined): boolean {
+  return !/^(?:off|0|false|no|disabled)$/i.test(value?.trim() ?? "");
+}
+
 export interface CspInput {
   mode: CspMode;
   /** `'sha256-…'` sources for the inline scripts of the built HTML. */
   scriptHashes?: readonly string[];
+  /**
+   * Keep the Cloudflare Web Analytics hosts (T-09). Defaults to
+   * CF_WEB_ANALYTICS from the process environment, read when the policy is
+   * built (once, at startup).
+   */
+  cfWebAnalytics?: boolean;
 }
 
 /** Directive map in the shape hono/secure-headers expects. */
-export function buildCsp({ mode, scriptHashes = [] }: CspInput): CspDirectives {
+export function buildCsp({
+  mode,
+  scriptHashes = [],
+  cfWebAnalytics = cfWebAnalyticsFromEnv(process.env.CF_WEB_ANALYTICS),
+}: CspInput): CspDirectives {
   const csp: CspDirectives = {
     defaultSrc: ["'self'"],
     scriptSrc: [
       "'self'",
       ...scriptHashes,
       UMAMI_ORIGIN,
-      CF_BEACON_SCRIPT_ORIGIN,
+      ...(cfWebAnalytics ? [CF_BEACON_SCRIPT_ORIGIN] : []),
     ],
     styleSrc: ["'self'", "'unsafe-inline'"],
     fontSrc: ["'self'"],
@@ -69,7 +96,7 @@ export function buildCsp({ mode, scriptHashes = [] }: CspInput): CspDirectives {
     connectSrc: [
       "'self'",
       UMAMI_ORIGIN,
-      CF_BEACON_REPORT_ORIGIN,
+      ...(cfWebAnalytics ? [CF_BEACON_REPORT_ORIGIN] : []),
       EMAILJS_ORIGIN,
     ],
     manifestSrc: ["'self'"],

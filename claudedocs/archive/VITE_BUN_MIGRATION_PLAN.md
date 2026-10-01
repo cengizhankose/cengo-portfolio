@@ -1,3 +1,7 @@
+> **Archive (BE-25, 2026-10).** Historical plan of the Create React App to Vite + Bun migration, kept for the record. It is not
+> maintained and several details no longer hold (Google Fonts, `reportWebVitals`, Nginx, gh-pages, Vercel). The current stack and
+> commands are in the repository `CLAUDE.md`.
+
 # Vite + Bun Migration Plan: Cengo Portfolio
 
 ## Executive Summary
