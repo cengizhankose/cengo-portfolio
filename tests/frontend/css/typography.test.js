@@ -176,8 +176,9 @@ describe("no synthetic bold (DSG-17, FE-19 step 3)", () => {
 });
 
 describe("home page renders only Raleway 400 and Marcellus 400 (PERF-08 budget, W8 handoff)", () => {
-  // The stylesheets whose rules reach the home page, and the rules in them
-  // that belong to other pages (they never match home markup).
+  // The stylesheets whose rules reach the home page. The language switcher
+  // (500/700) joins them when TR goes live (W11); it renders nothing while
+  // only EN is live.
   const HOME_SHEETS = [
     "src/index.css",
     "src/header/style.css",
@@ -185,13 +186,11 @@ describe("home page renders only Raleway 400 and Marcellus 400 (PERF-08 budget, 
     "src/components/socialicons/style.css",
     "src/app/App.css",
   ];
-  const OTHER_PAGES = new Set([".lang-badge"]); // blog cards only
 
   it("asks for no weight other than 400 there", () => {
     const off = [];
     for (const file of HOME_SHEETS) {
       for (const rule of rules(read(file))) {
-        if (rule.selectors.every((s) => OTHER_PAGES.has(s))) continue;
         const font = rule.props.font?.split(" ")[0];
         const weight =
           rule.props["font-weight"] ??
