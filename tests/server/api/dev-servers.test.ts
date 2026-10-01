@@ -46,7 +46,11 @@ async function refused(url: string): Promise<boolean> {
   }
 }
 
-/** `lsof` listen lines for a port, or null where lsof is not installed. */
+/**
+ * `lsof` listen lines for a port, or null where a full lsof is not available:
+ * not installed, or BusyBox's applet (the Alpine image's build gate), which
+ * ignores these options and prints no COMMAND header.
+ */
 function listenLines(port: number): string[] | null {
   const which = Bun.spawnSync(["sh", "-c", "command -v lsof"], {
     stdout: "pipe",
@@ -54,8 +58,11 @@ function listenLines(port: number): string[] | null {
   if (which.exitCode !== 0) return null;
   const out = Bun.spawnSync(["lsof", "-nP", `-iTCP:${port}`, "-sTCP:LISTEN"], {
     stdout: "pipe",
+    stderr: "pipe",
   });
-  return out.stdout.toString().split("\n").slice(1).filter(Boolean);
+  const [header = "", ...lines] = out.stdout.toString().split("\n");
+  if (!header.startsWith("COMMAND")) return null;
+  return lines.filter(Boolean);
 }
 
 function expectLoopbackOnly(port: number) {
