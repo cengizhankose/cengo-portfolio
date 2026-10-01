@@ -32,10 +32,11 @@ import { deepFreeze } from "./define.js";
  *        src/lib/analytics/events.js (ANL-11: /^[a-z0-9_]+$/). The analytics
  *        project_id, the content key and data-project-id are all this value.
  * order  1..n position on the page; null for a candidate that is not shown.
- * image  null until the responsive set exists in public/img/projects (run
+ * image  null until the responsive set exists in public/img/projects (put
+ *        the 1280x800 master in scripts/images/sources/projects/, run
  *        `bun run images:build portfolio-<name>`, then set it to
  *        { name: "<file name slug>" } and add `imageAlt` to both language
- *        files). A card without an image is a text card.
+ *        files). A case without an image is a text case.
  * links  type: "repo" | "demo" | "post" | "case_study" (LINK_TYPES); the
  *        visible label is `cta.<type>` of the card text. `hreflang` is set
  *        when the target page is not in the site's language.
@@ -48,7 +49,8 @@ export const PROJECTS = deepFreeze([
     permission: { required: false },
     year: 2026,
     stack: ["Next.js", "React", "TypeScript", "Python", "Agora ConvoAI"],
-    image: null,
+    // README screenshot: the live session (W13).
+    image: { name: "salesgym" },
     links: [
       {
         type: "repo",
@@ -67,7 +69,8 @@ export const PROJECTS = deepFreeze([
     year: 2025,
     credits: ["Efe Akkurt"],
     stack: ["TypeScript", "Next.js", "Algorand", "TEAL"],
-    image: null,
+    // README screenshot: a pool's analysis page (W13).
+    image: { name: "farmin" },
     links: [
       { type: "repo", href: "https://github.com/cengizhankose/farmin" },
       {
@@ -83,7 +86,8 @@ export const PROJECTS = deepFreeze([
     permission: { required: false },
     year: 2026,
     stack: ["Claude Code", "Opus 5.5", "Sonnet 5.5"],
-    image: null,
+    // Capture of the live site in compare mode (W13).
+    image: { name: "effort-lab" },
     links: [
       {
         type: "demo",
@@ -157,12 +161,13 @@ export const hasPublishedCases = (projects = PROJECTS) =>
   publishedProjects(projects).length > 0;
 
 /**
- * The hackathon archive teaser that closes the cases (MKT-01 step 3). It links
- * to the awards section of the About page and carries its own analytics id.
+ * The hackathon section that follows the cases (MKT-01 step 3, W13): the
+ * podiums of src/content/awards.js with their photos, on this page under
+ * #awards. Its evidence links send project_clicked with this analytics id
+ * (link type "post"), at the section's place among the tracked items.
  */
 export const HACKATHON_ARCHIVE = deepFreeze({
   id: "hackathon_archive",
-  path: "/about",
   hash: "awards",
 });
 

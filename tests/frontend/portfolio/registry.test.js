@@ -191,13 +191,20 @@ describe("card text (FE-04 step 12 c, DSG-08 step 3, MKT-01)", () => {
     (lang) => {
       for (const project of published) {
         const card = textOf(lang, project.id);
-        for (const key of ["title", "problem", "role", "result"]) {
+        // W13: a one-sentence summary and problem / what I built / result.
+        for (const key of ["title", "summary", "problem", "built", "result"]) {
           expect(filled(card[key]), `${lang} ${project.id}.${key}`).toBe(true);
         }
+        // The old "role" line became "built" (my part in it is its start).
+        expect(card.role, `${lang} ${project.id}.role`).toBeUndefined();
         expect(
           card.title.length,
           `${lang} ${project.id} title`,
         ).toBeLessThanOrEqual(60);
+        expect(
+          card.summary.length,
+          `${lang} ${project.id} summary`,
+        ).toBeLessThanOrEqual(180);
         if (card.awardLabel !== undefined) {
           expect(filled(card.awardLabel), `${lang} ${project.id} badge`).toBe(
             true,
@@ -261,7 +268,7 @@ describe("card text (FE-04 step 12 c, DSG-08 step 3, MKT-01)", () => {
     expect(credits).toEqual(["Efe Akkurt"]);
     for (const lang of LANGS) {
       for (const name of credits) {
-        expect(textOf(lang, "farmin").role).toContain(name);
+        expect(textOf(lang, "farmin").built).toContain(name);
       }
     }
   });
@@ -372,6 +379,22 @@ describe("images (DSG-08 criterion 3, FE-04 step 9)", () => {
 
   it("an image never belongs to a record that is not published", () => {
     for (const project of unpublished) expect(project.image).toBeNull();
+  });
+
+  it("every published case shows its own picture (W13), with its master in the repository", () => {
+    expect(published.map((project) => project.image?.name)).toEqual([
+      "salesgym",
+      "farmin",
+      "effort-lab",
+    ]);
+    for (const { image } of published) {
+      const master = `scripts/images/sources/projects/${image.name}.jpg`;
+      expect(existsSync(join(ROOT, master)), master).toBe(true);
+      const info = imageInfo(bytes(master));
+      // The master is the largest output: nothing is upscaled, no metadata.
+      expect([info.width, info.height], master).toEqual([1280, 800]);
+      expect(info.exif, master).toBeFalsy();
+    }
   });
 });
 

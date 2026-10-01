@@ -11,6 +11,7 @@ export default {
   skills: "Beceriler",
   services: "Hizmetler",
   awards: "Hackathon’lar ve ödüller",
+  awardsPhotos: "Fotoğraflarıyla portfolyoda gör",
   talks: "Konuşmalar ve atölyeler",
   cta: {
     title: "Birlikte çalışalım",
