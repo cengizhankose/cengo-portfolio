@@ -1,8 +1,9 @@
 /**
  * mountSite with SEO injection on (SEO-01 step 7): the pages the server sends.
- * Head tags, snapshot and data block per route; 404, 503 and redirects keep
- * their status rules; ETag/304; the kill switch; the negative cache for unknown
- * slugs; fail-fast on a shell without markers.
+ * Head tags, the server render (PERF-03: the app's own HTML, drawn by
+ * src/entry-server.jsx) and the data block per route; 404, 503 and redirects
+ * keep their status rules; ETag/304; the kill switch; the negative cache for
+ * unknown slugs; fail-fast on a shell without markers.
  */
 import { afterAll, afterEach, describe, expect, test } from "bun:test";
 import { cpSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -51,6 +52,7 @@ describe("a published post", () => {
       "<title data-seo>Hello world | Cengizhan Köse</title>",
     );
     expect(html).not.toContain('<div id="root"></div>');
+    expect(html).toContain('<div id="root" data-ssr>');
     expect(count(rootOf(html), /<h1\b/g)).toBe(1);
     expect(html).toContain(
       '<script id="__SEO_DATA__" type="application/json">',
@@ -160,7 +162,7 @@ describe("static pages", () => {
   const PATHS = ["/", "/about", "/portfolio", "/contact", "/blog"];
 
   test.each(PATHS)(
-    "%s: 200, one title, one description, lang en, snapshot present",
+    "%s: 200, one title, one description, lang en, the server render in #root",
     async (path) => {
       const { res, html } = await pageOf(site, path);
       expect(res.status).toBe(200);
@@ -168,7 +170,7 @@ describe("static pages", () => {
       expect(count(html, /<title\b/g)).toBe(1);
       expect(count(html, /name="description"/g)).toBe(1);
       expect(html).not.toContain(SHELL_TITLE);
-      expect(rootOf(html)).not.toBe('<div id="root"></div>');
+      expect(html).toContain('<div id="root" data-ssr>');
       expect(count(rootOf(html), /<h1\b/g)).toBe(1);
     },
   );
@@ -206,10 +208,13 @@ describe("static pages", () => {
     });
   });
 
-  test("the home page's snapshot carries the photo the preload names", async () => {
+  test("the home page carries the photo the preload names, once in the head and once drawn", async () => {
     const { html } = await pageOf(site, "/");
     expect(html).toContain('<img src="/img/hero/cengizhan-kose-v1-768.jpg"');
-    expect(count(html, /fetchpriority="high"/g)).toBe(2); // the hint and the <img>
+    // The hint in the head and the <img> (React writes fetchPriority in camel
+    // case); React's own copy of the hint is not left inside #root.
+    expect(count(html, /fetchpriority="high"/gi)).toBe(2);
+    expect(count(rootOf(html), /rel="preload"/g)).toBe(0);
   });
 
   test("/portfolio is indexable since W8 (T-10 exit): no X-Robots-Tag, canonical and card", async () => {
@@ -218,7 +223,7 @@ describe("static pages", () => {
     expect(html).not.toContain('name="robots"');
     expect(html).toContain('rel="canonical"');
     expect(html).toContain("og:title");
-    // The snapshot holds the cases, not the old stub.
+    // The page holds the cases, not the old stub.
     expect(html).toContain('data-project-id="salesgym"');
     expect(html).not.toContain("Under Construction");
   });
@@ -274,9 +279,11 @@ describe("the blog index", () => {
     const root = rootOf(html);
     // EN post first; the TR-only post in the other-language group; the
     // translated TR post is not listed twice.
-    expect(root).toContain('<a href="/blog/hello-world">Hello world</a>');
+    expect(root).toContain(
+      '<a href="/blog/hello-world" data-discover="true">Hello world</a>',
+    );
     expect(root).toContain('<section class="blog-other"');
-    expect(root).toContain('<a href="/tr/blog/sadece-turkce">');
+    expect(root).toContain('<a href="/tr/blog/sadece-turkce"');
     expect(root).not.toContain("merhaba-dunya");
 
     const data = JSON.parse(

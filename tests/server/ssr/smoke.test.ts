@@ -3,7 +3,7 @@
  * in-process app (no port) and through the command line against a real server.
  */
 import { afterAll, describe, expect, test } from "bun:test";
-import { cpSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Hono } from "hono";
@@ -24,6 +24,14 @@ cpSync(FIXTURE_DIST, DIST, { recursive: true });
 writeFileSync(
   join(DIST, "assets", "style-blog1.css"),
   ".blog-container{padding:80px 20px}.blog-post-container{padding:20px}",
+);
+// PERF-03: the build's dist/server/entry-server.js is the real server render;
+// in the copy its stand-in (a relative re-export) points at the source by an
+// absolute path, so the server loads it the way it loads the build's.
+mkdirSync(join(DIST, "server"), { recursive: true });
+writeFileSync(
+  join(DIST, "server", "entry-server.js"),
+  `export { render } from ${JSON.stringify(join(REPO, "src/entry-server.jsx"))};\n`,
 );
 afterAll(() => rmSync(DIST, { recursive: true }));
 const BASE = "http://smoke.test";

@@ -1,6 +1,7 @@
 /**
- * The live post through the server layer (SEO-01 criteria 1-3, PERF-01): its
- * words, headings and language in the raw HTML of the page the server sends.
+ * The live post through the server layer (SEO-01 criteria 1-3, PERF-01,
+ * PERF-03): its words, headings and language in the raw HTML of the page the
+ * server sends.
  * The text is content/posts/atlas-steward-…tr.md, the export of the live post.
  * Skipped when that file is not in the checkout.
  */
@@ -71,9 +72,12 @@ describe.skipIf(!existsSync(FILE))("the live post", () => {
     );
   });
 
-  test("the diagrams are in the page as source text (T-05 stage A)", async () => {
+  test("each diagram is in the page as its own placeholder until its drawing is stored (T-05 stage A, PERF-05)", async () => {
+    // The post row has no `diagrams` yet, so the server draws what the page
+    // draws without them: a placeholder per diagram; mermaid is the browser's.
+    // (With stored drawings the page carries the SVGs: render.test.ts.)
     const root = rootOf(await page());
-    expect(count(root, /<code class="language-mermaid">/g)).toBe(5);
+    expect(count(root, /class="mermaid-placeholder"/g)).toBe(5);
   });
 
   test("the old address of the post is one 301", async () => {
