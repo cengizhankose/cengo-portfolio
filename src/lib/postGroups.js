@@ -1,7 +1,7 @@
 // Blog list grouping (T-12, FE-14 step 11), shared by the blog index page
-// (src/pages/blog/BlogHome.jsx) and the server snapshot (src/seo/snapshot.ts,
-// SEO-01), so the raw HTML and the rendered page list the same posts in the
-// same groups.
+// (src/pages/blog/BlogHome.jsx) and the server's blog data (src/server/
+// static.ts, SEO-01), so the HTML the server sends and the page the browser
+// draws list the same posts in the same groups.
 //
 // Pure ESM: no React, no DOM, no swr.
 import { DEFAULT_LOCALE, LOCALES } from "../seo/site.js";

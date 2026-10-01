@@ -1,4 +1,4 @@
-// Date formatting shared by the blog pages and, later, the server snapshot
+// Date formatting shared by the blog pages and the server render (PERF-03)
 // (FE-33, SEO-21, DSG-19, T-12). Pure: no React, no DOM.
 //
 // Dates are shown in the page's language (Intl, 'en' -> "September 30, 2026",

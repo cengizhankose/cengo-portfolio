@@ -1,8 +1,7 @@
 // SEC-03: the allowlist every blog post passes through after rehype-raw.
 //
-// Pure data (no React, no DOM): the page (PostMarkdown) and the server-side
-// snapshot (SEO-01, W7) import this same object, so both render the same
-// subset of HTML.
+// Pure data (no React, no DOM): the page (PostMarkdown) imports it, and the
+// server draws that page (PERF-03), so both render the same subset of HTML.
 //
 // Start point is rehype-sanitize's defaultSchema (GitHub's rules): `code`
 // keeps only `class="language-*"` (so ```mermaid blocks stay recognisable),

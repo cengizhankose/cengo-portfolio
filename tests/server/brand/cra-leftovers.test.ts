@@ -40,11 +40,13 @@ describe("CRA leftovers (FE-30)", () => {
     expect(hits).toEqual([]);
   });
 
-  test("main.jsx is the only entry and mounts with createRoot", () => {
-    const main = readFileSync(join(SRC, "main.jsx"), "utf8");
-    expect(main).toContain("createRoot(");
+  test("entry-client.jsx is the only entry; it hydrates a server render and otherwise mounts with createRoot (PERF-03)", () => {
+    const entry = readFileSync(join(SRC, "entry-client.jsx"), "utf8");
+    expect(entry).toContain("hydrateRoot(");
+    expect(entry).toContain("createRoot(");
+    expect(entry).not.toMatch(/ReactDOM\.render\b/);
     expect(readFileSync(join(ROOT, "index.html"), "utf8")).toContain(
-      'src="/src/main.jsx"',
+      'src="/src/entry-client.jsx"',
     );
   });
 

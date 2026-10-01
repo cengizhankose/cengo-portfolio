@@ -6,9 +6,9 @@
 //
 // It speaks the post's own language (`lang`: it sits inside <article lang>).
 // Role: AUTHOR.jobTitles (src/seo/site.js, also the JSON-LD jobTitle); bio:
-// content/<lang>/author.js; text: the "post" namespace. The server snapshot
-// (src/seo/snapshot.ts) prints the same markup, so a crawler without scripts
-// reads the same box.
+// content/<lang>/author.js; text: the "post" namespace. The server draws this
+// component itself (src/entry-server.jsx, PERF-03), so a crawler without
+// scripts reads the same box.
 import { Link } from "react-router-dom";
 import ExternalLink from "../../components/ExternalLink.jsx";
 import { getContent } from "../../content/index.js";

@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Primary Runtime: Bun** (preferred over npm)
 ```bash
 bun run dev          # Start Vite dev server (port 3000, auto-opens browser)
-bun run build        # Production build to dist/
+bun run build        # client bundle -> dist/, server bundle -> dist/server/, prerendered static pages (PERF-03)
 bun run preview      # Preview production build (port 4173)
 bun test             # Run tests with Bun
 bun run check        # typecheck + bun test + vitest: the gate the image build runs (NODE_ENV=test)
@@ -167,7 +167,22 @@ Contact form uses EmailJS service. Configuration in `src/content_option.js`:
 
 ## Recent Migration
 
-The project migrated from Create React App to Vite + Bun. `src/main.jsx` is the only entry point
-(React 19 createRoot); the CRA entry was removed (FE-30).
+The project migrated from Create React App to Vite + Bun. `src/entry-client.jsx` is the only browser entry
+point (FE-30; PERF-03 renamed it from `main.jsx`): it hydrates the server's HTML (`hydrateRoot`, when `#root`
+carries `data-ssr`) and otherwise draws the app with `createRoot` (vite dev server, `SEO_INJECT=off`, a 503 shell).
 
-When working with entry points or initialization, use `main.jsx`.
+## Server rendering (PERF-03)
+
+- `src/entry-server.jsx` exports `render(url, { fallback, errors })` -> `{ html }` (react-dom/static `prerender`,
+  StaticRouter). `src/app/App.jsx` exports `AppShell` / `AppRoot` (the tree inside the router, identical on both
+  sides) and a default `App` with the browser router for component tests.
+- `bun run build` = `vite build` + `vite build --ssr src/entry-server.jsx --outDir dist/server` (self-contained,
+  `ssr.noExternal`) + `bun scripts/prerender.ts`. The prerender keeps the untouched shell as
+  `dist/server/_shell.html` and writes `dist/index.html`, `dist/about/index.html`, ... (and `dist/tr/...` once
+  `LIVE.static` in `src/seo/routes.js` includes `tr`). `/blog` and `/tr/blog` pages are drawn per request by
+  `src/server/static.ts` (head from `src/seo/pages.js`, data from the cached post queries, render cached by its input).
+- `dist/server/` and `dist/.vite/` are never served. Keep every module the app imports free of `window` / `document`
+  at module scope and in render (effects only); `tests/server/ssr/hydrate*.vitest.jsx` hydrates each page and fails
+  on any mismatch. The theme is applied by the static head script; the server never writes `data-theme`.
+
+When working with entry points or initialization, use `entry-client.jsx` (browser) and `entry-server.jsx` (server).

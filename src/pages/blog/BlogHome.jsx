@@ -18,8 +18,8 @@ import { ListSkeleton } from "./Skeleton.jsx";
 import "./style.css";
 
 // Kept as an export for callers and tests: the grouping rule itself lives in
-// src/lib/postGroups.js, shared with the server snapshot (SEO-01), so the raw
-// HTML and this page always list the same posts in the same groups.
+// src/lib/postGroups.js, shared with the server's blog data (SEO-01), so the
+// raw HTML and this page always list the same posts in the same groups.
 export const groupPosts = groupPostsForLocale;
 
 // Covers are drawn 1200x630 (MKT-20). The title sits right beside the card's

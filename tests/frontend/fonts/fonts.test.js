@@ -214,8 +214,8 @@ describe("index.html", () => {
 });
 
 describe("entry and stacks", () => {
-  it("main.jsx imports fonts.css before index.css", () => {
-    const main = read("src", "main.jsx");
+  it("entry-client.jsx imports fonts.css before index.css", () => {
+    const main = read("src", "entry-client.jsx");
     const fonts = main.indexOf('import "./styles/fonts.css"');
     const index = main.indexOf('import "./index.css"');
     expect(fonts).toBeGreaterThan(-1);

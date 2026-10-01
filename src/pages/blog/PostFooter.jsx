@@ -7,7 +7,7 @@
 // The contact link sends `cta_clicked { cta_id: "blog_end_contact" }` (ANL-10,
 // MKT-07). The profile links carry the placement "blog_footer" for
 // outbound_link_clicked (ANL-09), read from data-analytics-location.
-// The server snapshot (src/seo/snapshot.ts) prints the same markup.
+// The server draws this component itself (src/entry-server.jsx, PERF-03).
 import { Link } from "react-router-dom";
 import ExternalLink from "../../components/ExternalLink.jsx";
 import { localePath, staticLocale, translate } from "../../i18n";

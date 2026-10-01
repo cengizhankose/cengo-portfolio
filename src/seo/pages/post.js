@@ -7,9 +7,9 @@
 import { buildTitle } from "../site.js";
 
 // What the end of a post shows besides its text (SEO-16, MKT-07). The React
-// components (src/pages/blog/AuthorBox.jsx, PostFooter.jsx) and the server
-// snapshot (src/seo/snapshot.ts) read these, so the raw HTML and the page
-// print the same portrait, profiles and feed.
+// components (src/pages/blog/AuthorBox.jsx, PostFooter.jsx) read these, and the
+// server draws those components (PERF-03), so the raw HTML and the page print
+// the same portrait, profiles and feed.
 
 /** The portrait in the author box, 96 px square with a 2x file (public/blog). */
 export const AUTHOR_PHOTO = Object.freeze({

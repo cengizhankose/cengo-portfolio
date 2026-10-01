@@ -4,8 +4,8 @@
 // then filters elements AND raw-HTML-derived ones, and only what survives is
 // handed to the `components` overrides (PostMarkdown, markdownComponents).
 //
-// Shared by the page and, later, by the server snapshot (SEO-01, W7), so the
-// same post is filtered the same way in both places.
+// The server draws the page itself (PERF-03), so the same post is filtered the
+// same way in the browser and in the raw HTML.
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";

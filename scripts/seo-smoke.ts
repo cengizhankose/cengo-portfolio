@@ -101,11 +101,14 @@ const decodeEntities = (value: string) =>
 const titleOf = (html: string) =>
   decodeEntities(/<title\b[^>]*>([^<]*)<\/title>/i.exec(html)?.[1] ?? "");
 
-/** Text inside <div id="root">, up to the data block or </body>. */
+/**
+ * Text inside <div id="root">, up to the data block or </body>. Since PERF-03
+ * the opening tag carries `data-ssr` when React drew the page.
+ */
 function rootHtml(html: string): string {
-  const start = html.indexOf('<div id="root">');
-  if (start === -1) return "";
-  const from = start + '<div id="root">'.length;
+  const open = /<div id="root"(?: data-ssr)?>/.exec(html);
+  if (!open) return "";
+  const from = open.index + open[0].length;
   const dataAt = html.indexOf('<script id="__SEO_DATA__"', from);
   const bodyAt = html.search(/<\/body>/i);
   const end = dataAt !== -1 ? dataAt : bodyAt !== -1 ? bodyAt : html.length;
@@ -300,8 +303,8 @@ export async function runSmoke(
         html.includes('id="__SEO_DATA__"'),
         `${at} has the first-data block`,
       );
-      // The class names the snapshot prints (src/seo/snapshot.ts) must be
-      // styled from the first paint.
+      // The class names the server render prints (src/entry-server.jsx) must
+      // be styled from the first paint.
       const marker = isPost ? ".blog-post-container" : ".blog-container";
       check(
         (await stylesheetText(html)).includes(marker),
