@@ -4,6 +4,7 @@ import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderSite, routerState } from "./support/site";
+import headerStyles from "../../../src/header/header.module.css";
 
 vi.mock("../../../src/pages/home", async () => ({
   Home: (await import("./support/pages.jsx")).Home,
@@ -38,7 +39,7 @@ describe("menu button (closed)", () => {
       button.getAttribute("aria-expanded"),
       !!document.getElementById(button.getAttribute("aria-controls")),
     ]).toEqual(["Menu", "false", true]);
-    expect(menuPanel()).not.toHaveClass("menu__opend");
+    expect(menuPanel()).not.toHaveClass(headerStyles.menuOpen);
     expect(isLocked()).toBe(false);
     expect(content()).not.toHaveAttribute("inert");
     for (const svg of button.querySelectorAll("svg")) {
@@ -56,7 +57,7 @@ describe("opening and closing", () => {
     await user.keyboard("{Enter}");
 
     expect(menuButton()).toHaveAttribute("aria-expanded", "true");
-    expect(menuPanel()).toHaveClass("menu__opend");
+    expect(menuPanel()).toHaveClass(headerStyles.menuOpen);
     expect(isLocked()).toBe(true);
     expect(content()).toHaveAttribute("inert");
     expect(document.activeElement.textContent.trim()).toBe("Home");
@@ -70,7 +71,7 @@ describe("opening and closing", () => {
     await user.keyboard("{Escape}");
 
     expect(menuButton()).toHaveAttribute("aria-expanded", "false");
-    expect(menuPanel()).not.toHaveClass("menu__opend");
+    expect(menuPanel()).not.toHaveClass(headerStyles.menuOpen);
     expect(isLocked()).toBe(false);
     expect(content()).not.toHaveAttribute("inert");
     expect(document.activeElement).toBe(menuButton());
@@ -140,7 +141,7 @@ describe("opening and closing", () => {
       expect(menuButton()).toHaveAttribute("aria-expanded", String(expected));
       expect(isLocked()).toBe(expected);
     }
-    expect(menuPanel()).toHaveClass("menu__opend");
+    expect(menuPanel()).toHaveClass(headerStyles.menuOpen);
   });
 
   it("releases the body lock and inert content when unmounted while open", async () => {

@@ -36,45 +36,45 @@ function declarations(css, selector) {
 }
 
 describe("header focus styles (DSG-02, DSG-03, FE-02)", () => {
-  const css = read("src/header/style.css");
+  const css = read("src/header/header.module.css");
 
   it("draws a 2px solid focus-visible ring on header controls", () => {
-    expect(declarations(css, ".nav_ac:focus-visible")).toMatchObject({
+    expect(declarations(css, ".navAction:focus-visible")).toMatchObject({
       outline: "2px solid var(--text-color)",
     });
   });
 
   it("uses the same ring on the menu and social strip links", () => {
-    expect(
-      declarations(css, ".site__navigation a:focus-visible"),
-    ).toMatchObject({ outline: "2px solid var(--text-color)" });
+    expect(declarations(css, ".siteNavigation a:focus-visible")).toMatchObject({
+      outline: "2px solid var(--text-color)",
+    });
     expect(
       declarations(
-        read("src/components/socialicons/style.css"),
-        ".stick_follow_icon a:focus-visible",
+        read("src/components/socialicons/socialicons.module.css"),
+        ".rail a:focus-visible",
       ),
     ).toMatchObject({ outline: "2px solid var(--text-color)" });
   });
 
   it("no longer resets the menu button on :focus", () => {
-    expect(declarations(css, ".menu__button:focus")).toBeNull();
+    expect(declarations(css, ".menuButton:focus")).toBeNull();
     expect(css).not.toMatch(/:focus\s*[,{][^}]*box-shadow:\s*unset/);
   });
 
   it("shows the opened menu panel at once so its first link can take focus (FE-11)", () => {
     // A transitioned visibility keeps the links hidden (unfocusable) at the
     // start of the slide-down; closing may still delay it.
-    expect(declarations(css, ".menu__opend .bg__menu").transition).toMatch(
+    expect(declarations(css, ".menuOpen .menuPanel").transition).toMatch(
       /visibility 0s(?! linear 0\.)/,
     );
-    expect(declarations(css, ".bg__menu").transition).not.toMatch(/\ball\b/);
+    expect(declarations(css, ".menuPanel").transition).not.toMatch(/\ball\b/);
   });
 
   it("gives button controls a pointer and centres the theme icon", () => {
-    expect(declarations(css, "button.nav_ac")).toMatchObject({
+    expect(declarations(css, "button.navAction")).toMatchObject({
       cursor: "pointer",
     });
-    expect(declarations(css, ".theme-toggle")).toMatchObject({
+    expect(declarations(css, ".themeToggle")).toMatchObject({
       display: "inline-flex",
       "align-items": "center",
     });

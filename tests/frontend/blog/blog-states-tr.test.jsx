@@ -7,6 +7,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import statusStyles from "../../../src/components/statusstate/statusstate.module.css";
 
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -48,7 +49,7 @@ describe("TR states (DSG-20 criteria 1, 4, 6)", () => {
 
     expect(
       document.querySelectorAll(
-        '.status-state a[href="/tr/blog"], .status-state a[href="/tr"]',
+        `.${statusStyles.state} a[href="/tr/blog"], .${statusStyles.state} a[href="/tr"]`,
       ),
     ).toHaveLength(2);
     expect(screen.getByRole("link", { name: "Bloga dön" })).toHaveAttribute(
@@ -73,7 +74,7 @@ describe("TR states (DSG-20 criteria 1, 4, 6)", () => {
     renderBlog("/tr/blog");
 
     await screen.findByRole("heading", { level: 2, name: "Henüz yazı yok" });
-    const state = document.querySelector(".status-state");
+    const state = document.querySelector(`.${statusStyles.state}`);
     expect(
       within(state)
         .getAllByRole("link")
@@ -126,7 +127,7 @@ describe("TR states (DSG-20 criteria 1, 4, 6)", () => {
     );
     renderBlog("/tr/blog");
     await screen.findByRole("link", { name: "Merhaba dünya" });
-    const state = document.querySelector(".status-state");
+    const state = document.querySelector(`.${statusStyles.state}`);
     expect(
       within(state).getByRole("heading", {
         level: 2,

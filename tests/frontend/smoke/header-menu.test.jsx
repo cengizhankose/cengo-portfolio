@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import Headermain from "../../../src/header";
+import headerStyles from "../../../src/header/header.module.css";
 
 const SECTIONS = [
   ["Home", "/"],
@@ -43,16 +44,16 @@ describe("Headermain menu (smoke)", () => {
   it("opens and closes the menu with the menu button", async () => {
     const user = userEvent.setup();
     const { menu, menuButton } = renderHeader();
-    expect(menu).not.toHaveClass("menu__opend");
+    expect(menu).not.toHaveClass(headerStyles.menuOpen);
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
 
     await user.click(menuButton);
-    expect(menu).toHaveClass("menu__opend");
+    expect(menu).toHaveClass(headerStyles.menuOpen);
     expect(menuButton).toHaveAttribute("aria-expanded", "true");
     expect(document.body).toHaveClass("scroll-locked");
 
     await user.click(menuButton);
-    expect(menu).not.toHaveClass("menu__opend");
+    expect(menu).not.toHaveClass(headerStyles.menuOpen);
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
     expect(document.body).not.toHaveClass("scroll-locked");
   });
@@ -64,7 +65,7 @@ describe("Headermain menu (smoke)", () => {
     await user.click(menuButton);
     await user.click(screen.getByRole("link", { name: "About" }));
 
-    expect(menu).not.toHaveClass("menu__opend");
+    expect(menu).not.toHaveClass(headerStyles.menuOpen);
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
     expect(document.body).not.toHaveClass("scroll-locked");
   });

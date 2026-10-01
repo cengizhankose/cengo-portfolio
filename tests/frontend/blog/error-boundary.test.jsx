@@ -11,6 +11,7 @@ import App from "../../../src/app/App";
 import { ErrorBoundary } from "../../../src/components/ErrorBoundary";
 import { translate } from "../../../src/i18n/translate.js";
 import { finishPageTransition, json } from "./support.jsx";
+import headerStyles from "../../../src/header/header.module.css";
 
 vi.mock("../../../src/pages/portfolio", () => ({
   Portfolio: () => {
@@ -63,7 +64,9 @@ describe("blog API failures inside the app (FE-03 criteria 1 and 4)", () => {
     renderAppAt("/blog");
     await screen.findByText("Posts couldn't be loaded");
     expect(screen.getByRole("banner")).toBeInTheDocument();
-    expect(document.querySelector("button.menu__button")).toBeInTheDocument();
+    expect(
+      document.querySelector(`button.${headerStyles.menuButton}`),
+    ).toBeInTheDocument();
     expect(screen.getByRole("main")).toHaveTextContent(
       /couldn't reach the server/,
     );
@@ -93,7 +96,9 @@ describe("a page that throws (FE-03 criteria 2 and 3)", () => {
       within(fallback).getByRole("button", { name: "Reload the page" }),
     ).toBeVisible();
     expect(screen.getByRole("main")).toContainElement(fallback);
-    expect(document.querySelector(".menu__button")).toBeInTheDocument();
+    expect(
+      document.querySelector(`.${headerStyles.menuButton}`),
+    ).toBeInTheDocument();
     expect(screen.getByRole("banner")).toBeInTheDocument();
   });
 

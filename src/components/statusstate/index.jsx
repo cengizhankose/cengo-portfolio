@@ -20,7 +20,7 @@
 import { useId } from "react";
 import { Link } from "react-router-dom";
 import { useT } from "../../i18n";
-import "./style.css";
+import styles from "./statusstate.module.css";
 
 export function StatusState({
   title,
@@ -39,8 +39,8 @@ export function StatusState({
   const Root = pageLevel ? "section" : "div";
   const Heading = `h${Math.min(Math.max(headingLevel, 1), 6)}`;
   const classes = [
-    "status-state",
-    pageLevel ? "status-state--page" : "status-state--inline",
+    styles.state,
+    pageLevel ? styles.statePage : styles.stateInline,
     className,
   ]
     .filter(Boolean)
@@ -53,23 +53,19 @@ export function StatusState({
       role={role}
       lang={lang}
     >
-      <Heading id={titleId} className="status-state__title">
+      <Heading id={titleId} className={styles.title}>
         {title}
       </Heading>
-      {message && <p className="status-state__text">{message}</p>}
+      {message && <p className={styles.text}>{message}</p>}
       {(onRetry || actions.length > 0) && (
-        <div className="status-state__actions">
+        <div className={styles.actions}>
           {onRetry && (
-            <button
-              type="button"
-              className="status-state__retry"
-              onClick={onRetry}
-            >
+            <button type="button" className={styles.retry} onClick={onRetry}>
               {retryLabel ?? t("status.retry")}
             </button>
           )}
           {actions.length > 0 && (
-            <ul className="status-state__links">
+            <ul className={styles.links}>
               {actions.map(({ to, label }) => (
                 <li key={to}>
                   <Link to={to}>{label}</Link>

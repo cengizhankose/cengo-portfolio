@@ -10,10 +10,7 @@ import { ROOT, filesUnder, read, rules, stylesheets } from "./support.js";
 
 // Classes that never appear literally in the source because they are built
 // from a template string. Each entry names the place that builds it.
-const BUILT = {
-  // src/components/proofstrip/index.jsx: `proofstrip--${variant}`
-  "proofstrip--compact": /proofstrip--\$\{/,
-};
+const BUILT = {};
 
 const code = [
   ...filesUnder("src").filter((file) => /\.(jsx?|tsx?)$/.test(file)),

@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../../../src/app/App";
 import home from "../../../src/pages/home/home.module.css";
+import headerStyles from "../../../src/header/header.module.css";
 
 const count = (selector) => document.head.querySelectorAll(selector).length;
 
@@ -76,7 +77,9 @@ describe("App (smoke)", () => {
       .getAllByRole("link")
       .filter((link) => link.getAttribute("href") === "/");
     expect(homeLinks.length).toBeGreaterThan(0);
-    expect(container.querySelector("button.menu__button")).toBeInTheDocument();
+    expect(
+      container.querySelector(`button.${headerStyles.menuButton}`),
+    ).toBeInTheDocument();
   });
 
   it("writes the home meta without a head-manager provider (T-03)", async () => {

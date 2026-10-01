@@ -17,6 +17,8 @@ import {
 } from "../../../src/components/socialicons";
 import Headermain from "../../../src/header";
 import { SOCIAL_PROFILES } from "../../../src/seo/site.js";
+import headerStyles from "../../../src/header/header.module.css";
+import railStyles from "../../../src/components/socialicons/socialicons.module.css";
 
 const ROOT = resolve(import.meta.dirname, "../../..");
 
@@ -43,9 +45,9 @@ const TR_LABELS = K11_LABELS.map(
   (name) => `${name} profili (yeni sekmede açılır)`,
 );
 
-const railLinks = () => [...document.querySelectorAll(".stick_follow_icon a")];
+const railLinks = () => [...document.querySelectorAll(`.${railStyles.rail} a`)];
 const footerLinks = () => [
-  ...document.querySelectorAll(".menu_footer__social a"),
+  ...document.querySelectorAll(`.${headerStyles.footerSocial} a`),
 ];
 const labels = (links) => links.map((a) => a.getAttribute("aria-label"));
 const hrefs = (links) => links.map((a) => a.href);
@@ -188,7 +190,7 @@ describe("rail and menu footer on the page (DSG-30, SEO-24, MKT-23)", () => {
     renderShell("/");
     expect(
       document.querySelectorAll(
-        '.stick_follow_icon svg:not([aria-hidden="true"])',
+        `.${railStyles.rail} svg:not([aria-hidden="true"])`,
       ).length,
     ).toBe(0);
   });
@@ -209,8 +211,8 @@ describe("rail and menu footer on the page (DSG-30, SEO-24, MKT-23)", () => {
 
   it("the footer shows the brand names and keeps the copyright line", () => {
     renderShell("/");
-    const footer = document.querySelector(".menu_footer");
-    const social = footer.querySelector(".menu_footer__social");
+    const footer = document.querySelector(`.${headerStyles.menuFooter}`);
+    const social = footer.querySelector(`.${headerStyles.footerSocial}`);
     expect(
       within(social)
         .getAllByRole("link", { hidden: true })
@@ -221,12 +223,12 @@ describe("rail and menu footer on the page (DSG-30, SEO-24, MKT-23)", () => {
 
   it("the rail keeps its caption (EN 'Follow Me' by default, prop wins)", () => {
     const { unmount } = render(<Socialicons />);
-    expect(document.querySelector(".stick_follow_icon p").textContent).toBe(
+    expect(document.querySelector(`.${railStyles.rail} p`).textContent).toBe(
       "Follow Me",
     );
     unmount();
     render(<Socialicons followLabel="Custom" />);
-    expect(document.querySelector(".stick_follow_icon p").textContent).toBe(
+    expect(document.querySelector(`.${railStyles.rail} p`).textContent).toBe(
       "Custom",
     );
   });

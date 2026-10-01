@@ -8,6 +8,7 @@ import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import Headermain from "../../../src/header";
+import headerStyles from "../../../src/header/header.module.css";
 
 // Vitest runs from the repository root (jsdom has no file: import.meta.url).
 const ROOT = process.cwd();
@@ -89,7 +90,9 @@ describe("menu footer copyright (MKT-09, FE-36, DSG-23)", () => {
       </MemoryRouter>,
     );
 
-    const copyright = document.querySelector(".menu_footer .copyright");
+    const copyright = document.querySelector(
+      `.${headerStyles.menuFooter} .copyright`,
+    );
     expect(copyright.textContent.trim()).toBe(
       `© ${new Date().getFullYear()} Cengizhan Köse`,
     );

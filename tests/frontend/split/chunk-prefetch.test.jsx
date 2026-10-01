@@ -15,6 +15,7 @@ import {
 } from "../../../src/lib/prefetch.js";
 import { swrConfig } from "../../../src/lib/swr.js";
 import { ALL_LIVE, matchRoute } from "../../../src/seo/routes.js";
+import routeStyles from "../../../src/components/routefallback/routefallback.module.css";
 
 // Each test re-imports the route table (and a blog chunk) cold.
 vi.setConfig({ testTimeout: 30_000 });
@@ -227,6 +228,6 @@ describe("the delegated listener (pointerover / focusin)", () => {
     expect(
       await screen.findByRole("heading", { name: "Hello world" }),
     ).toBeInTheDocument();
-    expect(container.querySelector(".route-fallback")).toBeNull();
+    expect(container.querySelector(`.${routeStyles.routeFallback}`)).toBeNull();
   });
 });

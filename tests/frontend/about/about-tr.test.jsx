@@ -7,6 +7,7 @@ import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import aboutStyles from "../../../src/pages/about/about.module.css";
+import proofStyles from "../../../src/components/proofstrip/proofstrip.module.css";
 
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -105,7 +106,7 @@ describe("/tr/about", () => {
   it("writes the results in Turkish and links within /tr", () => {
     const { container } = renderAbout("/tr/about");
 
-    const awards = container.querySelectorAll(".proof-awards li");
+    const awards = container.querySelectorAll(`.${proofStyles.awards} li`);
     expect(awards).toHaveLength(4);
     expect(awards[1].textContent).toBe(
       "AlgoHack Istanbul (Algorand Foundation × Rise In) · 2025 · Open Innovation Track birinciliği · Farmin (yeni sekmede açılır)",

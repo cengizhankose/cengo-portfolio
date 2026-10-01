@@ -13,6 +13,7 @@ import {
   SOCIAL_ICONS,
 } from "../../../src/components/socialicons/icons";
 import Headermain from "../../../src/header";
+import headerStyles from "../../../src/header/header.module.css";
 
 // K-11, in this order; Facebook is not a channel any more.
 const K11_IDS = ["linkedin", "github", "x", "youtube", "twitch", "instagram"];
@@ -109,7 +110,7 @@ describe("menu footer (Headermain)", () => {
     );
 
     // The privacy link (W9) sits in the footer next to the social list.
-    const footer = document.querySelector(".menu_footer__social");
+    const footer = document.querySelector(`.${headerStyles.footerSocial}`);
     const links = within(footer).getAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual(K11_LABELS);
     links.forEach((link, index) =>

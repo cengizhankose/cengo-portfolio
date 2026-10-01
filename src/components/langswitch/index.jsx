@@ -22,7 +22,7 @@ import { LIVE, LOCALES, translate, useRoute, useT } from "../../i18n";
 import { track } from "../../lib/analytics/index.js";
 import { usePostTranslations } from "./postTranslations";
 import { currentLanguage, switchTarget } from "./target";
-import "./style.css";
+import styles from "./langswitch.module.css";
 
 // Only a click that navigates in this tab counts: a modified click (new tab,
 // new window, download) or a non-primary button does not switch the language
@@ -49,7 +49,7 @@ export function LanguageSwitcher() {
   const current = currentLanguage(route);
 
   return (
-    <nav className="lang-switch" aria-label={t("lang.label")}>
+    <nav className={styles.switcher} aria-label={t("lang.label")}>
       <ul>
         {LOCALES.map((code) => {
           const visible = code.toUpperCase();
@@ -58,11 +58,7 @@ export function LanguageSwitcher() {
           if (code === current) {
             return (
               <li key={code}>
-                <span
-                  className="lang-switch__item"
-                  aria-current="true"
-                  lang={code}
-                >
+                <span className={styles.item} aria-current="true" lang={code}>
                   {visible}
                   <span className="visually-hidden">
                     {" – "}
@@ -82,7 +78,7 @@ export function LanguageSwitcher() {
           return (
             <li key={code}>
               <Link
-                className="lang-switch__item"
+                className={styles.item}
                 to={href}
                 hrefLang={code}
                 lang={code}

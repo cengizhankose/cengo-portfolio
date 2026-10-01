@@ -1,0 +1,112 @@
+/* Shared status state (DSG-20): error, empty and not-found screens. Same
+   voice as the blog: Marcellus headings (the global h1-h6 rule), one colour (--text-color on
+   --bg-color), square corners, the blog cards' 4px rule for states that sit
+   inside a page. Replaces src/pages/notfound/style.css. */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  color: var(--text-color);
+}
+
+/* The state is the whole page (404, a post that failed, a crashed route). */
+.statePage {
+  justify-content: center;
+  min-height: 60vh;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 6rem 1rem 3rem;
+}
+
+/* The state sits under the page's own heading (the blog list). */
+.stateInline {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.25rem 0 1.25rem 1.25rem;
+  border-left: 4px solid var(--text-color);
+}
+
+.title {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.statePage .title {
+  font-size: var(--fs-2xl);
+}
+
+.stateInline .title {
+  font-size: var(--fs-lg);
+}
+
+.text {
+  margin: 0;
+  max-width: 36em;
+  font-size: var(--fs-md);
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Links and the button keep a 44px target (WCAG 2.5.5). */
+.links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text-color);
+  font-size: var(--fs-md);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.links a:hover,
+.links a:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+.retry {
+  min-height: 44px;
+  padding: 0.5rem 1.25rem;
+  font: inherit;
+  font-size: var(--fs-md);
+  color: var(--text-color);
+  background: transparent;
+  border: 2px solid var(--text-color);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.retry:hover {
+  color: var(--bg-color);
+  background: var(--text-color);
+}
+
+.retry:focus-visible,
+.links a:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .retry {
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
+  }
+}

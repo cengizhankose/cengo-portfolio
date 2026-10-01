@@ -264,21 +264,21 @@ describe("imports (PERF-09 step 6, FE-21 criterion 2)", () => {
   });
 });
 
-describe(".navbar-brand is local (PERF-09 step 4, FE-21 step 4)", () => {
-  const header = read("src/header/style.css");
+describe(".brand is local (PERF-09 step 4, FE-21 step 4)", () => {
+  const header = read("src/header/header.module.css");
 
   it("keeps the two declarations that reached the brand link", () => {
-    expect(declarations(header, ".navbar-brand")).toEqual({
+    expect(declarations(header, ".brand")).toEqual({
       "text-decoration": "none",
       "white-space": "nowrap",
     });
   });
 
-  it("sits above .nav_ac, which still sets padding, margin, size and color", () => {
-    expect(header.indexOf(".navbar-brand {")).toBeLessThan(
-      header.indexOf(".nav_ac {"),
+  it("sits above .navAction, which still sets padding, margin, size and color", () => {
+    expect(header.indexOf(".brand {")).toBeLessThan(
+      header.indexOf(".navAction {"),
     );
-    expect(declarations(header, ".nav_ac")).toMatchObject({
+    expect(declarations(header, ".navAction")).toMatchObject({
       padding: "5px 15px",
       margin: "0",
       "font-size": "var(--fs-md)",

@@ -4,6 +4,8 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { renderSite, routerState } from "./support/site";
+import headerStyles from "../../../src/header/header.module.css";
+import railStyles from "../../../src/components/socialicons/socialicons.module.css";
 
 vi.mock("../../../src/pages/home", async () => ({
   Home: (await import("./support/pages.jsx")).Home,
@@ -63,14 +65,16 @@ describe("landmarks", () => {
     expect(new Set(labels).size).toBe(labels.length);
 
     const mainMenu = screen.getByRole("navigation", { name: "Main menu" });
-    expect(mainMenu.querySelector("ul.the_menu")).not.toBeNull();
+    expect(
+      mainMenu.querySelector(`ul.${headerStyles.menuList}`),
+    ).not.toBeNull();
   });
 
   it("puts the social strip in a named <aside> outside <main>", () => {
     renderSite();
 
     const aside = screen.getByRole("complementary", { name: "Social links" });
-    expect(aside.querySelector(".stick_follow_icon")).not.toBeNull();
+    expect(aside.querySelector(`.${railStyles.rail}`)).not.toBeNull();
     expect(document.querySelector("main").contains(aside)).toBe(false);
   });
 });

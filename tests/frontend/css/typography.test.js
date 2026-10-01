@@ -48,11 +48,13 @@ describe("type scale (FE-19 steps 1-2)", () => {
 
   it("puts the menu links on the largest step (was 4.8vw)", () => {
     expect(
-      declared(read("src/header/style.css"), ".the_menu .menu_item > a"),
+      declared(read("src/header/header.module.css"), ".menuList .menuItem > a"),
     ).toMatchObject({
       "font-size": "var(--fs-2xl)",
     });
-    expect(read("src/header/style.css")).not.toMatch(/\d+(\.\d+)?vw\s*;/);
+    expect(read("src/header/header.module.css")).not.toMatch(
+      /\d+(\.\d+)?vw\s*;/,
+    );
   });
 });
 
@@ -134,7 +136,7 @@ describe("no synthetic bold (DSG-17, FE-19 step 3)", () => {
 
   it("gives heading classes and the logo no weight above 400", () => {
     const headingLike =
-      /(^|\s|>)(h[1-6]|\.introName|\.blog-title|\.blog-post-title(-full)?|\.status-state__title|\.nav_ac|\.proofstrip__label|\.cardTitle)(\s|$|:|\.)/;
+      /(^|\s|>)(h[1-6]|\.introName|\.blog-title|\.blog-post-title(-full)?|\.title|\.navAction|\.label|\.cardTitle)(\s|$|:|\.)/;
     const off = weights()
       .filter(([, value]) => Number(value) > 400)
       .filter(([, , selector]) =>
@@ -175,9 +177,9 @@ describe("home page renders only Raleway 400 and Marcellus 400 (PERF-08 budget, 
   // only EN is live.
   const HOME_SHEETS = [
     "src/index.css",
-    "src/header/style.css",
+    "src/header/header.module.css",
     "src/pages/home/home.module.css",
-    "src/components/socialicons/style.css",
+    "src/components/socialicons/socialicons.module.css",
     "src/app/App.css",
   ];
 
@@ -204,8 +206,8 @@ describe("home page renders only Raleway 400 and Marcellus 400 (PERF-08 budget, 
     expect(declared(INDEX, ".skip-link")).not.toHaveProperty("font-weight");
     expect(
       declared(
-        read("src/components/socialicons/style.css"),
-        ".stick_follow_icon p",
+        read("src/components/socialicons/socialicons.module.css"),
+        ".rail p",
       ),
     ).not.toHaveProperty("font-weight");
   });

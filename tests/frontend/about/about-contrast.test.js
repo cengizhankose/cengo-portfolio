@@ -15,7 +15,7 @@ const ROOT = process.cwd();
 const read = (file) => readFileSync(join(ROOT, file), "utf8");
 const INDEX = GLOBAL_CSS;
 const ABOUT = read("src/pages/about/about.module.css");
-const STRIP = read("src/components/proofstrip/style.css");
+const STRIP = read("src/components/proofstrip/proofstrip.module.css");
 
 function declarations(css, selector) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\>]/g, "\\$&");
@@ -84,8 +84,8 @@ describe.each(THEMES)(
     it.each([
       [ABOUT, ".skillGroupName"],
       [ABOUT, ".ventureText"],
-      [STRIP, ".proofstrip__label"],
-      [STRIP, ".proof-testimonial__role"],
+      [STRIP, ".label"],
+      [STRIP, ".testimonialRole"],
     ])("keeps %#: secondary text on the muted token", (css, rule) => {
       const { color } = declarations(css, rule);
       expect(color).toBe("var(--text-muted)");

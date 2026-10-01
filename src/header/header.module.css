@@ -1,0 +1,241 @@
+.siteHeader {
+  z-index: var(--z-header);
+  top: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.menuButton {
+  color: var(--text-color);
+}
+
+.menuButton:hover {
+  color: var(--text-color);
+}
+
+.menuButton svg {
+  width: 2em;
+  height: 2em;
+  fill: var(--text-color);
+  color: var(--text-color);
+}
+
+/* The brand link (PERF-09/FE-21): it used to carry Bootstrap's
+   .navbar-brand, but the subset (src/styles/bootstrap-subset.scss) does not
+   compile the navbar partial. The link sits outside a .navbar, so Bootstrap's
+   padding, margin, font-size and color read unset --bs-navbar-* variables and
+   .navAction below sets all four anyway; these two declarations are the only
+   ones that ever reached the page. Keep this rule above .navAction. */
+.brand {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navAction {
+  padding: 5px 15px;
+  margin: 0;
+  border: unset;
+  background: var(--surface-color);
+  font-size: var(--fs-md);
+  font-family: var(--font-display);
+  font-synthesis: none;
+  color: var(--text-color);
+  line-height: 2;
+  height: 50px;
+  font-weight: 400;
+  /* Above the open menu panel (.siteNavigation, a later sibling), so the
+     menu button stays clickable. */
+  z-index: 1;
+}
+
+.navAction:hover {
+  color: var(--text-color);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+/* The menu and theme buttons hold only an icon: it dims on hover (DSG-27). */
+button.navAction:hover svg {
+  opacity: 0.7;
+}
+
+/* Header controls are native buttons (FE-02/DSG-02): no browser chrome, a
+   pointer cursor, and a visible keyboard focus ring. The offset is inset so
+   the fixed page frame (.frameTop, --z-frame) cannot cover the ring. */
+button.navAction {
+  cursor: pointer;
+}
+
+.navAction:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: -4px;
+}
+
+/* Same ring for the links inside the open menu (sections + social). */
+.siteNavigation a:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 4px;
+}
+
+.themeToggle {
+  display: inline-flex;
+  align-items: center;
+}
+
+.themeToggle svg {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+/* The 10px page frame (FE-20 step 6: the one place it is drawn). Four fixed
+   strips on the --z-frame layer, over the header. */
+.frame {
+  position: fixed;
+  z-index: var(--z-frame);
+  background: var(--surface-color);
+}
+
+.frameTop {
+  top: 0;
+  height: 10px;
+  left: 0;
+  width: 100%;
+}
+
+.frameBottom {
+  bottom: 0;
+  left: 0;
+  height: 10px;
+  width: 100%;
+}
+
+.frameRight {
+  width: 10px;
+  right: 0;
+  top: 0;
+  height: 100%;
+}
+
+.frameLeft {
+  width: 10px;
+  left: 0;
+  top: 0;
+  height: 100%;
+}
+
+.siteNavigation {
+  height: 100%;
+  left: 0;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  visibility: hidden;
+}
+
+.menuOpen {
+  visibility: visible;
+}
+
+.menuPanel {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--surface-color);
+  will-change: transform;
+  transform: translateY(-100%);
+  /* Closing: the panel keeps its (inherited) visibility until the slide-up
+     ends. */
+  transition:
+    transform 0.5s ease,
+    visibility 0s linear 0.5s;
+}
+
+.menuOpen .menuPanel {
+  transform: translateY(0);
+  /* Opening: visible at once, so the first link can take focus as soon as
+     the menu opens (FE-11). A 0.5s visibility transition here kept the links
+     hidden, and unfocusable, at the start of the slide-down. */
+  transition:
+    transform 0.5s ease,
+    visibility 0s;
+}
+
+.menuWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden auto;
+}
+
+.menuList {
+  padding-top: 20vh;
+  padding-bottom: 20vh;
+  padding-left: 0;
+}
+
+@media (min-width: 992px) {
+  .menuContainer {
+    margin-left: 33.3333%;
+  }
+  .menuList {
+    padding-top: 10vh;
+    padding-bottom: 10vh;
+  }
+}
+
+.menuList .menuItem > a {
+  color: var(--text-color);
+  text-decoration: none;
+  line-height: 1;
+  font-size: var(--fs-2xl);
+  display: inline-block;
+  position: relative;
+  transition: color 250ms cubic-bezier(0, 0, 0.58, 1) 0s;
+  padding: 4px 0px;
+  font-family: var(--font-display);
+  font-synthesis: none;
+}
+
+.menuList .menuItem > a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.12em;
+}
+
+.menuFooter {
+  bottom: 0;
+  font-family: var(--font-display);
+  font-synthesis: none;
+  font-size: var(--fs-sm);
+  background: var(--surface-color);
+}
+
+.menuFooter a {
+  color: var(--text-color);
+}
+
+/* Social profile links (DSG-12 step 4): the gap replaces the old right
+   margin, and every link is at least a 24x24 target (WCAG 2.5.8), "X"
+   included. The focus ring is .siteNavigation a:focus-visible above. */
+.footerSocial {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  list-style: none;
+}
+
+.footerSocial a:hover {
+  opacity: 0.7;
+}
+
+.footerSocial a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 4px;
+}

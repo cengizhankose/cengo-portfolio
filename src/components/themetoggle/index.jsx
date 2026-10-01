@@ -18,8 +18,10 @@ import { translate } from "../../i18n/translate.js";
 // The theme comes from src/lib/theme.js (FE-08/DSG-15, K-10). The head script
 // in index.html applies it before the first paint. Nothing is stored until
 // the visitor clicks, so an untouched visitor keeps following the system.
+// `className` is the header's button style (the header owns its CSS Module).
 const Themetoggle = ({
   label = translate(DEFAULT_LOCALE, "a11y.darkTheme"),
+  className,
 }) => {
   const theme = useTheme();
 
@@ -35,7 +37,7 @@ const Themetoggle = ({
   return (
     <button
       type="button"
-      className="nav_ac theme-toggle"
+      className={className}
       aria-label={label}
       aria-pressed={theme === "dark"}
       onClick={toggle}

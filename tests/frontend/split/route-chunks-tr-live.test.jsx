@@ -5,6 +5,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, useNavigate } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import routeStyles from "../../../src/components/routefallback/routefallback.module.css";
 
 // Each test re-imports the route table (and a blog chunk) cold.
 vi.setConfig({ testTimeout: 30_000 });
@@ -82,14 +83,14 @@ describe("with the TR pages live", () => {
     const table = await freshRoutes();
     const { container } = renderAt(table, "/tr/blog");
 
-    const fallback = container.querySelector(".route-fallback");
+    const fallback = container.querySelector(`.${routeStyles.routeFallback}`);
     expect(fallback).toBeInTheDocument();
     expect(fallback).toHaveAttribute("lang", "tr");
     expect(fallback).toHaveTextContent(table.DICTIONARIES.tr["status.loading"]);
 
     await table.arrive();
     await screen.findByRole("heading", { level: 1, name: "Blog" });
-    expect(container.querySelector(".route-fallback")).toBeNull();
+    expect(container.querySelector(`.${routeStyles.routeFallback}`)).toBeNull();
     expect(table.loadBlogHome).toHaveBeenCalledTimes(1);
     expect(table.loadBlogPost).not.toHaveBeenCalled();
 
@@ -103,7 +104,7 @@ describe("with the TR pages live", () => {
     const table = await freshRoutes();
     const { container } = renderAt(table, "/blog");
 
-    const fallback = container.querySelector(".route-fallback");
+    const fallback = container.querySelector(`.${routeStyles.routeFallback}`);
     expect(fallback).toHaveAttribute("lang", "en");
     expect(fallback).toHaveTextContent(table.DICTIONARIES.en["status.loading"]);
     await table.arrive();

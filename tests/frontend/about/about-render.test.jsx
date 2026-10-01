@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getContent } from "../../../src/content/index.js";
 import { About } from "../../../src/pages/about";
 import aboutStyles from "../../../src/pages/about/about.module.css";
+import proofStyles from "../../../src/components/proofstrip/proofstrip.module.css";
 
 const en = getContent("en");
 
@@ -113,7 +114,7 @@ describe("ProofStrip on the page (MKT-04)", () => {
   it("shows the four first places as links and the four employers", () => {
     const { container } = renderAbout();
 
-    const awards = container.querySelectorAll(".proof-awards li");
+    const awards = container.querySelectorAll(`.${proofStyles.awards} li`);
     expect(awards).toHaveLength(4);
     expect(
       [...awards].map((li) => li.querySelector("a").getAttribute("href")),
@@ -125,7 +126,7 @@ describe("ProofStrip on the page (MKT-04)", () => {
     );
     expect(awards[0].querySelector("a")).toHaveAttribute("target", "_blank");
     expect(
-      [...container.querySelectorAll(".proof-companies li")].map(
+      [...container.querySelectorAll(`.${proofStyles.companies} li`)].map(
         (li) => li.textContent,
       ),
     ).toEqual(["Monster Notebook", "Drivee Teknoloji", "MakasApp", "Fitmondo"]);

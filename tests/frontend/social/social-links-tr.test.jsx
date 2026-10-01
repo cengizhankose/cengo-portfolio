@@ -4,6 +4,8 @@
 import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import headerStyles from "../../../src/header/header.module.css";
+import railStyles from "../../../src/components/socialicons/socialicons.module.css";
 
 vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
   const actual = await importOriginal();
@@ -46,33 +48,33 @@ const names = (selector) =>
 describe("TR pages live", () => {
   it("/tr: rail names are TR, start with the channel, end with the TR note", () => {
     renderAt("/tr");
-    const rail = names(".stick_follow_icon a");
+    const rail = names(`.${railStyles.rail} a`);
     expect(rail).toHaveLength(6);
     rail.forEach((name, index) => {
       expect(name.startsWith(K11_LABELS[index])).toBe(true);
       expect(name).toContain("profili");
       expect(name.endsWith("(yeni sekmede açılır)")).toBe(true);
     });
-    expect(document.querySelector(".stick_follow_icon p").textContent).toBe(
+    expect(document.querySelector(`.${railStyles.rail} p`).textContent).toBe(
       "Takip et",
     );
   });
 
   it("/tr: the menu footer names are TR as well, same hrefs as the rail", () => {
     renderAt("/tr/about");
-    expect(names(".menu_footer__social a")).toEqual(
+    expect(names(`.${headerStyles.footerSocial} a`)).toEqual(
       K11_LABELS.map((name) => `${name} profili (yeni sekmede açılır)`),
     );
     const hrefs = (selector) =>
       [...document.querySelectorAll(selector)].map((a) => a.href);
-    expect(hrefs(".menu_footer__social a")).toEqual(
-      hrefs(".stick_follow_icon a"),
+    expect(hrefs(`.${headerStyles.footerSocial} a`)).toEqual(
+      hrefs(`.${railStyles.rail} a`),
     );
   });
 
   it("/ stays EN", () => {
     renderAt("/");
-    expect(names(".stick_follow_icon a")).toEqual(
+    expect(names(`.${railStyles.rail} a`)).toEqual(
       K11_LABELS.map((name) => `${name} profile (opens in a new tab)`),
     );
   });
