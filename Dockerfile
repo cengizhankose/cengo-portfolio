@@ -1,25 +1,29 @@
 # Multi-stage Dockerfile for Vite + Bun React app + Hono API (single container)
-# The builder's test gate runs on this Bun. @types/bun in package.json is pinned
-# to the same version so `tsc` flags APIs this Bun lacks; bump both together
-# (BE-27; enforced by tests/server/ops/build-gate.test.ts).
-FROM oven/bun:1.3.3-alpine AS base
+#
+# One Bun version, pinned by tag and digest (BE-27 / SEC-26). Every stage starts
+# from ${BUN_IMAGE}. Keep the version equal to package.json "packageManager" and
+# to the exact "@types/bun" devDependency: the builder's test gate runs on this
+# Bun, and @types/bun makes `tsc` flag APIs this Bun lacks. Bump all three
+# together; Dependabot proposes the image digest (.github/dependabot.yml).
+# tests/server/docker and tests/server/ops/build-gate.test.ts enforce the match.
+# Digest = the multi-arch index of the tag (linux/amd64 and linux/arm64).
+ARG BUN_IMAGE=oven/bun:1.3.14-alpine@sha256:5acc90a93e91ff07bf72aa90a7c9f0fa189765aec90b47bdbf2152d2196383c0
+
+# All dependencies (dev included): the development target and the builder
+FROM ${BUN_IMAGE} AS deps
 WORKDIR /app
-
-# Copy package files
 COPY package.json bun.lock* ./
-
-# Install dependencies once and reuse
 RUN bun install --frozen-lockfile
 
 # Development target (optional)
-FROM base AS development
+FROM deps AS development
 ENV NODE_ENV=development
 COPY . .
 EXPOSE 3000
 CMD ["bun", "run", "dev"]
 
 # Build target
-FROM base AS builder
+FROM deps AS builder
 ENV NODE_ENV=production
 COPY . .
 # BE-17 gate (T-02): typecheck + server tests (bun test) + component tests
@@ -41,16 +45,40 @@ ARG GIT_COMMIT=""
 RUN printf '{"buildTime":"%s","commit":"%s"}\n' \
       "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$GIT_COMMIT" > build-info.json
 
-# Production stage: one Bun process serves static dist/ + /api/posts
-FROM base AS production
+# Runtime dependencies only (PERF-24 / SEC-13 / BE-15): package.json
+# "dependencies" is hono, drizzle-orm, postgres and zod; React, Vite, mermaid
+# and the rest are bundled into dist/ (client and dist/server) at build time.
+# --omit=peer: bun otherwise installs drizzle-orm's optional peers that are
+# also devDependencies here (@electric-sql/pglite 26 MB, bun-types, @types/node).
+FROM ${BUN_IMAGE} AS deps-prod
+WORKDIR /app
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile --production --omit=peer
+
+# Production stage (must stay the LAST stage: Out Plane builds the last stage):
+# one Bun process serves static dist/ + /api/posts, as the unprivileged user.
+FROM ${BUN_IMAGE} AS production
+WORKDIR /app
 ENV NODE_ENV=production
+COPY --from=deps-prod /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/build-info.json ./build-info.json
-# whole src/: server.ts imports src/api, src/db and src/server (later also
-# src/seo, src/i18n, src/content); src/db carries migrate.ts and migrations/
+COPY package.json ./package.json
+# whole src/: server.ts imports src/api, src/db, src/server, src/seo, src/lib,
+# src/content and src/pages/home; src/db carries migrate.ts and migrations/.
+# (tests/server/docker checks that the runtime import graph stays inside it.)
 COPY src ./src
 COPY server.ts ./server.ts
+# Root-owned and read-only for the app: the process only reads these files.
+USER bun
 EXPOSE 3000
+# BE-15: local docker / compose liveness, from inside the container. /health
+# answers for every Host header and does no database work (SEC-30); the
+# readiness check against the database is /ready (BE-20, the platform probe).
+# start-period covers the migration step of CMD. Out Plane (Kubernetes) most
+# likely ignores HEALTHCHECK.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
+  CMD wget -q -O /dev/null "http://127.0.0.1:${PORT:-3000}/health" || exit 1
 # BE-14: migrations first, then the server. A failed migration exits 1, so the
 # server never starts on a schema it does not expect and the new release
 # never becomes ready. `exec` replaces the shell: bun is PID 1 again and
