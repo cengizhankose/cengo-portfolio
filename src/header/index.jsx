@@ -211,12 +211,21 @@ const Headermain = () => {
               location={LOCATIONS.MENU_FOOTER}
               className="menu_footer__social m-0 p-0"
             />
-            {/* The year is read when the page is drawn: a prerendered page keeps
-                the year of its build (PERF-03), which the browser corrects
-                after hydrating instead of reporting a mismatch. */}
-            <p className="copyright m-0" suppressHydrationWarning>
-              {t("footer.copyright", { year: new Date().getFullYear() })}
-            </p>
+            <div className="d-flex flex-wrap align-items-center">
+              <Link
+                to={lp("/privacy")}
+                className="menu_footer__privacy d-inline-block me-3 py-1"
+                onClick={() => closeMenu(lp("/privacy"))}
+              >
+                {t("nav.privacy")}
+              </Link>
+              {/* The year is read when the page is drawn: a prerendered page keeps
+                  the year of its build (PERF-03), which the browser corrects
+                  after hydrating instead of reporting a mismatch. */}
+              <p className="copyright m-0" suppressHydrationWarning>
+                {t("footer.copyright", { year: new Date().getFullYear() })}
+              </p>
+            </div>
           </div>
         </div>
       </header>

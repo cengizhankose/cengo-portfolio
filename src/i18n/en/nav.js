@@ -8,4 +8,5 @@ export default {
   about: "About",
   blog: "Blog",
   contact: "Contact",
+  privacy: "Privacy",
 };

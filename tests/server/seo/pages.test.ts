@@ -12,7 +12,7 @@ import { LOCALES } from "../../../src/seo/site.js";
 // JS module: index it with plain string keys in the tests.
 const pages = registry as Record<string, any>;
 
-const PAGES = ["/", "/about", "/portfolio", "/contact", "/blog"];
+const PAGES = ["/", "/about", "/portfolio", "/contact", "/blog", "/privacy"];
 // Turkish letters; every TR description contains at least one.
 const TURKISH = /[çğıİöşüÇĞÖŞÜ]/;
 
@@ -24,9 +24,9 @@ describe("static page descriptions (SEO-09)", () => {
   for (const locale of LOCALES) {
     const descriptions = PAGES.map((path) => pages[path][locale].description);
 
-    test(`${locale}: 5 descriptions, unique within the language`, () => {
-      expect(descriptions).toHaveLength(5);
-      expect(new Set(descriptions).size).toBe(5);
+    test(`${locale}: 6 descriptions, unique within the language`, () => {
+      expect(descriptions).toHaveLength(6);
+      expect(new Set(descriptions).size).toBe(6);
     });
 
     for (const [i, path] of PAGES.entries()) {

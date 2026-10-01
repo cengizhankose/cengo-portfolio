@@ -44,7 +44,9 @@ const TR_LABELS = K11_LABELS.map(
 );
 
 const railLinks = () => [...document.querySelectorAll(".stick_follow_icon a")];
-const footerLinks = () => [...document.querySelectorAll(".menu_footer a")];
+const footerLinks = () => [
+  ...document.querySelectorAll(".menu_footer__social a"),
+];
 const labels = (links) => links.map((a) => a.getAttribute("aria-label"));
 const hrefs = (links) => links.map((a) => a.href);
 
@@ -208,8 +210,9 @@ describe("rail and menu footer on the page (DSG-30, SEO-24, MKT-23)", () => {
   it("the footer shows the brand names and keeps the copyright line", () => {
     renderShell("/");
     const footer = document.querySelector(".menu_footer");
+    const social = footer.querySelector(".menu_footer__social");
     expect(
-      within(footer)
+      within(social)
         .getAllByRole("link", { hidden: true })
         .map((a) => a.textContent),
     ).toEqual(K11_LABELS);

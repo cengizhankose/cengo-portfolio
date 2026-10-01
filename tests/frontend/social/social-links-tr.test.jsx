@@ -60,12 +60,14 @@ describe("TR pages live", () => {
 
   it("/tr: the menu footer names are TR as well, same hrefs as the rail", () => {
     renderAt("/tr/about");
-    expect(names(".menu_footer a")).toEqual(
+    expect(names(".menu_footer__social a")).toEqual(
       K11_LABELS.map((name) => `${name} profili (yeni sekmede açılır)`),
     );
     const hrefs = (selector) =>
       [...document.querySelectorAll(selector)].map((a) => a.href);
-    expect(hrefs(".menu_footer a")).toEqual(hrefs(".stick_follow_icon a"));
+    expect(hrefs(".menu_footer__social a")).toEqual(
+      hrefs(".stick_follow_icon a"),
+    );
   });
 
   it("/ stays EN", () => {

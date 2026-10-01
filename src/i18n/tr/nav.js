@@ -9,4 +9,5 @@ export default {
   about: "Hakkımda",
   blog: "Blog",
   contact: "İletişim",
+  privacy: "Gizlilik",
 };

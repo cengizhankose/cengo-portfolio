@@ -108,7 +108,8 @@ describe("menu footer (Headermain)", () => {
       </MemoryRouter>,
     );
 
-    const footer = document.querySelector(".menu_footer");
+    // The privacy link (W9) sits in the footer next to the social list.
+    const footer = document.querySelector(".menu_footer__social");
     const links = within(footer).getAllByRole("link");
     expect(links.map((link) => link.textContent)).toEqual(K11_LABELS);
     links.forEach((link, index) =>

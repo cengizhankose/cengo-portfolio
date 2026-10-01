@@ -10,8 +10,8 @@
 // as /About), exactly where the server answers 404. Opening the TR pages is
 // the one-line LIVE change (SEO-11 Adım B); this table does not change.
 //
-// Code splitting (PERF-04, FE-05): Home, About, Portfolio and Contact are in
-// the entry chunk (Home is the LCP page). BlogHome and BlogPost are lazy
+// Code splitting (PERF-04, FE-05): Home, About, Portfolio, Contact and Privacy
+// are in the entry chunk (Home is the LCP page). BlogHome and BlogPost are lazy
 // components made once here, so /blog and /tr/blog (and both post paths) use
 // the same two chunks: no chunk per language. The markdown chain lives only in
 // the BlogPost chunk (src/pages/blog/loaders.js names the pages; nothing
@@ -24,6 +24,7 @@ import { Home } from "../pages/home";
 import { Portfolio } from "../pages/portfolio";
 import { ContactUs } from "../pages/contact";
 import { About } from "../pages/about";
+import { Privacy } from "../pages/privacy";
 import { NotFound } from "../pages/notfound";
 import { RouteFallback } from "../components/routefallback";
 import { lazyPage } from "../components/routefallback/lazyPage.js";
@@ -41,6 +42,7 @@ export const PAGE_ROUTES = Object.freeze([
   { path: "/portfolio", Page: Portfolio },
   { path: "/contact", Page: ContactUs },
   { path: "/blog", Page: BlogHome },
+  { path: "/privacy", Page: Privacy },
   { path: "/blog/:slug", Page: BlogPost },
 ]);
 

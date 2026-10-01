@@ -38,6 +38,10 @@ const TITLE_TABLE: Record<string, { en: string; tr: string }> = {
     tr: "İletişim | Cengizhan Köse",
   },
   "/blog": { en: "Blog | Cengizhan Köse", tr: "Blog | Cengizhan Köse" },
+  "/privacy": {
+    en: "Privacy | Cengizhan Köse",
+    tr: "Gizlilik | Cengizhan Köse",
+  },
 };
 
 function staticMeta(path: string, locale: string) {

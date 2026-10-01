@@ -6,14 +6,15 @@
 import { DEFAULT_LOCALE } from "./site.js";
 
 // Keys of the page registry in src/seo/pages.js. The segments are the same in
-// every language (T-12: '/about' <-> '/tr/about'); /privacy joins with
-// ANL-04/SEC-25 in both languages at once.
+// every language (T-12: '/about' <-> '/tr/about'). /privacy (ANL-04/SEC-25)
+// is one page in both languages; /tr/privacy opens with the other TR pages.
 export const STATIC_PATHS = Object.freeze([
   "/",
   "/about",
   "/portfolio",
   "/contact",
   "/blog",
+  "/privacy",
 ]);
 
 export const POST_PATH = "/blog/:slug";

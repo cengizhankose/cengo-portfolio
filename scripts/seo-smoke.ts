@@ -23,7 +23,14 @@
 //
 // `runSmoke` takes the fetch function, so tests run it against an in-process
 // app with no port (tests/server/ssr/smoke.test.ts).
-const SITE_PATHS = ["/", "/about", "/portfolio", "/contact", "/blog"] as const;
+const SITE_PATHS = [
+  "/",
+  "/about",
+  "/portfolio",
+  "/contact",
+  "/blog",
+  "/privacy",
+] as const;
 const DEFAULT_MIN_WORDS = 100;
 const FAKE_PATH = "/seo-smoke-not-a-page-7f3";
 

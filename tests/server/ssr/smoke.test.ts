@@ -77,6 +77,7 @@ describe("runSmoke against the app", () => {
       "/portfolio",
       "/contact",
       "/blog",
+      "/privacy",
       "/blog/hello-world",
       "/tr/blog/merhaba-dunya",
     ]) {
@@ -90,7 +91,7 @@ describe("runSmoke against the app", () => {
     expect(text).toContain(
       "/tr/blog/hello-world is one 301 to /blog/hello-world",
     );
-    expect(text).toContain("the 6 en titles are all different");
+    expect(text).toContain("the 7 en titles are all different");
     expect(text).toContain("/ has one hero image preload");
     expect(text).toContain(
       "/blog/hello-world <-> /tr/blog/merhaba-dunya hreflang is reciprocal",

@@ -34,6 +34,7 @@ describe("the table (SEO-02 step 1)", () => {
       "/portfolio",
       "/contact",
       "/blog",
+      "/privacy",
     ]);
     expect(POST_PATH).toBe("/blog/:slug");
     expect(LOCALE_PREFIX).toEqual({ en: "", tr: "/tr" });
