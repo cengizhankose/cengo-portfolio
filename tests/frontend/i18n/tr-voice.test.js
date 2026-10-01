@@ -197,7 +197,7 @@ describe("nothing in TR is an untranslated English value (MKT-14)", () => {
     "portfolio.problem",
   ]);
   const CONTENT_ALLOWED_PATH =
-    /\.(?:id|url|name|project|where|date|roleLang|status|event)$|^hero\.(?:name|role|headline)$|\.jobtitle$|^about\.ventures\[\d+\]\.role$|^skills\[\d+\]\.items\[\d+\]$/;
+    /\.(?:id|url|name|project|where|date|roleLang|status|event|to|href|language)$|^hero\.(?:name|role|headline)$|\.jobtitle$|^about\.ventures\[\d+\]\.role$|^skills\[\d+\]\.items\[\d+\]$/;
   const TECH_NAMES = new Set([
     "TypeScript",
     "JavaScript",
