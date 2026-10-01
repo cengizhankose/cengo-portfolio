@@ -12,9 +12,12 @@
 //   - older: the request waits for the query;
 //   - a failed query serves the last value (stale-if-error), logs a warning
 //     and waits 5 s before the next attempt for that key;
-//   - null results (unknown slug, draft) are never stored, so random slugs
-//     cannot fill the memory and a draft cannot be cached; a refresh that
-//     returns null drops the entry (unpublished post -> 404 after a refresh);
+//   - null results (unknown slug, draft) are not stored as values; a refresh
+//     that returns null drops the entry (unpublished post -> 404 after a
+//     refresh). The miss itself is remembered for 30 s in a separate map of
+//     at most 100 keys (PERF-06 step 3), so repeating an unknown slug does
+//     not reach the database every time and random slugs cannot fill the
+//     memory; a post published meanwhile appears after at most 30 s;
 //   - at most 200 entries, least recently used evicted first;
 //   - ping() is never cached (/ready must ask the database).
 //
@@ -39,6 +42,10 @@ export const CACHE_STALE_MS = 86_400_000;
 export const CACHE_MAX_ENTRIES = 200;
 /** A cache load at least this slow is logged at info level. */
 export const SLOW_QUERY_MS = 200;
+/** An unknown key (the loader returned null) is answered with null without a query for this long. */
+export const CACHE_NEGATIVE_MS = 30_000;
+/** At most this many remembered misses, oldest dropped first. */
+export const CACHE_MAX_MISSES = 100;
 /** After a failed refresh the stale value is served without a new query for this long. */
 export const CACHE_ERROR_RETRY_MS = 5_000;
 
@@ -50,6 +57,8 @@ export interface SwrCacheOptions {
   staleMs?: number;
   maxEntries?: number;
   errorRetryMs?: number;
+  negativeMs?: number;
+  maxMisses?: number;
   /** Clock in ms (tests pass a fake one). */
   now?: () => number;
 }
@@ -76,10 +85,24 @@ export function createSwrCache({
   staleMs = CACHE_STALE_MS,
   maxEntries = CACHE_MAX_ENTRIES,
   errorRetryMs = CACHE_ERROR_RETRY_MS,
+  negativeMs = CACHE_NEGATIVE_MS,
+  maxMisses = CACHE_MAX_MISSES,
   now = Date.now,
 }: SwrCacheOptions = {}): SwrCache {
   const entries = new Map<string, Entry>();
   const inflight = new Map<string, Promise<unknown>>();
+  // key -> time until which a miss is answered from memory (insertion order = age).
+  const misses = new Map<string, number>();
+
+  const rememberMiss = (key: string) => {
+    misses.delete(key);
+    misses.set(key, now() + negativeMs);
+    while (misses.size > maxMisses) {
+      const oldest = misses.keys().next().value;
+      if (oldest === undefined) break;
+      misses.delete(oldest);
+    }
+  };
 
   const touch = (key: string, entry: Entry) => {
     entries.delete(key);
@@ -103,8 +126,13 @@ export function createSwrCache({
     const promise = (async () => {
       try {
         const value = await loader();
-        if (value === null || value === undefined) entries.delete(key);
-        else store(key, value);
+        if (value === null || value === undefined) {
+          entries.delete(key);
+          rememberMiss(key);
+        } else {
+          misses.delete(key);
+          store(key, value);
+        }
         ok = true;
         return value ?? null;
       } finally {
@@ -136,7 +164,14 @@ export function createSwrCache({
   return {
     async get<T>(key: string, loader: () => Promise<T | null>) {
       const entry = entries.get(key);
-      if (!entry) return load(key, loader);
+      if (!entry) {
+        const missUntil = misses.get(key);
+        if (missUntil !== undefined) {
+          if (now() < missUntil) return null;
+          misses.delete(key);
+        }
+        return load(key, loader);
+      }
 
       const at = now();
       const age = at - entry.fetchedAt;
@@ -162,6 +197,7 @@ export function createSwrCache({
     },
     clear: () => {
       entries.clear();
+      misses.clear();
     },
   };
 }

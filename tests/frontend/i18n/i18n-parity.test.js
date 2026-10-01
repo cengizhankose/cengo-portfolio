@@ -8,7 +8,7 @@
 // namespace/section in both languages (the parallel-safety contract of W4),
 // ANL-19's stable service ids, and the NotFound strings moved from
 // src/pages/notfound/copy.js.
-import { existsSync, readdirSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CONTENT, SECTIONS } from "../../../src/content/index.js";
@@ -183,29 +183,4 @@ describe("stable service ids (ANL-19 step 3, W2-ANL handoff)", () => {
       }
     });
   });
-});
-
-describe("NotFound strings (moved from src/pages/notfound/copy.js)", () => {
-  const COPY = join(ROOT, "src/pages/notfound/copy.js");
-
-  // copy.js is deleted at the W4 merge (handoff); until then the two must
-  // not drift.
-  it.skipIf(!existsSync(COPY))(
-    "the notFound namespace equals the old copy module",
-    async () => {
-      const { NOT_FOUND_COPY } =
-        await import("../../../src/pages/notfound/copy.js");
-      for (const lang of ["en", "tr"]) {
-        const dict = DICTIONARIES[lang];
-        const copy = NOT_FOUND_COPY[lang];
-        expect(dict["notFound.page.title"]).toBe(copy.page.title);
-        expect(dict["notFound.page.text"]).toBe(copy.page.text);
-        expect(dict["notFound.post.title"]).toBe(copy.post.title);
-        expect(dict["notFound.post.text"]).toBe(copy.post.text);
-        expect(dict["notFound.home"]).toBe(copy.home);
-        expect(dict["notFound.blog"]).toBe(copy.blog);
-        expect(dict["notFound.backToBlog"]).toBe(copy.backToBlog);
-      }
-    },
-  );
 });

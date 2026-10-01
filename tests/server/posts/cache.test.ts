@@ -5,6 +5,7 @@ import { describe, expect, test } from "bun:test";
 import {
   CACHE_ERROR_RETRY_MS,
   CACHE_FRESH_MS,
+  CACHE_NEGATIVE_MS,
   CACHE_MAX_ENTRIES,
   CACHE_STALE_MS,
   createSwrCache,
@@ -106,12 +107,44 @@ describe("createSwrCache (BE-06 criterion 5, PERF-06 criterion 4)", () => {
     expect(calls()).toBe(2);
   });
 
-  test("null (unknown slug, draft) is never stored", async () => {
-    const cache = createSwrCache();
+  test("null (unknown slug, draft) is not stored as a value; the miss is remembered for 30 s (PERF-06)", async () => {
+    const time = clock();
+    const cache = createSwrCache({ now: time.now });
     const { loader, calls } = counter(() => null);
     expect(await cache.get("post:yok", loader)).toBeNull();
     expect(await cache.get("post:yok", loader)).toBeNull();
+    expect(calls()).toBe(1);
+    expect(cache.size).toBe(0);
+    time.advance(CACHE_NEGATIVE_MS - 1);
+    expect(await cache.get("post:yok", loader)).toBeNull();
+    expect(calls()).toBe(1);
+    time.advance(1);
+    expect(await cache.get("post:yok", loader)).toBeNull();
     expect(calls()).toBe(2);
+  });
+
+  test("a post published while its miss is remembered appears after at most 30 s", async () => {
+    const time = clock();
+    const cache = createSwrCache({ now: time.now });
+    let value: string | null = null;
+    const { loader } = counter(() => value);
+    expect(await cache.get("post:yeni", loader)).toBeNull();
+    value = "post";
+    expect(await cache.get("post:yeni", loader)).toBeNull();
+    time.advance(CACHE_NEGATIVE_MS);
+    expect(await cache.get("post:yeni", loader)).toBe("post");
+  });
+
+  test("remembered misses are bounded: random slugs cannot fill the memory", async () => {
+    const cache = createSwrCache({ maxMisses: 3 });
+    const { loader, calls } = counter(() => null);
+    for (const slug of ["a", "b", "c", "d"])
+      await cache.get(`post:${slug}`, loader);
+    expect(calls()).toBe(4);
+    await cache.get("post:a", loader); // the oldest miss was dropped
+    expect(calls()).toBe(5);
+    await cache.get("post:d", loader); // still remembered
+    expect(calls()).toBe(5);
     expect(cache.size).toBe(0);
   });
 
@@ -126,7 +159,7 @@ describe("createSwrCache (BE-06 criterion 5, PERF-06 criterion 4)", () => {
     expect(await cache.get("post:x", loader)).toBe("post"); // stale served once
     await settle();
     expect(cache.keys()).toEqual([]);
-    expect(await cache.get("post:x", loader)).toBeNull();
+    expect(await cache.get("post:x", loader)).toBeNull(); // the remembered miss
   });
 
   test("stale-if-error: a failed refresh keeps serving the old value, logs a warning, backs off", async () => {
@@ -299,7 +332,7 @@ describe("withCache: the cached PostQueries (T-06, T-12)", () => {
     expect(cache.size).toBe(0);
   });
 
-  test("posts: one query per slug; unknown slugs and drafts are never cached", async () => {
+  test("posts: one query per slug; unknown slugs and drafts are not stored, their miss is remembered", async () => {
     const { base, slugs } = recordingQueries();
     const cache = createSwrCache();
     const app = createApp({
@@ -313,7 +346,7 @@ describe("withCache: the cached PostQueries (T-06, T-12)", () => {
       expect((await app.request("/api/posts/taslak-ornek")).status).toBe(404);
     }
     expect(slugs.filter((s) => s === SAMPLE_POST.slug)).toHaveLength(1);
-    expect(slugs.filter((s) => s === "taslak-ornek")).toHaveLength(3);
+    expect(slugs.filter((s) => s === "taslak-ornek")).toHaveLength(1);
     expect(cache.keys()).toEqual([`post:${SAMPLE_POST.slug}`]);
   });
 
@@ -458,8 +491,7 @@ test("end to end on PGlite: cached list + post, second round without queries", a
     expect(calls).toEqual([
       "list",
       "merhaba-dunya",
-      "taslak-ornek",
-      "taslak-ornek", // drafts are never cached
+      "taslak-ornek", // a draft is a miss: remembered for 30 s, never stored
     ]);
   } finally {
     await ctx.close();

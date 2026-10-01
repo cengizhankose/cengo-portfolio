@@ -42,7 +42,7 @@ const CONTENT_INPUTS = {
     "ConvoAI World Istanbul (2026)", // §5 #1
     "AlgoHack Istanbul (2025)", // §5 #3
     "Teknasyon Yüzük Kardeşliği Hackathon (2022)", // §5 #9
-    "Sosyal Uyum için İnovatif Çözümler Hackathonu (2021)", // §5 #10
+    "Social Cohesion Innovation Hackathon (2021)", // §5 #10, EN /about name
   ],
   sameAs: [
     "https://www.linkedin.com/in/cengizhankose",
@@ -112,6 +112,29 @@ describe("Person (SEO-07 step 1)", () => {
     expect(
       AUTHOR.worksFor.map((employer: { name: string }) => employer.name),
     ).toEqual(CONTENT_INPUTS.worksFor);
+  });
+
+  test("award names match the About page of each language (SEO-07 criterion 2)", async () => {
+    for (const locale of ["en", "tr"] as const) {
+      const { default: awards } = await import(
+        `../../../src/content/${locale}/awards.js`
+      );
+      const visible = awards
+        .filter((award: { hidden?: boolean }) => !award.hidden)
+        .map((award: { event: string }) => award.event);
+      const printed = (personSchema(locale) as Node).award as string[];
+      expect(printed).toHaveLength(4);
+      for (const entry of printed) {
+        const event = entry.replace(/ \(\d{4}\)$/, "");
+        expect(
+          visible.some((name: string) => name.startsWith(event)),
+          `${locale}: ${entry}`,
+        ).toBe(true);
+      }
+    }
+    expect((personSchema("tr") as Node).award).toContain(
+      "Sosyal Uyum için İnovatif Çözümler Hackathonu (2021)",
+    );
   });
 
   test("the role is the same English text on both pages (recommended default)", () => {
@@ -222,13 +245,15 @@ describe("the home graph (SEO-07 hedef durum)", () => {
     expect(types).toEqual(["Person", "WebSite"]);
   });
 
-  test("/tr carries the same two nodes with the same ids", () => {
+  test("/tr carries the same two nodes with the same ids; only the award names follow the page language", () => {
     const en = graphOf(getPageMeta("/", "en", {}, ALL_LIVE));
     const tr = graphOf(getPageMeta("/tr", "tr", {}, ALL_LIVE));
     expect(tr.map((node) => node["@id"])).toEqual(
       en.map((node) => node["@id"]),
     );
-    expect(tr).toEqual(en);
+    const withoutAward = (nodes: Node[]) =>
+      nodes.map(({ award: _award, ...rest }) => rest);
+    expect(withoutAward(tr)).toEqual(withoutAward(en));
   });
 
   test("the home graph is homeJsonLd()", () => {

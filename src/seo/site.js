@@ -24,21 +24,31 @@ const ROLE = "Senior Fullstack Engineer";
 // never guessed (no Drivee URL in the content inputs, so worksFor has no url).
 //   worksFor: employers with no end date in §3.1 (Drivee Teknoloji, since
 //             2026-01; the role before it was also at Drivee).
-//   awards:   the first places of §5, newest first, written "<event> (<year>)".
-//             The event names are proper nouns and stay the same in both
-//             languages. W6-MKT-about-positioning renders the same strings.
+//   awards:   the first places of §5, newest first, written "<event> (<year>)"
+//             with the event name the About page shows in that language
+//             (src/content/{en,tr}/awards.js; SEO-07 criterion 2). `awards`
+//             is the English list, awardsByLocale picks the page language.
+const AWARDS_EN = Object.freeze([
+  "ConvoAI World Istanbul (2026)",
+  "AlgoHack Istanbul (2025)",
+  "Teknasyon Yüzük Kardeşliği Hackathon (2022)",
+  "Social Cohesion Innovation Hackathon (2021)",
+]);
+const AWARDS_TR = Object.freeze([
+  "ConvoAI World Istanbul (2026)",
+  "AlgoHack Istanbul (2025)",
+  "Teknasyon Yüzük Kardeşliği Hackathon (2022)",
+  "Sosyal Uyum için İnovatif Çözümler Hackathonu (2021)",
+]);
+
 export const AUTHOR = Object.freeze({
   name: SITE_NAME,
   jobTitle: ROLE,
   jobTitles: Object.freeze({ en: ROLE, tr: ROLE }),
   url: SITE_URL,
   worksFor: Object.freeze([Object.freeze({ name: "Drivee Teknoloji" })]),
-  awards: Object.freeze([
-    "ConvoAI World Istanbul (2026)",
-    "AlgoHack Istanbul (2025)",
-    "Teknasyon Yüzük Kardeşliği Hackathon (2022)",
-    "Sosyal Uyum için İnovatif Çözümler Hackathonu (2021)",
-  ]),
+  awards: AWARDS_EN,
+  awardsByLocale: Object.freeze({ en: AWARDS_EN, tr: AWARDS_TR }),
 });
 
 // K-11: the six active channels, in this order, and nothing else. `id` values

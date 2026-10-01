@@ -80,7 +80,7 @@ export function personSchema(locale, author = AUTHOR) {
     image: absoluteUrl(HERO_IMAGE),
     jobTitle: author.jobTitles?.[locale] ?? author.jobTitle,
     worksFor: employers.length > 1 ? employers : employers[0],
-    award: [...(author.awards ?? [])],
+    award: [...(author.awardsByLocale?.[locale] ?? author.awards ?? [])],
     sameAs: SOCIAL_PROFILES.map((profile) => profile.url),
   });
 }

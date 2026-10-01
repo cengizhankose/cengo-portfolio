@@ -219,7 +219,7 @@ Aksesuar çıkarma turu: halka katmanları, menünün masaüstündeki tam ekran 
 
 - [ ] Yön (monokrom editoryal, çerçeve imzası) onaylandı — tarih: ____ · not: ____
 - [ ] Palet (5 renk + türetilmiş kılçizgi) onaylandı — tarih: ____
-- [ ] Masaüstü nav ve künye sekmesi onaylandı — tarih: ____
+- [x] ~~Masaüstü nav ve künye sekmesi~~ — sahip 2026-10-01 reddetti (K-13): her genişlikte hamburger menü
 - [ ] README atıf metni ve LICENSE (MIT, "Copyright (c) 2021 Ubai Mutl" korunuyor) — hukuki karar
   sahibindir — tarih: ____
 
