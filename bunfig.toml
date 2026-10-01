@@ -3,3 +3,5 @@
 # component tests in tests/frontend/** run under Vitest + jsdom instead.
 [test]
 root = "tests/server"
+# CSS Modules under Bun: identity class names, as in Vitest (non-scoped).
+preload = ["./tests/frontend/css-arch/bun-css-modules.ts"]

@@ -9,6 +9,7 @@
 // (SEO-11 Adım B): the one edit `static: ["en"]` -> `["en", "tr"]` in
 // src/seo/routes.js, applied while the module loads. Nothing on disk changes.
 import { plugin } from "bun";
+import "../../frontend/css-arch/bun-css-modules";
 
 if (process.env.OPEN_TR === "1") {
   plugin({

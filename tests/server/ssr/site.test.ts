@@ -254,7 +254,7 @@ describe("static pages", () => {
 
   test("/ is the home page; /index.html stays the bare shell", async () => {
     const root = await pageOf(site, "/");
-    expect(root.html).toContain("intro__name");
+    expect(root.html).toContain("introName");
     const file = await pageOf(site, "/index.html");
     expect(file.html).toContain(SHELL_TITLE);
     expect(file.html).toContain('<div id="root"></div>');

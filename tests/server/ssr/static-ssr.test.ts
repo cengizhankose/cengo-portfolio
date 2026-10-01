@@ -136,7 +136,7 @@ describe("prerendered pages are files", () => {
     const plain = copyDist(); // the fixture's own index.html: the bare shell
     const { res, html } = await text(mount(plain), "/");
     expect(res.status).toBe(200);
-    expect(html).toContain("intro__name");
+    expect(html).toContain("introName");
     expect(html).toContain("<title data-seo>");
   });
 });
@@ -169,7 +169,7 @@ describe("the blog is drawn per request into the pristine shell", () => {
     const { res, html } = await text(site, "/blog");
     expect(res.status).toBe(200);
     expect(html).toContain("<title data-seo>Blog");
-    expect(html).not.toContain("intro__name");
+    expect(html).not.toContain("introName");
     expect(html).toContain('<div id="root" data-ssr>');
     expect(count(rootOf(html), /<h1\b/g)).toBe(1);
     expect(html).toContain('<script id="__SEO_DATA__"');

@@ -238,7 +238,7 @@ describe("the blog index, raw HTML (MKT-20)", () => {
     expect(doc.querySelector(".blog-empty-feed a")!.getAttribute("href")).toBe(
       "/rss.xml",
     );
-    expect(doc.querySelector(".status-state__text")!.textContent).toBe(
+    expect(doc.querySelector(".text")!.textContent).toBe(
       "The first post is on its way.",
     );
   });
