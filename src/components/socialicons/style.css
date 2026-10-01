@@ -45,6 +45,10 @@
   fill: var(--text-color);
 }
 
+.stick_follow_icon a:hover {
+  opacity: 0.7;
+}
+
 .stick_follow_icon a:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: 2px;

@@ -145,6 +145,13 @@
   text-underline-offset: 0.2em;
 }
 
+.project-card a:hover,
+.portfolio-archive a:hover,
+.repo-list a:hover,
+.portfolio-cta a:hover {
+  text-decoration-thickness: 2px;
+}
+
 /* Hackathon archive teaser under the cases. */
 .portfolio-archive {
   max-width: 40rem;

@@ -267,6 +267,7 @@ section {
 }
 
 .ac_btn:hover {
+  text-decoration: none;
   box-shadow:
     8px 8px 0px var(--text-color),
     -8px -8px 0px var(--text-color);

@@ -40,7 +40,11 @@
   gap: 30px;
 }
 
+/* The whole card is the link (DSG-27): the title link's ::after covers the
+   card (a stretched link, no second link in the markup). Hover underlines
+   the title; keyboard focus on the link rings the whole card. */
 .blog-card {
+  position: relative;
   border-left: 4px solid var(--text-color);
   padding: 20px;
   transition: transform 0.2s ease;
@@ -49,6 +53,11 @@
 
 .blog-card:hover {
   transform: translateX(5px);
+}
+
+.blog-card:focus-within {
+  outline: 2px solid var(--text-color);
+  outline-offset: 4px;
 }
 
 .blog-cover {
@@ -66,11 +75,24 @@
 .blog-post-title a {
   color: var(--text-color);
   text-decoration: none;
-  transition: color 0.2s;
 }
 
-.blog-post-title a:hover {
-  color: var(--text-color-2);
+.blog-post-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.blog-post-title a:hover,
+.blog-card:hover .blog-post-title a {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* The card's ring stands for the link's own. */
+.blog-post-title a:focus-visible {
+  outline: none;
 }
 
 .blog-excerpt {
@@ -230,7 +252,9 @@
 
 .author-box__links a:hover,
 .post-footer__follow a:hover,
-.post-footer__cta a:hover {
+.post-footer__cta a:hover,
+.blog-post-byline a:hover,
+.blog-empty-feed a:hover {
   opacity: 0.8;
 }
 
@@ -392,8 +416,12 @@
   color: var(--text-color-2);
 }
 
+/* Inline code (DSG-26): the text colour on the surface token with a
+   hairline --border-color edge, like the rest of the monochrome system. */
 .markdown-body code {
+  color: var(--text-color);
   background: var(--primary-color);
+  border: 1px solid var(--border-color);
   padding: 3px 8px;
   border-radius: 0;
 }
@@ -408,7 +436,9 @@
 
 .markdown-body pre code {
   padding: 0;
+  color: inherit;
   background: transparent;
+  border: 0;
 }
 
 .markdown-body img {

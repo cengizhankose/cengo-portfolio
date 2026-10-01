@@ -116,9 +116,19 @@ h6 {
   font-weight: inherit;
 }
 
-a,
+/* Links (DSG-27): the text colour, underlined by Bootstrap's reboot. The
+   two text tokens are the same colour, so hover cannot be a colour change:
+   the underline shows (or thickens) instead. Rules that draw a link as a
+   button or a nav box turn the underline off in their own :hover. */
+a {
+  color: var(--text-color);
+  text-underline-offset: 3px;
+}
+
 a:hover {
   color: var(--text-color);
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
 }
 
 /* Hyphenation (DSG-19 step 3, FE-14 step 10). Automatic hyphens follow the

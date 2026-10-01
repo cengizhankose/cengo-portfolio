@@ -47,6 +47,13 @@
 
 .nav_ac:hover {
   color: var(--text-color-2);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+/* The menu and theme buttons hold only an icon: it dims on hover (DSG-27). */
+button.nav_ac:hover svg {
+  opacity: 0.7;
 }
 
 /* Header controls are native buttons (FE-02/DSG-02): no browser chrome, a
@@ -179,6 +186,7 @@ button.nav_ac {
 
 .the_menu .menu_item > a {
   color: var(--text-color-2);
+  text-decoration: none;
   line-height: 1;
   font-size: var(--fs-2xl);
   display: inline-block;
@@ -187,6 +195,12 @@ button.nav_ac {
   padding: 4px 0px;
   font-family: var(--font-display);
   font-synthesis: none;
+}
+
+.the_menu .menu_item > a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.12em;
 }
 
 .menu_footer {
@@ -209,6 +223,10 @@ button.nav_ac {
   flex-wrap: wrap;
   gap: 4px 12px;
   list-style: none;
+}
+
+.menu_footer__social a:hover {
+  opacity: 0.7;
 }
 
 .menu_footer__social a {

@@ -117,6 +117,11 @@
   text-underline-offset: 0.2em;
 }
 
+.awards-archive a:hover,
+.about-talks a:hover {
+  text-decoration-thickness: 2px;
+}
+
 .awards-archive a:focus-visible,
 .about-talks a:focus-visible {
   outline: 2px solid currentcolor;
@@ -150,6 +155,7 @@
 .about-cta__button:focus-visible {
   background-color: var(--secondary-color);
   color: var(--primary-color);
+  text-decoration: none;
 }
 
 .about-cta__button:focus-visible {
