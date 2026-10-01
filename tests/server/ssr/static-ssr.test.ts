@@ -78,9 +78,8 @@ const prerenderedFile = (...path: string[]) =>
 describe("prerendered pages are files", () => {
   const site = mount(built);
 
-  test("/ and /about are the written files: 200, no-cache, strong ETag, same bytes", async () => {
+  test("/about, /portfolio and /contact are the written files: 200, no-cache, strong ETag, same bytes", async () => {
     for (const [path, file] of [
-      ["/", "index.html"],
       ["/about", "about/index.html"],
       ["/portfolio", "portfolio/index.html"],
       ["/contact", "contact/index.html"],
@@ -216,6 +215,110 @@ describe("the blog is drawn per request into the pristine shell", () => {
       />({"\/api\/posts\/hello-world".*})<\/script><\/body>/.exec(html)![1],
     );
     expect(options.fallback).toEqual(block);
+  });
+});
+
+// SEO-17 RAW: the home page's latest-writing block reads the posts, which live
+// in the database, so the build's file cannot hold it. The server draws the
+// home page like the blog index and the block's links are in the raw HTML.
+describe("the home page carries the latest posts in its raw HTML (SEO-17)", () => {
+  const site = mount(built);
+  const block = (html: string) =>
+    /<section id="blog"[\s\S]*?<\/section>/.exec(html)?.[0] ?? "";
+
+  test("/: the #blog block with a link to each post, drawn from the same data the page carries", async () => {
+    const { res, html } = await text(site, "/");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("no-cache");
+    expect(html).toContain('<div id="root" data-ssr>');
+    expect(count(rootOf(html), /<h1\b/g)).toBe(1);
+    // The prerendered file has no block; this response has it.
+    expect(prerenderedFile("index.html")).not.toContain('id="blog"');
+    const blog = block(html);
+    expect(blog).toContain('href="/blog/hello-world"');
+    expect(blog).toContain("Hello world");
+    // A post that only exists in another language is listed after, with its own path.
+    expect(blog).toContain('href="/tr/blog/sadece-turkce"');
+    // Hydration reads these lists back under their API keys.
+    const data = JSON.parse(
+      /<script id="__SEO_DATA__" type="application\/json">(.*?)<\/script>/.exec(
+        html,
+      )![1],
+    );
+    expect(Object.keys(data)).toEqual([
+      "/api/posts?lang=en",
+      "/api/posts?lang=tr&missingIn=en",
+    ]);
+    // The rest of the page is the prerendered one: same head, same sections.
+    expect(html).toContain("<title data-seo>");
+    expect(count(html, /<title\b/g)).toBe(1);
+  });
+
+  test("/tr: the Turkish posts first, with Turkish links", async () => {
+    const { res, html } = await text(site, "/tr");
+    expect(res.status).toBe(200);
+    const blog = block(html);
+    expect(blog).toContain('href="/tr/blog/merhaba-dunya"');
+    expect(blog).toContain('href="/tr/blog/sadece-turkce"');
+    expect(html).toContain('<html lang="tr"');
+  });
+
+  test("the render is given the lists the browser will read back", async () => {
+    const seen: any[] = [];
+    const spy: RenderPage = async (url, options) => {
+      seen.push({ url, options });
+      return { html: "<h1>x</h1>" };
+    };
+    await text(mount(built, { render: spy }), "/");
+    expect(seen).toHaveLength(1);
+    expect(seen[0].url).toBe("/");
+    expect(Object.keys(seen[0].options.fallback)).toEqual([
+      "/api/posts?lang=en",
+      "/api/posts?lang=tr&missingIn=en",
+    ]);
+    expect(seen[0].options.fallback["/api/posts?lang=en"][0].createdAt).toBe(
+      "2026-09-30T10:00:00.000Z", // a string, as after the JSON block
+    );
+  });
+
+  test("no posts yet: the block is not drawn and the page still answers", async () => {
+    const app = mount(built, { queries: fakeQueries({ posts: [] }) });
+    const { res, html } = await text(app, "/");
+    expect(res.status).toBe(200);
+    expect(html).toContain('<div id="root" data-ssr>');
+    expect(html).not.toContain("/blog/hello-world");
+  });
+
+  test("a database that does not answer: the prerendered file, not an error", async () => {
+    const failing = fakeQueries();
+    failing.listPublishedPosts = async () => {
+      throw new Error("connect ECONNREFUSED");
+    };
+    const { result: out, lines } = await captureLogs(() =>
+      text(mount(built, { queries: failing }), "/"),
+    );
+    expect(out.res.status).toBe(200);
+    expect(out.html).toBe(prerenderedFile("index.html"));
+    expect(lines.find((l) => l.msg === "home post list failed")).toMatchObject({
+      level: "error",
+    });
+  });
+
+  test("without listPublishedPosts or with injection off the home page is the file", async () => {
+    const noList = mount(built, {
+      queries: {
+        getPostForLocale: fakeQueries().getPostForLocale,
+      },
+    });
+    expect((await text(noList, "/")).html).toBe(prerenderedFile("index.html"));
+    const off = mount(built, { seoInject: false });
+    expect((await text(off, "/")).html).toBe(prerenderedFile("index.html"));
+  });
+
+  test("the pages that are files stay files", async () => {
+    expect((await text(site, "/about")).html).toBe(
+      prerenderedFile("about", "index.html"),
+    );
   });
 });
 
