@@ -1,6 +1,7 @@
 import styles from "./portfolio.module.css";
+import { useEffect, useRef } from "react";
 import { Container, Row, Col } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import ExternalLink from "../../components/ExternalLink.jsx";
 import {
   FEATURED_REPOS,
@@ -8,6 +9,7 @@ import {
   publishedProjects,
 } from "../../content/projects.js";
 import { useContent, useLocalePath, useRoute, useT } from "../../i18n";
+import { usePrefersReducedMotion } from "../../lib/useMediaQuery.js";
 import { getPageMeta } from "../../seo/pages.js";
 import { SOCIAL_PROFILES } from "../../seo/site.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
@@ -26,7 +28,32 @@ export const Portfolio = () => {
   const t = useT();
   const lp = useLocalePath();
   const { projects, featuredRepos, awards } = useContent();
+  const { hash } = useLocation();
+  // Read when the hash changes; turning the setting on or off by itself must
+  // not scroll the page again.
+  const reducedMotion = useRef(false);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  useEffect(() => {
+    reducedMotion.current = prefersReducedMotion;
+  }, [prefersReducedMotion]);
   usePageMeta(getPageMeta(route, route.locale));
+
+  // The router does not scroll to a hash: the home work cards and the service
+  // proof links (/portfolio#project-<id>) land on their case through this,
+  // the same way the About page does for #awards. Reduced motion: no smooth
+  // scrolling, the page jumps.
+  useEffect(() => {
+    if (!hash) return;
+    let target = hash.slice(1);
+    try {
+      target = decodeURIComponent(target);
+    } catch {
+      // A malformed escape: look the raw text up as it is.
+    }
+    document
+      .getElementById(target)
+      ?.scrollIntoView?.({ behavior: reducedMotion.current ? "auto" : "smooth" });
+  }, [hash]);
 
   // Cases that have their text; `position` counts the tracked items of the
   // page in order (cases, archive, repos).
