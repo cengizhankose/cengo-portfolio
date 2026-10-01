@@ -48,16 +48,18 @@ const rootText = (html: string) =>
 const title = (html: string) => /<title[^>]*>([^<]*)<\/title>/.exec(html)![1];
 
 describe("both languages are prerendered", () => {
-  test("eight files: the four pages under / and under /tr", () => {
+  test("ten files: the five pages under / and under /tr (W9: + /privacy)", () => {
     expect(files).toEqual([
       ["/", "/index.html"],
       ["/about", "/about/index.html"],
       ["/portfolio", "/portfolio/index.html"],
       ["/contact", "/contact/index.html"],
+      ["/privacy", "/privacy/index.html"],
       ["/tr", "/tr/index.html"],
       ["/tr/about", "/tr/about/index.html"],
       ["/tr/portfolio", "/tr/portfolio/index.html"],
       ["/tr/contact", "/tr/contact/index.html"],
+      ["/tr/privacy", "/tr/privacy/index.html"],
     ]);
   });
 

@@ -99,7 +99,7 @@ describe("list skeleton (PERF-16)", () => {
     const busy = container.querySelector('[aria-busy="true"]');
     expect(busy).not.toBeNull();
     expect(busy.querySelectorAll(".blog-skeleton__card")).toHaveLength(3);
-    expect(within(busy).getByRole("status")).toHaveTextContent("Loading...");
+    expect(within(busy).getByRole("status")).toHaveTextContent("Loading…");
     gate.resolve(json([card()]));
     await screen.findByText("Hello world");
     await waitFor(() =>

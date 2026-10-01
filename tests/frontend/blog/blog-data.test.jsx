@@ -142,7 +142,7 @@ describe("FE-12 criterion 4: a late answer for an old slug never shows", () => {
       vi.fn((url) => pending[String(url).split("/api/posts/")[1]].promise),
     );
     renderBlog("/blog/a");
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByText("Loading…")).toBeInTheDocument();
 
     await go("/blog/b");
     await act(async () =>
@@ -188,7 +188,7 @@ describe("FE-12 criterion 5: the title while loading", () => {
         vi.fn(() => new Promise(() => {})),
       );
       renderBlog(path);
-      expect(screen.getByText("Loading...")).toBeInTheDocument();
+      expect(screen.getByText("Loading…")).toBeInTheDocument();
       await waitFor(() => expect(document.title).toBe("Blog | Cengizhan Köse"));
     },
   );

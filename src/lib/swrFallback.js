@@ -11,7 +11,7 @@
 //
 // src/seo/readSeoData.js reads the block in the browser and src/main.jsx hands
 // toSWRFallback() of it to <SWRConfig fallback>, so the blog hooks find their
-// data on the first render and skip the request and the "Loading..." state.
+// data on the first render and skip the request and the "Loading…" state.
 // PERF-03 (T-06 Aşama 2) sends the same map from the real server render.
 //
 // Pure ESM: no React, no swr import, no DOM; the server and the client both

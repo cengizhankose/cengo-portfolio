@@ -278,7 +278,7 @@ describe(".navbar-brand is local (PERF-09 step 4, FE-21 step 4)", () => {
     expect(declarations(header, ".nav_ac")).toMatchObject({
       padding: "5px 15px",
       margin: "0",
-      "font-size": "1.25rem",
+      "font-size": "var(--fs-md)",
       color: "var(--text-color-2)",
     });
   });

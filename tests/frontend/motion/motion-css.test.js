@@ -112,7 +112,7 @@ describe("rotating line (PERF-12 rotator, DSG-07 timing)", () => {
     expect(rule(HOME, ".intro__name")["font-weight"]).toBe("400");
     expect(rule(HOME, ".intro__role")).toMatchObject({
       display: "block",
-      "font-family": "Raleway, sans-serif",
+      "font-family": "var(--font-body)",
     });
     expect(HOME).not.toMatch(/\.intro_sec \.text h1/);
   });

@@ -19,11 +19,6 @@ import {
 const INDEX = read("src/index.css");
 const SCALE = ["sm", "base", "md", "lg", "xl", "2xl"];
 
-// Values a pinned test outside this package still expects literally. The
-// W9 merge patch moves both to tokens together with those tests.
-const PINNED_SIZE = { ".nav_ac": "1.25rem" }; // tests/frontend/bootstrap/subset.test.js
-const PINNED_FAMILY = { ".intro__role": "Raleway, sans-serif" }; // tests/frontend/motion/motion-css.test.js
-
 const fontSizes = () =>
   allDeclarations().filter(([, prop]) => prop === "font-size");
 
@@ -43,7 +38,6 @@ describe("type scale (FE-19 steps 1-2)", () => {
 
   it("takes every font-size from the scale", () => {
     const off = fontSizes()
-      .filter(([, , value, selector]) => PINNED_SIZE[selector] !== value)
       .filter(
         ([, , value]) => !/^var\(--fs-(sm|base|md|lg|xl|2xl)\)$/.test(value),
       )
@@ -73,7 +67,6 @@ describe("font families (FE-19 step 4, W8 handoff)", () => {
   it("sets every family through a --font-* stack, so the metric fallbacks apply", () => {
     const off = allDeclarations()
       .filter(([, prop]) => prop === "font-family" || prop === "font")
-      .filter(([, , value, selector]) => PINNED_FAMILY[selector] !== value)
       .filter(([, , value]) => value !== "inherit")
       .filter(
         ([, , value]) => !/var\(--font-(body|display|mono)\)$/.test(value),

@@ -33,7 +33,7 @@
 
 .privacy__facts dt {
   margin-top: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -50,6 +50,6 @@
 
 .privacy-note {
   margin: 1rem 0 0;
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }

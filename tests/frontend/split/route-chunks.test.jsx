@@ -135,7 +135,7 @@ describe("route chunks are requested on their own route only", () => {
     const fallback = container.querySelector(".route-fallback");
     expect(fallback).toBeInTheDocument();
     expect(fallback).toHaveAttribute("aria-busy", "true");
-    expect(fallback).toHaveTextContent("Loading...");
+    expect(fallback).toHaveTextContent("Loading…");
     expect(table.loadBlogHome).toHaveBeenCalledTimes(1);
     expect(table.loadBlogPost).not.toHaveBeenCalled();
 
@@ -208,7 +208,7 @@ describe("RouteFallback", () => {
     expect(fallback).toHaveAttribute("aria-busy", "true");
     expect(fallback).toHaveAttribute("lang", "en");
     const label = fallback.querySelector(".visually-hidden");
-    expect(label).toHaveTextContent("Loading...");
+    expect(label).toHaveTextContent("Loading…");
     // The text is for screen readers only: nothing else is drawn.
     expect(fallback.textContent).toBe(label.textContent);
   });

@@ -62,7 +62,7 @@ section {
   display: block;
   margin-top: 0.75rem;
   color: var(--text-muted);
-  font-family: Raleway, sans-serif;
+  font-family: var(--font-body);
   font-size: var(--fs-base);
   font-weight: 400;
   letter-spacing: 0.08em;

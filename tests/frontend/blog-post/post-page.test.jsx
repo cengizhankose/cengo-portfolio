@@ -227,7 +227,7 @@ describe("skeleton (PERF-16)", () => {
     expect(busy).not.toBeNull();
     expect(busy).toHaveClass("blog-post-container");
     const status = within(busy).getByRole("status");
-    expect(status).toHaveTextContent("Loading...");
+    expect(status).toHaveTextContent("Loading…");
     expect(status).toHaveClass("visually-hidden");
     expect(status).toHaveAttribute("aria-live", "polite");
     // A heading bar, a date bar and six paragraph bars, all decoration.

@@ -5,7 +5,7 @@
 //                 link, a two-line title, the date and six paragraph bars;
 //   ListSkeleton  the blog index under its own heading: three card bars.
 // The bars are decoration (aria-hidden); the container is aria-busy and a
-// visually hidden, polite status line says "Loading..." in the interface
+// visually hidden, polite status line says "Loading…" in the interface
 // language. Motion is a slow opacity pulse, switched off for
 // prefers-reduced-motion (src/pages/blog/style.css, FE-06).
 import { useT, useUiLocale } from "../../i18n";

@@ -229,7 +229,7 @@ describe("moving between posts", () => {
     await act(async () => navigate("/tr/blog/merhaba-dunya"));
 
     expect(screen.queryByRole("heading", { name: "Hello world" })).toBeNull();
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByText("Loading…")).toBeInTheDocument();
 
     await act(async () => release());
     await screen.findByRole("heading", { level: 1, name: "Merhaba dünya" });

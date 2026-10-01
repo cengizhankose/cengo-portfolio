@@ -33,13 +33,13 @@ vi.mock("../../../src/lib/analytics", async (importOriginal) => ({
 const errorEvents = () =>
   track.mock.calls.filter(([name]) => name === "error_occurred");
 
-// Records every "Loading..." that is ever put into the document.
+// Records every "Loading…" that is ever put into the document.
 function watchLoading() {
   const seen = [];
   const observer = new MutationObserver((records) => {
     for (const record of records) {
       for (const node of record.addedNodes) {
-        if (node.textContent?.includes("Loading...")) seen.push(node);
+        if (node.textContent?.includes("Loading…")) seen.push(node);
       }
     }
   });
@@ -106,7 +106,7 @@ describe("which links count (keysForRoute)", () => {
 });
 
 describe("intent -> request (PERF-14 criterion 2)", () => {
-  it("hovering a post link fetches it before the click; the post then renders without 'Loading...'", async () => {
+  it("hovering a post link fetches it before the click; the post then renders without 'Loading…'", async () => {
     const user = userEvent.setup();
     renderWithPrefetch("/blog");
     const card = await screen.findByRole("link", { name: "Hello world" });
@@ -140,7 +140,7 @@ describe("intent -> request (PERF-14 criterion 2)", () => {
     fireEvent.pointerOver(link);
     fireEvent.pointerOver(link);
     await user.click(link);
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByText("Loading…")).toBeInTheDocument();
     await act(async () => pending.resolve(json(POST_EN)));
     await screen.findByRole("heading", { level: 1, name: "Hello world" });
     expect(

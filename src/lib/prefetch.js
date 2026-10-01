@@ -4,7 +4,7 @@
 // and pen fire pointerover too) instead of handlers on every link: when a
 // pointer or the keyboard reaches a link into the blog, its data request
 // starts before the click, so the page usually has its data by the time it
-// mounts and skips "Loading...".
+// mounts and skips "Loading…".
 //   /blog, /tr/blog           the two list keys of that blog index
 //   /blog/<slug>, /tr/...     the post key
 // Only same-origin links whose path matchRoute() knows as live are used, so

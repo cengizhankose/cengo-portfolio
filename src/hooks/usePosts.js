@@ -218,7 +218,7 @@ function takePreload(cache, key) {
 // prefetchKey(key, { cache, mutate, fallback }): starts the request for
 // `key` now, so a page that mounts before it resolves takes it over, and one
 // that mounts after it finds the data in the cache and never shows
-// "Loading..." (the answer is written to `cache` through `mutate`; all three
+// "Loading…" (the answer is written to `cache` through `mutate`; all three
 // come from the app's <SWRConfig>). Does nothing when a current preload, the
 // cache or the server's fallback already has the key. A failed preload stays
 // silent here; the page fetches, reports and retries on its own when it

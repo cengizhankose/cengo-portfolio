@@ -41,7 +41,7 @@ describe("which pages", () => {
   test("every static route in every language that is open for static pages, but the blog", () => {
     expect(pagesToPrerender().map(({ url }) => url)).toEqual(
       LIVE.static.flatMap((locale) =>
-        ["/", "/about", "/portfolio", "/contact"].map((path) =>
+        ["/", "/about", "/portfolio", "/contact", "/privacy"].map((path) =>
           locale === "en"
             ? path
             : path === "/"
@@ -58,10 +58,12 @@ describe("which pages", () => {
       "/about",
       "/portfolio",
       "/contact",
+      "/privacy",
       "/tr",
       "/tr/about",
       "/tr/portfolio",
       "/tr/contact",
+      "/tr/privacy",
     ]);
   });
 
@@ -136,6 +138,7 @@ describe("the written pages", () => {
       "/about": 0,
       "/portfolio": 0,
       "/contact": 0,
+      "/privacy": 0,
     });
   });
 
