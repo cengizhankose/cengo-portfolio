@@ -7,7 +7,6 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 1rem;
-  color: var(--text-color);
 }
 
 /* The state is the whole page (404, a post that failed, a crashed route). */
@@ -27,27 +26,27 @@
   border-left: 4px solid var(--text-color);
 }
 
-.title {
+.stateTitle {
   margin: 0;
   line-height: 1.2;
 }
 
-.statePage .title {
+.statePage .stateTitle {
   font-size: var(--fs-2xl);
 }
 
-.stateInline .title {
+.stateInline .stateTitle {
   font-size: var(--fs-lg);
 }
 
-.text {
+.stateText {
   margin: 0;
   max-width: 36em;
   font-size: var(--fs-md);
   line-height: 1.6;
 }
 
-.actions {
+.stateActions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -55,7 +54,7 @@
   margin-top: 0.5rem;
 }
 
-.links {
+.stateLinks {
   display: flex;
   flex-wrap: wrap;
   gap: 0 1.5rem;
@@ -65,22 +64,21 @@
 }
 
 /* Links and the button keep a 44px target (WCAG 2.5.5). */
-.links a {
+.stateLinks a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--text-color);
   font-size: var(--fs-md);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 
-.links a:hover,
-.links a:focus-visible {
+.stateLinks a:hover,
+.stateLinks a:focus-visible {
   text-decoration-thickness: 2px;
 }
 
-.retry {
+.stateRetry {
   min-height: 44px;
   padding: 0.5rem 1.25rem;
   font: inherit;
@@ -92,19 +90,19 @@
   cursor: pointer;
 }
 
-.retry:hover {
+.stateRetry:hover {
   color: var(--bg-color);
   background: var(--text-color);
 }
 
-.retry:focus-visible,
-.links a:focus-visible {
+.stateRetry:focus-visible,
+.stateLinks a:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .retry {
+  .stateRetry {
     transition:
       color 0.2s ease,
       background-color 0.2s ease;

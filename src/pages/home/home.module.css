@@ -1,6 +1,6 @@
 /* The page's own section (FE-20 step 3): this used to be a global `section`
-   rule, which put position, width and a `transition: all` on every <section>
-   of every page. */
+   rule, which put position, width and a catch-all transition on every
+   <section> of every page. */
 .home {
   flex: 1 0 auto;
   position: relative;
@@ -187,7 +187,6 @@
 }
 
 .textLink {
-  color: var(--text-color);
   text-decoration: underline;
   text-underline-offset: 0.25em;
 }

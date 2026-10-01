@@ -105,7 +105,7 @@ describe("variants", () => {
       proofStyles.proofstrip,
     );
     expect(full.container.firstElementChild).not.toHaveClass(
-      proofStyles.compact,
+      proofStyles.proofCompact,
     );
     const fullText = full.container.textContent;
     full.unmount();
@@ -113,14 +113,14 @@ describe("variants", () => {
     const compact = renderStrip({ variant: "compact" });
     expect(compact.container.firstElementChild).toHaveClass(
       proofStyles.proofstrip,
-      proofStyles.compact,
+      proofStyles.proofCompact,
     );
     expect(compact.container.textContent).toBe(fullText);
     compact.unmount();
 
     const other = renderStrip({ variant: "huge" });
     expect(other.container.firstElementChild).not.toHaveClass(
-      proofStyles.compact,
+      proofStyles.proofCompact,
     );
   });
 

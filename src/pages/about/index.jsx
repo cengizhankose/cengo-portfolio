@@ -11,6 +11,8 @@ import {
   useRoute,
   useT,
 } from "../../i18n";
+import { CTA } from "../../lib/analytics/events.js";
+import { track } from "../../lib/analytics/index.js";
 import { getPageMeta } from "../../seo/pages.js";
 import { usePageMeta } from "../../seo/usePageMeta.js";
 
@@ -230,7 +232,11 @@ export const About = () => {
           {t("about.cta.title")}
         </h2>
         <p>{t("about.cta.text")}</p>
-        <Link to={lp("/contact")} className={styles.ctaButton}>
+        <Link
+          to={lp("/contact")}
+          className={styles.ctaButton}
+          onClick={() => track("cta_clicked", { cta_id: CTA.ABOUT_CONTACT })}
+        >
           {t("about.cta.button")}
         </Link>
       </section>

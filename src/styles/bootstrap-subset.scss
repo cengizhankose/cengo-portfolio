@@ -11,7 +11,8 @@
 //   utilities        display, flex-direction, flex-wrap, justify-content,
 //                    align-items, align-self, order, position, margin,
 //                    padding, width, height, rounded, text-align
-// .navbar-brand is a local rule in src/header/style.css (no navbar partial).
+// The header's brand link is styled locally (.brand, src/header/header.module.css):
+// no navbar partial.
 //
 // Using a Bootstrap class that is not compiled here fails the tests in
 // tests/frontend/bootstrap/: add the module, utility or breakpoint below.
@@ -25,12 +26,12 @@
 
 @import "bootstrap/scss/functions";
 
-// The site themes itself with <html data-theme> tokens (src/index.css) and
+// The site themes itself with <html data-theme> tokens (src/styles/tokens.css) and
 // never sets data-bs-theme, so Bootstrap's [data-bs-theme=dark] blocks would
 // be dead CSS. Turning data-bs-theme on later means re-enabling this.
 $enable-dark-mode: false;
 // No .table-primary/-dark/... variants in the markup; .table stays as is, so
-// the DSG-01 --bs-table-* overrides in src/pages/about/style.css still apply.
+// the DSG-01 --bs-table-* overrides in src/pages/about/about.module.css still apply.
 $table-variants: ();
 // Headings and .display-* are set in Marcellus, which has one weight (400):
 // Bootstrap's 500 and 300 would ask for weights the font does not have
@@ -56,7 +57,6 @@ $utilities: map-get-multiple(
     "justify-content",
     "align-items",
     "align-self",
-    "order",
     "position",
     "margin",
     "margin-x",
@@ -79,11 +79,97 @@ $utilities: map-get-multiple(
   )
 );
 
+// And only the values of those groups the markup uses (FE-20, size budget:
+// every unused value is a rule, three for the responsive groups, and the
+// print copies of .d-* go too). A Bootstrap class whose value is not listed
+// here fails tests/frontend/bootstrap/ (class coverage): add it to its list.
+$utilities: map.merge(
+  $utilities,
+  (
+    "display": map.merge(
+        map.get($utilities, "display"),
+        (
+          "print": false,
+          "values": inline-block block flex none,
+        )
+      ),
+    "flex-direction": map.merge(
+        map.get($utilities, "flex-direction"),
+        (
+          "values": row column,
+        )
+      ),
+    "flex-wrap": map.merge(
+        map.get($utilities, "flex-wrap"),
+        (
+          "values": (
+            wrap: wrap,
+          ),
+        )
+      ),
+    "justify-content": map.merge(
+        map.get($utilities, "justify-content"),
+        (
+          "values": (
+            center: center,
+            between: space-between,
+          ),
+        )
+      ),
+    "align-items": map.merge(
+        map.get($utilities, "align-items"),
+        (
+          "values": (
+            center: center,
+          ),
+        )
+      ),
+    "align-self": map.merge(
+        map.get($utilities, "align-self"),
+        (
+          "values": (
+            center: center,
+          ),
+        )
+      ),
+    "position": map.merge(
+        map.get($utilities, "position"),
+        (
+          "values": relative absolute,
+        )
+      ),
+    "width": map.merge(
+        map.get($utilities, "width"),
+        (
+          "values": (
+            100: 100%,
+          ),
+        )
+      ),
+    "height": map.merge(
+        map.get($utilities, "height"),
+        (
+          "values": (
+            100: 100%,
+          ),
+        )
+      ),
+    "rounded": map.merge(
+        map.get($utilities, "rounded"),
+        (
+          "values": (
+            0: 0,
+          ),
+        )
+      ),
+  )
+);
+
 // Breakpoint variants (.d-lg-flex, .flex-md-row, .align-items-md-center,
 // .order-lg-1) are used for these four groups only; every other group keeps
 // its base classes (.mb-5, .p-3, .text-start, ...) and drops the -sm/-md/...
 // copies.
-$responsive-utilities: ("display", "flex-direction", "align-items", "order");
+$responsive-utilities: ("display", "flex-direction", "align-items");
 
 @each $key, $utility in $utilities {
   @if not list.index($responsive-utilities, $key) {
@@ -115,7 +201,7 @@ $utility-breakpoints: map-get-multiple($grid-breakpoints, ("xs", "md", "lg"));
 
 // Everything below emits CSS inside `@layer vendor` (FE-20 step 2, layer order
 // in src/styles/layers.css): local styles are outside any layer, so they beat
-// Bootstrap at any specificity and need no !important. The variable switches
+// Bootstrap at any specificity and need no important flag. The variable switches
 // inside the block say !global because a plain assignment in a nested block
 // would only shadow the global the Bootstrap mixins read.
 @layer vendor {

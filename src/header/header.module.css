@@ -5,19 +5,10 @@
   padding-right: 10px;
 }
 
-.menuButton {
-  color: var(--text-color);
-}
-
-.menuButton:hover {
-  color: var(--text-color);
-}
-
 .menuButton svg {
   width: 2em;
   height: 2em;
   fill: var(--text-color);
-  color: var(--text-color);
 }
 
 /* The brand link (PERF-09/FE-21): it used to carry Bootstrap's
@@ -49,7 +40,6 @@
 }
 
 .navAction:hover {
-  color: var(--text-color);
   text-decoration: underline;
   text-underline-offset: 6px;
 }
@@ -211,10 +201,6 @@ button.navAction {
   font-synthesis: none;
   font-size: var(--fs-sm);
   background: var(--surface-color);
-}
-
-.menuFooter a {
-  color: var(--text-color);
 }
 
 /* Social profile links (DSG-12 step 4): the gap replaces the old right

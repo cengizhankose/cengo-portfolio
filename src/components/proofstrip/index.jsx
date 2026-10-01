@@ -66,14 +66,14 @@ export function ProofStrip({ variant = "full" }) {
 
   return (
     <div
-      className={`${styles.proofstrip} ${shape === "compact" ? styles.compact : ""}`}
+      className={`${styles.proofstrip} ${shape === "compact" ? styles.proofCompact : ""}`}
     >
       <div>
-        <h3 className={styles.label} id={`${id}-companies`}>
+        <h3 className={styles.proofLabel} id={`${id}-companies`}>
           {t("proof.companies")}
         </h3>
         <ul
-          className={`${styles.companies} list-unstyled`}
+          className={`${styles.proofCompanies} list-unstyled`}
           aria-labelledby={`${id}-companies`}
         >
           {proof.companies.map((company) => (
@@ -83,11 +83,11 @@ export function ProofStrip({ variant = "full" }) {
       </div>
 
       <div>
-        <h3 className={styles.label} id={`${id}-awards`}>
+        <h3 className={styles.proofLabel} id={`${id}-awards`}>
           {t("proof.awards")}
         </h3>
         <ul
-          className={`${styles.awards} list-unstyled`}
+          className={`${styles.proofAwards} list-unstyled`}
           aria-labelledby={`${id}-awards`}
         >
           {proof.awards.map((award) => (
@@ -96,7 +96,7 @@ export function ProofStrip({ variant = "full" }) {
             </li>
           ))}
         </ul>
-        <p className={styles.more}>
+        <p className={styles.proofMore}>
           <Link to={`${lp("/about")}#awards`}>
             {t("proof.podiums", { count: awards.length })}
           </Link>
@@ -105,16 +105,18 @@ export function ProofStrip({ variant = "full" }) {
 
       {showReferences && (
         <div>
-          <h3 className={styles.label}>{t("proof.testimonials")}</h3>
-          <div className={styles.testimonials}>
+          <h3 className={styles.proofLabel}>{t("proof.testimonials")}</h3>
+          <div className={styles.proofTestimonials}>
             {references.map((item) => (
-              <figure key={item.id} className={styles.testimonial}>
+              <figure key={item.id} className={styles.proofTestimonial}>
                 <blockquote>
                   <p>{item.quote}</p>
                 </blockquote>
                 <figcaption>
-                  <span className={styles.testimonialName}>{item.name}</span>
-                  <span className={styles.testimonialRole}>
+                  <span className={styles.proofTestimonialName}>
+                    {item.name}
+                  </span>
+                  <span className={styles.proofTestimonialRole}>
                     {item.role} — {item.company}
                   </span>
                 </figcaption>

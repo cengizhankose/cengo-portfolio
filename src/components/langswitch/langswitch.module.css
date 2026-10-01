@@ -20,7 +20,6 @@
   min-height: 44px;
   padding: 0 0.5rem;
   background: var(--bg-color);
-  color: var(--text-color);
   font: 500 var(--fs-sm) / 1 var(--font-body);
   letter-spacing: 0.04em;
   text-decoration: none;
@@ -32,7 +31,6 @@
 }
 
 a.item:hover {
-  color: var(--text-color);
   text-decoration: underline;
   text-underline-offset: 4px;
 }

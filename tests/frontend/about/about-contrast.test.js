@@ -84,8 +84,8 @@ describe.each(THEMES)(
     it.each([
       [ABOUT, ".skillGroupName"],
       [ABOUT, ".ventureText"],
-      [STRIP, ".label"],
-      [STRIP, ".testimonialRole"],
+      [STRIP, ".proofLabel"],
+      [STRIP, ".proofTestimonialRole"],
     ])("keeps %#: secondary text on the muted token", (css, rule) => {
       const { color } = declarations(css, rule);
       expect(color).toBe("var(--text-muted)");

@@ -8,5 +8,5 @@
    (no layer)  component and page styles (the CSS Modules next to the
             components): styles outside a layer beat every layer, so a local
             rule overrides Bootstrap at any specificity and never needs
-            !important. */
+            an important flag. */
 @layer vendor, tokens, base;

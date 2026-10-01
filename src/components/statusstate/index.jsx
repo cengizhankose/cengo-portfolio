@@ -53,19 +53,23 @@ export function StatusState({
       role={role}
       lang={lang}
     >
-      <Heading id={titleId} className={styles.title}>
+      <Heading id={titleId} className={styles.stateTitle}>
         {title}
       </Heading>
-      {message && <p className={styles.text}>{message}</p>}
+      {message && <p className={styles.stateText}>{message}</p>}
       {(onRetry || actions.length > 0) && (
-        <div className={styles.actions}>
+        <div className={styles.stateActions}>
           {onRetry && (
-            <button type="button" className={styles.retry} onClick={onRetry}>
+            <button
+              type="button"
+              className={styles.stateRetry}
+              onClick={onRetry}
+            >
               {retryLabel ?? t("status.retry")}
             </button>
           )}
           {actions.length > 0 && (
-            <ul className={styles.links}>
+            <ul className={styles.stateLinks}>
               {actions.map(({ to, label }) => (
                 <li key={to}>
                   <Link to={to}>{label}</Link>

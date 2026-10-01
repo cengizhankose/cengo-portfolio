@@ -36,7 +36,6 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  color: var(--text-color);
 }
 
 .rail svg {
@@ -61,7 +60,6 @@
   margin: 0;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  color: var(--text-color);
   font-size: var(--fs-sm);
   line-height: 1.2;
   white-space: nowrap;
