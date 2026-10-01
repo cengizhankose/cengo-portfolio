@@ -221,7 +221,7 @@ $utility-breakpoints: map-get-multiple($grid-breakpoints, ("xs", "md", "lg"));
   @import "bootstrap/scss/forms/form-control";
 
   // _buttons and _alert loop over $theme-colors to emit one variant class per
-  // color. The markup uses the bare .btn (styled locally as .ac_btn) and only
+  // color. The markup uses the bare .btn (styled locally, src/components/actionbutton) and only
   // the success and danger alerts (src/pages/contact), so the loops get just
   // those; :root above already has every --bs-<color>-* variable.
   $_all-theme-colors: $theme-colors;

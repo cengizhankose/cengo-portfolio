@@ -24,7 +24,7 @@ export const HERO_IMAGE = Object.freeze({
   // Plain <img src> for browsers without srcset support.
   fallbackWidth: 768,
   // The photo is the full column below 992px (Bootstrap lg) and half the
-  // viewport from there on (./style.css). object-fit: cover crops the
+  // viewport from there on (./home.module.css). object-fit: cover crops the
   // height, so the width decides: every common desktop column (50vw x
   // 100vh) and the mobile 4:5 box are wider than the 1284:1654 photo.
   sizes: "(max-width: 991.98px) 100vw, 50vw",
