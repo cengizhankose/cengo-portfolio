@@ -6,7 +6,8 @@
 // tests run it with fakes or PGlite and no port.
 //
 // Order:
-//   requestId -> request logger -> security headers -> /api rate limit
+//   requestId -> request statistics (ANL-13, off unless REQUEST_STATS_ENABLED=1)
+//   -> request logger -> security headers -> /api rate limit
 //   -> canonical host -> /health -> /ready -> /api/posts -> /api/* JSON 404
 //   -> RSS feeds (mountFeeds) -> /sitemap.xml (mountSitemap) -> site
 //   (mountSite) -> notFound / onError (T-01 envelope)
@@ -17,6 +18,11 @@
 import { Hono } from "hono";
 import { requestId } from "hono/request-id";
 import type { PostQueries } from "../db/queries/posts";
+import {
+  createRequestStatsFromEnv,
+  requestStatsMiddleware,
+  type RequestStats,
+} from "../server/requestStats";
 import { mountFeeds } from "../server/rss";
 import { mountSitemap } from "../server/sitemap";
 import { mountSite } from "../server/static";
@@ -60,6 +66,13 @@ export interface CreateAppOptions {
   env?: Record<string, string | undefined>;
   /** The /api token buckets (T-08); tests inject one with a fake clock. */
   rateLimitStore?: TokenBucketStore;
+  /**
+   * Daily request aggregates (ANL-13). Omitted: built from `env`
+   * (REQUEST_STATS_ENABLED=1 + PG_STATS_URL, otherwise off). `null` forces it
+   * off. The entry point that owns the instance calls its close() on
+   * graceful shutdown (BE-21) so the last minute is written.
+   */
+  requestStats?: RequestStats | null;
 }
 
 export function createApp({
@@ -70,6 +83,7 @@ export function createApp({
   isShuttingDown = () => false,
   env = process.env,
   rateLimitStore,
+  requestStats,
 }: CreateAppOptions): Hono<AppEnv> {
   if (serveSpa && !distDir) {
     throw new Error("createApp: distDir is required when serveSpa is true");
@@ -80,6 +94,17 @@ export function createApp({
   // 1. Request id: always generated here (limitLength 0 ignores a client-sent
   //    X-Request-Id), exposed as the X-Request-Id response header (BE-08).
   app.use("*", requestId({ limitLength: 0 }));
+
+  // 1b. Daily request aggregates (ANL-13): counts every response below this
+  //     point in memory; the database is touched only by the periodic flush.
+  const stats =
+    requestStats === undefined ? createRequestStatsFromEnv(env) : requestStats;
+  if (stats) {
+    app.use(
+      "*",
+      requestStatsMiddleware(stats, { healthPaths: [HEALTH_PATH, READY_PATH] }),
+    );
+  }
 
   // 2. One JSON log line per request; platform probes at debug level.
   app.use("*", requestLogger({ quietPaths: [HEALTH_PATH, READY_PATH] }));
