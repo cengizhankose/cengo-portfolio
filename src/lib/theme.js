@@ -7,7 +7,7 @@
 // localStorage access lives here, inside try/catch, so a browser that blocks
 // storage (SecurityError on the getter) still renders.
 //
-// Keep THEME_COLORS equal to --bg-color in src/index.css and to the colors in
+// Keep THEME_COLORS equal to --bg-color in src/styles/tokens.css and to the colors in
 // the index.html script; tests/frontend/theme/inline-script.test.js checks it.
 import { useSyncExternalStore } from "react";
 
@@ -18,7 +18,7 @@ export const THEME_COLORS = Object.freeze({
 });
 
 // Used when nothing else can decide: on the server (no DOM) and in browsers
-// without matchMedia. Matches the :root (dark) tokens in index.css.
+// without matchMedia. Matches the :root (dark) tokens in src/styles/tokens.css.
 export const DEFAULT_THEME = "dark";
 
 const LIGHT_QUERY = "(prefers-color-scheme: light)";

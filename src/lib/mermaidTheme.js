@@ -1,5 +1,5 @@
 // FE-35 / DSG-06 / T-05: the Mermaid configuration, built from the site's
-// theme tokens (src/index.css) instead of a hard-coded palette.
+// theme tokens (src/styles/tokens.css) instead of a hard-coded palette.
 //
 // Everything here is pure: it takes explicit hex tokens and returns plain
 // data, so the blog page (<Mermaid>, reading the live CSS variables) and the
@@ -21,7 +21,7 @@
 //
 // THEME_TOKENS repeats the two token sets for code that has no DOM; a test
 // (tests/frontend/markdown/mermaid-theme.test.js) keeps them equal to
-// src/index.css.
+// src/styles/tokens.css.
 
 export const THEME_TOKENS = Object.freeze({
   dark: Object.freeze({ bg: "#0c0c0c", text: "#ffffff", muted: "#a3a3a3" }),

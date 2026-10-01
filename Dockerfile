@@ -36,6 +36,11 @@ RUN NODE_ENV=test bun run check
 # to RUN (ANL-01): Umami website id and tracker URL; unset = tracking off.
 ARG VITE_UMAMI_WEBSITE_ID
 ARG VITE_UMAMI_SRC
+# PERF-25 / T-09: CF_WEB_ANALYTICS=off (the same Out Plane env value the server
+# reads at runtime) also removes the Cloudflare Web Analytics entry from the
+# prerendered privacy notice. Empty or unset = the entry stays (default on).
+ARG CF_WEB_ANALYTICS
+ENV VITE_CF_WEB_ANALYTICS=${CF_WEB_ANALYTICS}
 RUN bun run build
 # BE-20: build metadata for /ready, next to server.ts and outside dist/ so it
 # is never served as a static file. GIT_COMMIT is optional

@@ -43,7 +43,7 @@ const MIME: Readonly<Record<string, string>> = Object.freeze({
 
 /**
  * Content-Type for a file path, decided by its extension only (the file does
- * not have to exist). Case-insensitive: `photo.JPG` -> `image/jpeg`.
+ * not have to exist). Case-insensitive: `hero.JPG` -> `image/jpeg`.
  * Unknown extensions fall back to Bun's MIME table, then to
  * `application/octet-stream`.
  */

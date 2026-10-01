@@ -24,6 +24,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# private keys and certificates (SEC-02): never tracked
+*.pem
+*.key
+
 # local env files: secrets never go into git
 .env
 .env.*

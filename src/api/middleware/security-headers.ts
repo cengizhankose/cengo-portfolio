@@ -13,10 +13,9 @@
 // hono also sends its other defaults (Cross-Origin-Opener-Policy: same-origin,
 // Cross-Origin-Resource-Policy, Origin-Agent-Cluster, X-Download-Options,
 // X-Permitted-Cross-Domain-Policies, X-XSS-Protection: 0) and removes
-// X-Powered-By. X-DNS-Prefetch-Control is deliberately not sent: hono's `off`
-// would change the browser's prefetch behaviour for the Google Fonts hosts
-// (index.html preconnect) before W8 self-hosts the fonts; that is a PERF
-// decision, not a security header this package owns.
+// X-Powered-By. X-DNS-Prefetch-Control is deliberately not sent: it is a
+// browser prefetch (PERF) setting, not a security header, and the site loads
+// nothing from a third-party font host any more (fonts are self-hosted).
 import type { MiddlewareHandler } from "hono";
 import { secureHeaders } from "hono/secure-headers";
 import { buildCsp, type CspMode } from "./csp";

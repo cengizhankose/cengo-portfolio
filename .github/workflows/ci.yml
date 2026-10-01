@@ -52,6 +52,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       - run: bun install --frozen-lockfile
+      - run: bun run typecheck
       - run: bun run test
 
   build:
