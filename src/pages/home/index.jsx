@@ -41,101 +41,85 @@ export const Home = () => {
     fetchPriority: "high",
   });
 
-  // FE-18 / DSG-11: the text comes first in the DOM, so below 992px the name,
-  // the line and the CTAs are on the first screen and the photo follows;
-  // from 992px the two columns sit side by side (text left, photo right).
+  // Hero (FE-01, FE-18, DSG-11; claudedocs/design/design-plan.md §6.2). The
+  // text comes first in the DOM, so below 992px the name, the line and the
+  // CTAs are on the first screen and the photo follows; from 992px the two
+  // are the halves of one viewport-tall grid (text left, photo right).
   // PERF-07: the photo is drawn as soon as it decodes. No opacity:0 until
   // onLoad; its box is grey until then (./home.module.css).
   return (
     <>
       <section id="home" className={styles.home}>
-        <div className={`${styles.hero} d-block d-lg-flex align-items-center`}>
-          <div
-            className={`${styles.heroText} h-100 d-lg-flex justify-content-center`}
-          >
-            <div className="align-self-center">
-              <div className={`${styles.heroIntro} mx-auto`}>
-                {/* K-06b (SEO-12, FE-23, DSG-09): one static h1, name + role,
+        <div className={styles.hero}>
+          <div className={styles.heroText}>
+            <div className={styles.heroIntro}>
+              {/* K-06b (SEO-12, FE-23, DSG-09): one static h1, name + role,
                   complete in the first render. The role keeps its own
                   language when it differs from the page's (TR pages). */}
-                <h1 className={styles.introName}>
-                  {hero.name}{" "}
-                  <span
-                    className={styles.introRole}
-                    lang={
-                      hero.roleLang === route.locale ? undefined : hero.roleLang
-                    }
-                  >
-                    {hero.role}
-                  </span>
-                </h1>
-                {/* Subheadline (MKT-02, MKT-16): what he builds, then one short
+              <h1 className={styles.introName}>
+                {hero.name}{" "}
+                <span
+                  className={styles.introRole}
+                  lang={
+                    hero.roleLang === route.locale ? undefined : hero.roleLang
+                  }
+                >
+                  {hero.role}
+                </span>
+              </h1>
+              {/* Subheadline (MKT-02, MKT-16): what he builds, then one short
                   line: where he works, or what he is open to once the owner
                   sets the availability (./heroStatus.js). */}
-                <p className={styles.introLead}>{hero.lead}</p>
-                <p className={styles.introStatus} data-status={status.status}>
-                  {status.text}
-                </p>
-                {/* The line under it turns once and stops on its last phrase
+              <p className={styles.introLead}>{hero.lead}</p>
+              <p className={styles.introStatus} data-status={status.status}>
+                {status.text}
+              </p>
+              {/* The line under it turns once and stops on its last phrase
                   (CSS only, ./home.module.css; still under reduced motion).
                   Screen readers skip the moving copy and read the sentence
                   once from the hidden text (DSG-09, FE-23). */}
-                <p className={styles.introTagline}>
-                  <span className={styles.rotator} aria-hidden="true">
-                    {hero.phrases.map((phrase, index) => (
-                      <span key={phrase} style={{ "--i": index }}>
-                        {phrase}
-                      </span>
-                    ))}
-                  </span>
-                  <span className="visually-hidden">{hero.phrasesText}</span>
-                </p>
-                <p className={styles.introProof}>{hero.proofLine}</p>
-                {/* One action, one evidence link (MKT-19). The button is the
+              <p className={styles.introTagline}>
+                <span className={styles.rotator} aria-hidden="true">
+                  {hero.phrases.map((phrase, index) => (
+                    <span key={phrase} style={{ "--i": index }}>
+                      {phrase}
+                    </span>
+                  ))}
+                </span>
+                <span className="visually-hidden">{hero.phrasesText}</span>
+              </p>
+              <p className={styles.introProof}>{hero.proofLine}</p>
+              {/* One action, one evidence link (MKT-19). The button is the
                   link itself, with no block element inside it, so the focus
-                  ring wraps the whole button (DSG-28). */}
-                <div className="pb-5">
-                  <div className={styles.actions}>
-                    <Link
-                      to={lp("/contact")}
-                      id="button_h"
-                      className={`${button.button} ${button.hasRings} btn`}
-                      onClick={() =>
-                        track("cta_clicked", { cta_id: CTA.HERO_CONTACT })
-                      }
-                    >
-                      {t("cta.primary")}
-                      <span
-                        className={`${button.ring} ${button.ringOne}`}
-                        aria-hidden="true"
-                      />
-                      <span
-                        className={`${button.ring} ${button.ringTwo}`}
-                        aria-hidden="true"
-                      />
-                      <span
-                        className={`${button.ring} ${button.ringThree}`}
-                        aria-hidden="true"
-                      />
-                    </Link>
-                    <Link
-                      to={lp("/portfolio")}
-                      className={styles.textLink}
-                      onClick={() =>
-                        track("cta_clicked", { cta_id: CTA.HERO_PORTFOLIO })
-                      }
-                    >
-                      {t("cta.secondary")} <span aria-hidden="true">→</span>
-                    </Link>
-                  </div>
-                  <p className={styles.note}>
-                    {t("cta.note", { time: contact.responseTime })}
-                  </p>
-                </div>
+                  outline wraps the whole button (DSG-28). It is the site's one
+                  button style (FE-01: no sliding fill layers). */}
+              <div className={styles.actions}>
+                <Link
+                  to={lp("/contact")}
+                  id="button_h"
+                  className={`${button.button} btn`}
+                  onClick={() =>
+                    track("cta_clicked", { cta_id: CTA.HERO_CONTACT })
+                  }
+                >
+                  {t("cta.primary")}
+                </Link>
+                <Link
+                  to={lp("/portfolio")}
+                  className={styles.textLink}
+                  onClick={() =>
+                    track("cta_clicked", { cta_id: CTA.HERO_PORTFOLIO })
+                  }
+                >
+                  {t("cta.secondary")} <span aria-hidden="true">→</span>
+                </Link>
               </div>
+              <p className={styles.note}>
+                {t("cta.note", { time: contact.responseTime })}
+              </p>
             </div>
           </div>
-          <div className={`${styles.heroImage} position-relative`}>
+          <div className={styles.heroImage}>
             <picture>
               <source
                 type="image/avif"

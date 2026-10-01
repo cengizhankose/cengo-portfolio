@@ -1,47 +1,43 @@
-/* Side rail of social profile links (DSG-12, DSG-30).
+/* Side rail of social profile links (K-11; DSG-12, DSG-30, FE-01; layout in
+   claudedocs/design/design-plan.md §6.3).
 
-   Desktop: a fixed column at the left edge, centred vertically: six 32x32
-   icon targets 8px apart (6 x 32 + 5 x 8 = 232px), then the caption, set
-   vertically and read bottom-to-top, with its rule between the icons and
-   the text. The caption uses writing-mode instead of a rotated box, so its
-   length (EN "Find me elsewhere", TR "Beni başka yerlerde bul", or a longer text) moves
-   nothing and cannot run into the icons.
+   From 992px: a column fixed at the left edge, centred on the viewport
+   height. Six --space-5 (32px) icon targets, --space-2 apart
+   (6 x 32 + 5 x 8 = 232px), a 40px hairline, then the caption set
+   vertically and read from the bottom up. The caption uses writing-mode,
+   not a rotated box, so its length (EN "Find me elsewhere", TR "Beni başka
+   yerlerde bul") moves nothing and never runs into the icons.
 
-   Below 992px the rail is part of the page flow: the caption above one row
-   of icons (232px, one line at 375px). */
+   Below 992px the rail is part of the page flow: the caption, its hairline
+   turned flat, then one row of icons (232px: one line at 375px). */
 .rail {
   position: fixed;
+  left: var(--space-4);
   top: 50%;
-  left: 24px;
-  width: 32px;
-  transform: translateY(-50%);
+  width: var(--space-5);
+  translate: 0 -50%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-3);
 }
 
 .rail ul {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  list-style: none;
-  padding: 0;
+  gap: var(--space-2);
   margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
+/* Every target is a --space-5 square, above --tap-min (WCAG 2.5.8). */
 .rail a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-}
-
-.rail svg {
-  width: 16px;
-  height: 16px;
-  fill: var(--text-color);
+  width: var(--space-5);
+  height: var(--space-5);
 }
 
 .rail a:hover {
@@ -53,37 +49,41 @@
   outline-offset: 2px;
 }
 
+.rail svg {
+  width: var(--space-3);
+  height: var(--space-3);
+  fill: var(--text-color);
+}
+
+/* The caption and its hairline. The hairline follows the text in the flow,
+   so it sits above the words once they are turned to read bottom-up. */
 .rail p {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
   font-size: var(--fs-sm);
-  line-height: 1.2;
+  line-height: 1.25;
   white-space: nowrap;
+  writing-mode: vertical-rl;
+  rotate: 180deg;
 }
 
-/* The rule: after the text in the flow, so above it once the caption is
-   turned to read bottom-to-top. */
 .rail p::after {
   content: "";
-  display: block;
   flex: none;
   width: 1px;
   height: 40px;
   background-color: var(--text-color);
 }
 
-@media only screen and (max-width: 991px) {
+@media (max-width: 991px) {
   .rail {
     position: static;
     width: auto;
-    transform: none;
+    translate: none;
     flex-direction: column-reverse;
-    gap: 12px;
-    padding: 40px 0;
+    padding: var(--space-6) 0;
   }
 
   .rail ul {
@@ -93,9 +93,9 @@
   }
 
   .rail p {
-    writing-mode: horizontal-tb;
-    transform: none;
     font-size: var(--fs-base);
+    writing-mode: horizontal-tb;
+    rotate: none;
   }
 
   .rail p::after {

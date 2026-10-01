@@ -1,5 +1,6 @@
 /* Cursor ring (T-14; PERF-11, FE-07, DSG-21). Follows the system cursor,
-   which stays visible everywhere. No fill, 1.5px outline, 32px across.
+   which stays visible everywhere. No fill, 1.5px outline,
+   --cursor-ring-size (32px) across.
    Colours and layer come from the tokens in src/styles/tokens.css, so the ring
    follows the theme without filters. Cursor.jsx writes the position to the
    `translate` property and the hover growth is the `scale` property: scale
@@ -16,9 +17,10 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 32px;
-  height: 32px;
-  margin: -16px 0 0 -16px;
+  width: var(--cursor-ring-size);
+  height: var(--cursor-ring-size);
+  margin: calc(var(--cursor-ring-size) / -2) 0 0
+    calc(var(--cursor-ring-size) / -2);
   border: 1.5px solid var(--cursor-ring-color);
   border-radius: 50%;
   box-shadow:

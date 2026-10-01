@@ -1,125 +1,118 @@
+/* Site header (FE-01, DSG-18, DSG-22; layout in
+   claudedocs/design/design-plan.md §6.1).
+
+   The header is a strip under the page frame. Its controls are tabs: boxes
+   of the surface colour, --header-height tall, 2px apart, hanging from the
+   frame. At the top of the page the strip itself is clear, so the hero
+   under it is unchanged; once the page scrolls the whole strip takes the
+   page background and no text runs between the tabs (.isScrolled).
+
+   Below 992px: brand left, language / theme / menu right; the navigation is
+   the full-screen panel the menu button opens (FE-11). From 992px: the same
+   navigation is a row of tabs before the language switcher and the menu
+   button is gone. The active page is underlined and carries
+   aria-current="page" at every width. */
 .siteHeader {
+  position: fixed;
+  inset: 0 0 auto;
   z-index: var(--z-header);
-  top: 10px;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding: var(--frame-size) var(--frame-size) 0;
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 
-.menuButton svg {
-  width: 2em;
-  height: 2em;
-  fill: var(--text-color);
+.isScrolled {
+  background-color: var(--bg-color);
 }
 
-/* The brand link (PERF-09/FE-21): it used to carry Bootstrap's
-   .navbar-brand, but the subset (src/styles/bootstrap-subset.scss) does not
-   compile the navbar partial. The link sits outside a .navbar, so Bootstrap's
-   padding, margin, font-size and color read unset --bs-navbar-* variables and
-   .navAction below sets all four anyway; these two declarations are the only
-   ones that ever reached the page. Keep this rule above .navAction. */
+.bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+/* The brand link. Bootstrap's .navbar-brand is not in the subset
+   (PERF-09/FE-21), so these two are its own. Keep this rule above
+   .navAction, which sets the box. */
 .brand {
   text-decoration: none;
   white-space: nowrap;
 }
 
+/* A tab: the brand, the theme toggle and the menu button. Relative with a
+   z-index so the tabs stay above the open menu panel (.siteNavigation, a
+   fixed sibling) and the menu button stays clickable. */
 .navAction {
-  padding: 5px 15px;
-  margin: 0;
-  border: unset;
-  background: var(--surface-color);
-  font-size: var(--fs-md);
-  font-family: var(--font-display);
-  font-synthesis: none;
-  color: var(--text-color);
-  line-height: 2;
-  height: 50px;
-  font-weight: 400;
-  /* Above the open menu panel (.siteNavigation, a later sibling), so the
-     menu button stays clickable. */
+  position: relative;
   z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: var(--header-height);
+  margin: 0;
+  padding: 0 var(--space-3);
+  border: 0;
+  background: var(--surface-color);
+  color: var(--text-color);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 400;
+  font-synthesis: none;
+  line-height: 1;
+  text-decoration: none;
 }
 
 .navAction:hover {
+  color: var(--text-color);
   text-decoration: underline;
   text-underline-offset: 6px;
 }
 
-/* The menu and theme buttons hold only an icon: it dims on hover (DSG-27). */
-button.navAction:hover svg {
-  opacity: 0.7;
-}
-
-/* Header controls are native buttons (FE-02/DSG-02): no browser chrome, a
-   pointer cursor, and a visible keyboard focus ring. The offset is inset so
-   the fixed page frame (.frameTop, --z-frame) cannot cover the ring. */
+/* The theme and menu buttons hold only an icon: it dims on hover (DSG-27). */
 button.navAction {
   cursor: pointer;
 }
 
+button.navAction:hover svg {
+  opacity: 0.7;
+}
+
+/* Header controls are native buttons and links (FE-02/DSG-02) with a
+   visible keyboard outline. Inset: an outward outline would slide under the page
+   frame (--z-frame) along the top edge. */
 .navAction:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: -4px;
 }
 
-/* Same ring for the links inside the open menu (sections + social). */
-.siteNavigation a:focus-visible {
-  outline: 2px solid var(--text-color);
-  outline-offset: 4px;
-}
-
-.themeToggle {
-  display: inline-flex;
-  align-items: center;
-}
-
 .themeToggle svg {
-  width: 1.5em;
-  height: 1.5em;
+  width: var(--space-4);
+  height: var(--space-4);
 }
 
-/* The 10px page frame (FE-20 step 6: the one place it is drawn). Four fixed
-   strips on the --z-frame layer, over the header. */
-.frame {
-  position: fixed;
-  z-index: var(--z-frame);
-  background: var(--surface-color);
+.menuButton svg {
+  width: var(--space-5);
+  height: var(--space-5);
+  fill: var(--text-color);
 }
 
-.frameTop {
-  top: 0;
-  height: 10px;
-  left: 0;
-  width: 100%;
+/* The right group: language switcher, theme toggle, menu button. */
+.controls {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  margin-left: auto;
 }
 
-.frameBottom {
-  bottom: 0;
-  left: 0;
-  height: 10px;
-  width: 100%;
-}
-
-.frameRight {
-  width: 10px;
-  right: 0;
-  top: 0;
-  height: 100%;
-}
-
-.frameLeft {
-  width: 10px;
-  left: 0;
-  top: 0;
-  height: 100%;
-}
-
+/* The navigation below 992px: a full-screen panel that slides down from the
+   top. Hidden (and so out of the tab order) until the menu button opens it;
+   it keeps its visibility until the slide-up ends. */
 .siteNavigation {
-  height: 100%;
-  left: 0;
-  overflow: hidden;
   position: fixed;
-  top: 0;
-  width: 100%;
+  inset: 0;
+  overflow: hidden;
   visibility: hidden;
 }
 
@@ -128,100 +121,208 @@ button.navAction {
 }
 
 .menuPanel {
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  width: 100%;
   height: 100%;
+  overflow-y: auto;
   background-color: var(--surface-color);
-  will-change: transform;
   transform: translateY(-100%);
-  /* Closing: the panel keeps its (inherited) visibility until the slide-up
-     ends. */
   transition:
-    transform 0.5s ease,
-    visibility 0s linear 0.5s;
+    transform 0.4s var(--ease-out),
+    visibility 0s linear 0.4s;
 }
 
+/* Opening: visible at once, so the first link can take focus as soon as the
+   menu opens (FE-11). */
 .menuOpen .menuPanel {
-  transform: translateY(0);
-  /* Opening: visible at once, so the first link can take focus as soon as
-     the menu opens (FE-11). A 0.5s visibility transition here kept the links
-     hidden, and unfocusable, at the start of the slide-down. */
+  transform: none;
   transition:
-    transform 0.5s ease,
+    transform 0.4s var(--ease-out),
     visibility 0s;
 }
 
-.menuWrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden auto;
-}
-
 .menuList {
-  padding-top: 20vh;
-  padding-bottom: 20vh;
-  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: 0;
+  /* The bottom padding keeps the last link clear of the colophon. */
+  padding: 18vh calc(var(--frame-size) + var(--space-4)) 9rem;
 }
 
-@media (min-width: 992px) {
-  .menuContainer {
-    margin-left: 33.3333%;
-  }
-  .menuList {
-    padding-top: 10vh;
-    padding-bottom: 10vh;
-  }
+.menuItem {
+  display: flex;
 }
 
-.menuList .menuItem > a {
-  color: var(--text-color);
-  text-decoration: none;
-  line-height: 1;
-  font-size: var(--fs-2xl);
+.navLink {
   display: inline-block;
-  position: relative;
-  transition: color 250ms cubic-bezier(0, 0, 0.58, 1) 0s;
-  padding: 4px 0px;
+  padding: var(--space-1) 0;
+  color: var(--text-color);
   font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: 400;
   font-synthesis: none;
+  line-height: 1.1;
+  text-decoration: none;
 }
 
-.menuList .menuItem > a:hover {
+/* Hover and the current page: the same 2px underline, never colour alone. */
+.navLink:hover,
+.navLink[aria-current="page"] {
+  color: var(--text-color);
   text-decoration: underline;
   text-decoration-thickness: 2px;
-  text-underline-offset: 0.12em;
+  text-underline-offset: 0.15em;
 }
 
+.siteNavigation a:focus-visible,
+.menuFooter a:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 4px;
+}
+
+/* The colophon below 992px: the foot of the open panel, profiles first,
+   then privacy and the copyright line. Shown with the panel only. */
 .menuFooter {
-  bottom: 0;
-  font-family: var(--font-display);
-  font-synthesis: none;
-  font-size: var(--fs-sm);
+  position: fixed;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) calc(var(--frame-size) + var(--space-4))
+    calc(var(--frame-size) + var(--space-3));
   background: var(--surface-color);
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-synthesis: none;
+  visibility: hidden;
 }
 
-/* Social profile links (DSG-12 step 4): the gap replaces the old right
-   margin, and every link is at least a 24x24 target (WCAG 2.5.8), "X"
-   included. The focus ring is .siteNavigation a:focus-visible above. */
+.isOpen .menuFooter {
+  visibility: visible;
+}
+
+/* Social profile links (DSG-12): every link at least a --tap-min square
+   (WCAG 2.5.8), "X" included. */
 .footerSocial {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
   list-style: none;
 }
 
-.footerSocial a:hover {
-  opacity: 0.7;
-}
-
-.footerSocial a {
+.footerSocial a,
+.colophon a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
-  min-height: 24px;
-  padding: 0 4px;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-1);
+  text-decoration: none;
+}
+
+.footerSocial a:hover,
+.colophon a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+.colophon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-3);
+}
+
+.colophon > p {
+  margin: 0;
+}
+
+@media (min-width: 576px) {
+  .menuFooter {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+@media (min-width: 992px) {
+  .menuButton {
+    display: none;
+  }
+
+  /* The navigation becomes the row of tabs left of the language switcher. */
+  .siteNavigation {
+    position: static;
+    margin-left: auto;
+    overflow: visible;
+    visibility: visible;
+  }
+
+  .menuPanel {
+    height: auto;
+    overflow: visible;
+    background: none;
+    transform: none;
+    transition: none;
+  }
+
+  .menuList {
+    flex-direction: row;
+    gap: 2px;
+    padding: 0;
+  }
+
+  .navLink {
+    display: inline-flex;
+    align-items: center;
+    height: var(--header-height);
+    padding: 0 var(--space-3);
+    background: var(--surface-color);
+    font-size: var(--fs-md);
+    line-height: 1;
+  }
+
+  .navLink:hover,
+  .navLink[aria-current="page"] {
+    text-underline-offset: 6px;
+  }
+
+  .controls {
+    margin-left: 0;
+  }
+
+  /* From here the side rail shows the profiles; the colophon is a tab that
+     hangs from the bottom edge of the frame, at the right, so the privacy
+     page stays one click away without the menu button. It is the last
+     stop of the header in the tab order. */
+  .footerSocial {
+    display: none;
+  }
+
+  .menuFooter {
+    inset: auto calc(var(--frame-size) + var(--space-5)) var(--frame-size) auto;
+    padding: 0 var(--space-2);
+    visibility: visible;
+  }
+
+  /* Inset outlines along the frame, like the tabs at the top. */
+  .siteNavigation a:focus-visible,
+  .menuFooter a:focus-visible {
+    outline-offset: -2px;
+  }
+}
+
+/* The page frame (the signature element, FE-20 step 6, FE-01): one fixed
+   box whose border is the frame, over the header and under the skip link.
+   It takes no pointer events, so nothing under its open middle is
+   blocked. */
+.frame {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-frame);
+  border: var(--frame-size) solid var(--surface-color);
+  pointer-events: none;
 }

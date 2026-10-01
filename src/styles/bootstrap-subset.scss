@@ -6,11 +6,11 @@
 //   react-bootstrap  Container, Row, Col (lg=*), Alert (dismissible, no
 //                    transition) + its CloseButton
 //   components       .table .caption-top, .form-label .form-control, .btn,
-//                    .alert-*, .btn-close, .display-4 .h3 .h5 .list-unstyled,
-//                    .fixed-top
-//   utilities        display, flex-direction, flex-wrap, justify-content,
-//                    align-items, align-self, order, position, margin,
-//                    padding, width, height, rounded, text-align
+//                    .alert-*, .btn-close, .display-4 .h3 .h5 .list-unstyled
+//   utilities        display, align-items, margin, padding, width, rounded,
+//                    text-align (base classes only: since FE-01 the header and
+//                    the hero lay themselves out in their CSS Modules, so no
+//                    breakpoint variant and no .fixed-top is left)
 // The header's brand link is styled locally (.brand, src/header/header.module.css):
 // no navbar partial.
 //
@@ -19,7 +19,6 @@
 // Bootstrap 5.3 only supports @import; the Dart Sass deprecation warnings this
 // causes (here and in Bootstrap's own sources) are silenced in vite.config.js.
 
-@use "sass:list";
 @use "sass:map";
 
 // 1. Configuration --------------------------------------------------------
@@ -52,12 +51,7 @@ $utilities: map-get-multiple(
   $utilities,
   (
     "display",
-    "flex-direction",
-    "flex-wrap",
-    "justify-content",
     "align-items",
-    "align-self",
-    "position",
     "margin",
     "margin-x",
     "margin-y",
@@ -73,14 +67,13 @@ $utilities: map-get-multiple(
     "padding-bottom",
     "padding-start",
     "width",
-    "height",
     "rounded",
     "text-align"
   )
 );
 
 // And only the values of those groups the markup uses (FE-20, size budget:
-// every unused value is a rule, three for the responsive groups, and the
+// every unused value is a rule, and the
 // print copies of .d-* go too). A Bootstrap class whose value is not listed
 // here fails tests/frontend/bootstrap/ (class coverage): add it to its list.
 $utilities: map.merge(
@@ -93,29 +86,6 @@ $utilities: map.merge(
           "values": inline-block block flex none,
         )
       ),
-    "flex-direction": map.merge(
-        map.get($utilities, "flex-direction"),
-        (
-          "values": row column,
-        )
-      ),
-    "flex-wrap": map.merge(
-        map.get($utilities, "flex-wrap"),
-        (
-          "values": (
-            wrap: wrap,
-          ),
-        )
-      ),
-    "justify-content": map.merge(
-        map.get($utilities, "justify-content"),
-        (
-          "values": (
-            center: center,
-            between: space-between,
-          ),
-        )
-      ),
     "align-items": map.merge(
         map.get($utilities, "align-items"),
         (
@@ -124,30 +94,8 @@ $utilities: map.merge(
           ),
         )
       ),
-    "align-self": map.merge(
-        map.get($utilities, "align-self"),
-        (
-          "values": (
-            center: center,
-          ),
-        )
-      ),
-    "position": map.merge(
-        map.get($utilities, "position"),
-        (
-          "values": relative absolute,
-        )
-      ),
     "width": map.merge(
         map.get($utilities, "width"),
-        (
-          "values": (
-            100: 100%,
-          ),
-        )
-      ),
-    "height": map.merge(
-        map.get($utilities, "height"),
         (
           "values": (
             100: 100%,
@@ -165,39 +113,32 @@ $utilities: map.merge(
   )
 );
 
-// Breakpoint variants (.d-lg-flex, .flex-md-row, .align-items-md-center,
-// .order-lg-1) are used for these four groups only; every other group keeps
-// its base classes (.mb-5, .p-3, .text-start, ...) and drops the -sm/-md/...
-// copies.
-$responsive-utilities: ("display", "flex-direction", "align-items");
-
+// No breakpoint variants: every group keeps its base classes (.mb-5,
+// .d-flex, .text-start, ...) and drops the -sm/-md/... copies. The last
+// responsive ones (.d-lg-flex, .flex-md-row, .align-items-md-center) went
+// with the template header and hero (FE-01).
 @each $key, $utility in $utilities {
-  @if not list.index($responsive-utilities, $key) {
-    $base-only: map.merge(
-      $utility,
-      (
-        "responsive": false,
-      )
-    );
-    $utilities: map.merge(
-      $utilities,
-      (
-        $key: $base-only,
-      )
-    );
-  }
+  $base-only: map.merge(
+    $utility,
+    (
+      "responsive": false,
+    )
+  );
+  $utilities: map.merge(
+    $utilities,
+    (
+      $key: $base-only,
+    )
+  );
 }
 
-// Breakpoints the markup uses: columns only at lg (react-bootstrap <Col lg>),
-// utilities at md and lg (.flex-md-row, .align-items-md-center, .d-lg-flex,
-// .order-lg-*). The grid and the utilities are generated for these only (see
-// $grid-breakpoints below); containers, tables and helpers keep all six
-// breakpoints, so .container widths do not change. (_grid's :root
-// --bs-breakpoint-* list then has xs and lg; nothing in the site or in
-// react-bootstrap reads those variables.)
+// Breakpoints the markup uses: columns only at lg (react-bootstrap <Col lg>).
+// The grid is generated for xs and lg only (see $grid-breakpoints below);
+// containers, tables and helpers keep all six breakpoints, so .container
+// widths do not change. (_grid's :root --bs-breakpoint-* list then has xs
+// and lg; nothing in the site or in react-bootstrap reads those variables.)
 $_all-grid-breakpoints: $grid-breakpoints;
 $column-breakpoints: map-get-multiple($grid-breakpoints, ("xs", "lg"));
-$utility-breakpoints: map-get-multiple($grid-breakpoints, ("xs", "md", "lg"));
 
 // Everything below emits CSS inside `@layer vendor` (FE-20 step 2, layer order
 // in src/styles/layers.css): local styles are outside any layer, so they beat
@@ -238,9 +179,5 @@ $utility-breakpoints: map-get-multiple($grid-breakpoints, ("xs", "md", "lg"));
 
   // 3. Helpers and utilities -------------------------------------------------
 
-  @import "bootstrap/scss/helpers/position";
-
-  $grid-breakpoints: $utility-breakpoints !global;
   @import "bootstrap/scss/utilities/api";
-  $grid-breakpoints: $_all-grid-breakpoints !global;
 }

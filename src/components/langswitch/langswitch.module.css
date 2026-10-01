@@ -1,8 +1,8 @@
 /* EN/TR switcher (DSG-19 step 7). Sits in the header's right group, left of
-   the theme toggle. Every target is at least 44x44px (50px high on desktop,
-   the height of .navAction (src/header)). The active language is marked by weight, an inset
+   the theme toggle, as two of the header's tabs (FE-01): --header-height
+   tall like the other tabs (src/header), at least --tap-touch (44px) wide. The active language is marked by weight, an inset
    underline and aria-current together, never by colour alone; it has no
-   fill, so the underline and the focus ring keep their contrast against the
+   fill, so the underline and the focus outline keep their contrast against the
    header in both themes. The other language is 400, not 500, so the switcher
    (now on every page, W11) costs no extra Raleway file; 700 is the active one. */
 .switcher ul {
@@ -17,10 +17,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0 0.5rem;
-  background: var(--bg-color);
+  min-width: var(--tap-touch);
+  min-height: var(--header-height);
+  padding: 0 var(--space-2);
+  background: var(--surface-color);
   font: 400 var(--fs-sm) / 1 var(--font-body);
   letter-spacing: 0.04em;
   text-decoration: none;
@@ -36,15 +36,9 @@ a.item:hover {
   text-underline-offset: 4px;
 }
 
-/* Inset like .navAction (src/header): an outward ring would slide under the fixed page frame
-   (.frameTop, --z-frame) at the top of the header. */
+/* Inset like .navAction (src/header): an outward outline would slide under the
+   fixed page frame (.frame, --z-frame) at the top of the header. */
 a.item:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: -4px;
-}
-
-@media (min-width: 992px) {
-  .item {
-    min-height: 50px;
-  }
 }
