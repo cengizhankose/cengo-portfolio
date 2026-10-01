@@ -15,4 +15,6 @@ export default {
   otherLanguage: "İngilizce yazılar",
   otherLoadError: "İngilizce yazılar yüklenemedi",
   inOtherLanguage: "İngilizce",
+  diagram: "Diyagram",
+  diagramLoading: "Diyagram yükleniyor…",
 };
