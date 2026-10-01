@@ -17,7 +17,7 @@
 
 ## 2. Umami işletimi
 
-Değerler (bağlantı dizesi, parolalar, `APP_SECRET`) bu dokümana **yazılmaz**; yalnız adlar ve tarihler.
+Değerler (bağlantı dizesi, parolalar, `APP_SECRET`) bu dokümana **yazılmaz**; yalnız adlar ve tarihler. Bu doküman herkese açık repoda durur: yönetici hesabının sertleştirme durumu (varsayılan parolanın değiştirildiği, 2FA) burada **tutulmaz**, kurulum PR'ının notunda kanıtlanır (ANL-01).
 
 | Alan | Değer |
 |---|---|
@@ -30,7 +30,6 @@ Değerler (bağlantı dizesi, parolalar, `APP_SECRET`) bu dokümana **yazılmaz*
 | Son yedek | — |
 | Son güncelleme | — |
 | Veritabanı boyutu | — (`SELECT pg_size_pretty(pg_database_size('umami'));`, aylık) |
-| Admin | Varsayılan parola değiştirildi: — · 2FA açık: — |
 | Sorumlu | Sahip |
 
 Runbook (sahip; ayrıntı `05-analyst-plan.md` ANL-01 adım 2.8):
