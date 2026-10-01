@@ -206,15 +206,15 @@ describe("a TR post page (FE-14 criterion 4, DSG-19 criteria 1-2, SEO-21)", () =
     );
   });
 
-  it("the back link sits above the article, in the interface language, to the live blog", async () => {
+  it("the back link sits above the article, in the interface language, to the Turkish blog (TR pages live since W11)", async () => {
     stubFetch(TR_POST);
     renderAt("/tr/blog/b");
     await screen.findByRole("heading", { level: 1, name: "Yazı B" });
 
-    const back = screen.getByRole("link", { name: "Back to Blog" });
-    expect(back).toHaveAttribute("href", "/blog");
+    const back = screen.getByRole("link", { name: "Bloga dön" });
+    expect(back).toHaveAttribute("href", "/tr/blog");
     expect(back.closest("article")).toBeNull();
-    expect(back.closest("[lang]")).toHaveAttribute("lang", "en");
+    expect(back.closest("[lang]")).toHaveAttribute("lang", "tr");
     expect(back.querySelector('[aria-hidden="true"]').textContent).toBe("←");
   });
 

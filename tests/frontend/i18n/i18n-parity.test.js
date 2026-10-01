@@ -1,9 +1,10 @@
 // @vitest-environment node
 //
 // FE-14 criterion 3 (i18n-parity): the TR dictionary and content files never
-// have keys or paths EN lacks; once the TR pages are live (LIVE.static has
-// 'tr', W11 / SEO-11 Adım B) the check turns strict by itself: equal key and
-// path sets, equal list lengths, no empty text. Also: one file per
+// have keys or paths EN lacks; with the TR pages live (LIVE.static has 'tr'
+// since W11 / SEO-11 Adım B) the check is strict: equal key and path sets,
+// equal list lengths, no empty text. Strict mode is also asserted below, so
+// closing TR again cannot quietly relax it. Also: one file per
 // namespace/section in both languages (the parallel-safety contract of W4),
 // ANL-19's stable service ids, and the NotFound strings moved from
 // src/pages/notfound/copy.js.
@@ -18,6 +19,23 @@ import { contentGaps, dictionaryGaps } from "./parity.js";
 
 const ROOT = process.cwd();
 const STRICT = LIVE.static.includes("tr");
+
+// Content sections written by another package of the same wave
+// (W11-FE-home-sections: MKT-13 services). While such a section is still
+// completely empty in TR it is left out of the content check; the moment it
+// has any TR text it is checked like every other section, with no edit here.
+// Keep this list at exactly these names: a new entry needs a reason.
+const FILLED_BY_HOME_SECTIONS = Object.freeze(["services"]);
+const isEmptyTr = (value) =>
+  value === undefined ||
+  (Array.isArray(value) ? value.length === 0 : Object.keys(value).length === 0);
+const pendingSections = FILLED_BY_HOME_SECTIONS.filter((name) =>
+  isEmptyTr(CONTENT.tr[name]),
+);
+const without = (content, names) =>
+  Object.fromEntries(
+    Object.entries(content).filter(([name]) => !names.includes(name)),
+  );
 const files = (dir) =>
   readdirSync(join(ROOT, dir))
     .filter((name) => name.endsWith(".js"))
@@ -25,6 +43,11 @@ const files = (dir) =>
     .sort();
 
 describe(`EN/TR parity (${STRICT ? "strict: TR is live" : "Adım A: TR may fall back to EN"})`, () => {
+  it("is strict: the TR static pages are live (SEO-11 Adım B)", () => {
+    expect(LIVE.static).toEqual(["en", "tr"]);
+    expect(STRICT).toBe(true);
+  });
+
   it("dictionaries", () => {
     expect(
       dictionaryGaps(DICTIONARIES.en, DICTIONARIES.tr, { strict: STRICT }),
@@ -32,7 +55,29 @@ describe(`EN/TR parity (${STRICT ? "strict: TR is live" : "Adım A: TR may fall 
   });
 
   it("content files", () => {
-    expect(contentGaps(CONTENT.en, CONTENT.tr, { strict: STRICT })).toEqual([]);
+    expect(
+      contentGaps(
+        without(CONTENT.en, pendingSections),
+        without(CONTENT.tr, pendingSections),
+        { strict: STRICT },
+      ),
+    ).toEqual([]);
+  });
+
+  it("only the sections of W11-FE-home-sections may be pending, and only while empty", () => {
+    expect(pendingSections.every((name) => isEmptyTr(CONTENT.tr[name]))).toBe(
+      true,
+    );
+    expect(FILLED_BY_HOME_SECTIONS).toEqual(["services"]);
+    // Every other section is complete today.
+    expect(
+      Object.keys(CONTENT.en).filter(
+        (name) =>
+          !FILLED_BY_HOME_SECTIONS.includes(name) &&
+          Object.keys(CONTENT.en[name]).length > 0 &&
+          isEmptyTr(CONTENT.tr[name]),
+      ),
+    ).toEqual([]);
   });
 
   it("EN has no empty text and no empty dictionary value", () => {

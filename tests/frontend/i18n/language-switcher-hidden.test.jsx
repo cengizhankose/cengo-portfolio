@@ -1,14 +1,31 @@
-// With today's route table (only EN static pages live) the switcher renders
-// nothing: its code ships in Adım A, it appears when W11 opens the TR pages
-// (FE-14 step 8, notes: "switcher renders only when LIVE.static.length > 1").
+// Rollback check (FE-14 step 8, "switcher renders only when
+// LIVE.static.length > 1"): the TR pages are open since W11, so this test
+// closes them again with a mocked route table and expects the switcher to
+// disappear with them. The live table is checked in language-switcher.test.jsx
+// and i18n-routing-tr-live.test.jsx.
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { LanguageSwitcher } from "../../../src/components/langswitch";
 import Headermain from "../../../src/header";
 import { LIVE } from "../../../src/seo/routes.js";
 
-describe("language switcher while only EN is live", () => {
+// Rollback check: the route table with the TR static pages closed again (the
+// shape LIVE had before W11, SEO-11 Adım A).
+vi.mock("../../../src/seo/routes.js", async (importOriginal) => {
+  const actual = await importOriginal();
+  const closed = Object.freeze({
+    static: Object.freeze(["en"]),
+    post: actual.LIVE.post,
+  });
+  return {
+    ...actual,
+    LIVE: closed,
+    matchRoute: (pathname, live = closed) => actual.matchRoute(pathname, live),
+  };
+});
+
+describe("language switcher while the TR pages are closed (rollback)", () => {
   it("renders nothing", () => {
     expect(LIVE.static).toEqual(["en"]);
     const { container } = render(
