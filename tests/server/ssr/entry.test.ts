@@ -49,22 +49,23 @@ describe("src/entry-client.jsx", () => {
     expect(code("src/app/App.jsx")).toContain('"vite:preloadError"');
   });
 
-  test("builds the same tree as the server: StrictMode > SWRConfig > router > AppShell", () => {
+  test("builds the same tree as the server: StrictMode > SWRConfig > router > AppRoot", () => {
     const server = code("src/entry-server.jsx");
     for (const source of [entry, server]) {
       expect(source).toContain("<StrictMode>");
       expect(source).toContain("<SWRConfig");
-      expect(source).toContain("<AppShell />");
+      expect(source).toContain("<AppRoot />");
       expect(source).toContain("basename={import.meta.env.BASE_URL}");
     }
     expect(entry).toContain("<BrowserRouter");
     expect(server).toContain("<StaticRouter");
-    // IntentPrefetch sits inside AppShell, so neither entry places a sibling
-    // next to it (useId depends on the tree's shape).
+    // IntentPrefetch sits inside AppRoot next to AppShell, so neither entry
+    // places anything of its own beside them (useId depends on the tree's
+    // shape).
     expect(entry).not.toContain("IntentPrefetch");
     expect(server).not.toContain("IntentPrefetch");
     expect(code("src/app/App.jsx")).toMatch(
-      /<IntentPrefetch \/>[\s\S]*<Headermain \/>/,
+      /function AppRoot\(\)[\s\S]*<IntentPrefetch \/>\s*<AppShell \/>/,
     );
   });
 

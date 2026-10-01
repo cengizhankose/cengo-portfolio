@@ -4,6 +4,7 @@
 // A separate process, because React's server and client renderers must not
 // share a process with a DOM (jsdom) when the client side is the one under
 // test: they would warn about each other's contexts.
+// @ts-expect-error: a .jsx module without declarations (Bun compiles it).
 import { render } from "../../../src/entry-server.jsx";
 
 const pages: [string, Record<string, unknown>][] = JSON.parse(

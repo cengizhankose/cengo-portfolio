@@ -27,7 +27,7 @@ import { StrictMode } from "react";
 import { prerender } from "react-dom/static";
 import { StaticRouter } from "react-router-dom";
 import { SWRConfig } from "swr";
-import { AppShell } from "./app/App";
+import { AppRoot } from "./app/App";
 import { swrConfig } from "./lib/swr";
 
 // A fresh cache per render: swr's default one is shared by the whole process.
@@ -49,7 +49,7 @@ export async function render(url, { fallback = {}, errors: failed = {} } = {}) {
         value={{ ...swrConfig, provider: cacheWith(failed), fallback }}
       >
         <StaticRouter location={url} basename={import.meta.env.BASE_URL}>
-          <AppShell />
+          <AppRoot />
         </StaticRouter>
       </SWRConfig>
     </StrictMode>

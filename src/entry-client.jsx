@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { SWRConfig } from "swr";
-import { AppShell } from "./app/App";
+import { AppRoot } from "./app/App";
 import { initAnalytics } from "./lib/analytics";
 import { chunkLoaderForRoute } from "./lib/prefetch.js";
 import { swrConfig } from "./lib/swr";
@@ -44,7 +44,7 @@ function start() {
     <StrictMode>
       <SWRConfig value={swrValue}>
         <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <AppShell />
+          <AppRoot />
         </BrowserRouter>
       </SWRConfig>
     </StrictMode>

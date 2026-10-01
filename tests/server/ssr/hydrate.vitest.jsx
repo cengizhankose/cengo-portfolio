@@ -7,7 +7,7 @@
 //   - the nodes the server drew are still there afterwards (hydrateRoot adopts
 //     them; a mismatch would replace them).
 // The tree is the one in src/entry-client.jsx (StrictMode > SWRConfig >
-// BrowserRouter > AppShell); the swr data is the same JSON the server writes
+// BrowserRouter > AppRoot); the swr data is the same JSON the server writes
 // into the page.
 import { act } from "@testing-library/react";
 import { execFileSync } from "node:child_process";
@@ -25,7 +25,7 @@ import {
   it,
   vi,
 } from "vitest";
-import { AppShell } from "../../../src/app/App";
+import { AppRoot } from "../../../src/app/App";
 import { swrConfig } from "../../../src/lib/swr";
 import { toSWRFallback } from "../../../src/lib/swrFallback.js";
 import { chunkLoaderForRoute } from "../../../src/lib/prefetch.js";
@@ -151,7 +151,7 @@ async function hydrate(url, data) {
           }}
         >
           <BrowserRouter>
-            <AppShell />
+            <AppRoot />
           </BrowserRouter>
         </SWRConfig>
       </StrictMode>,
