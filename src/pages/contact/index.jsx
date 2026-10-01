@@ -292,7 +292,13 @@ export const ContactUs = () => {
             <h2 className="h3 color_sec py-4">{t("contact.reachMe")}</h2>
             {/* Low-friction ways in besides the form (MKT-12): the domain
                 address, a booking link once the owner has one, LinkedIn. */}
-            <address className="contact__ways">
+            {/* data-analytics-location: the LinkedIn and booking clicks are
+                outbound_link_clicked with location contact_page, not "other"
+                (W8-ANL-locale-segmentation handoff). */}
+            <address
+              className="contact__ways"
+              data-analytics-location={LOCATIONS.CONTACT_PAGE}
+            >
               <p>
                 <strong>{t("contact.emailLabel")}</strong>{" "}
                 <a href={`mailto:${email}`} onClick={trackEmailClick}>
