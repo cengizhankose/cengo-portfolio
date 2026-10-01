@@ -125,8 +125,10 @@ describe("EmailJS SDK (SEC-24, FE-24)", () => {
   const pkg = JSON.parse(read("package.json"));
 
   it("depends on @emailjs/browser and no longer on emailjs-com", () => {
-    expect(pkg.dependencies["@emailjs/browser"]).toBeTruthy();
+    // bundled by Vite: a devDependency since W10 (BE-15)
+    expect(pkg.devDependencies["@emailjs/browser"]).toBeTruthy();
     expect(Object.keys(pkg.dependencies)).not.toContain("emailjs-com");
+    expect(Object.keys(pkg.devDependencies)).not.toContain("emailjs-com");
     expect(read("package.json")).not.toContain("emailjs-com");
     expect(read("bun.lock")).not.toContain("emailjs-com");
   });

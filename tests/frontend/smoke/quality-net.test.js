@@ -109,6 +109,7 @@ describe("package.json (T-02, FE-22, FE-31, SEC-27)", () => {
   });
 
   it("keeps web-vitals for real-user metrics (PERF-23, T-13)", () => {
-    expect(pkg.dependencies).toHaveProperty("web-vitals");
+    // bundled by Vite, so a devDependency since W10 (BE-15)
+    expect(pkg.devDependencies).toHaveProperty("web-vitals");
   });
 });

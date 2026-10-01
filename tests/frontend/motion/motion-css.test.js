@@ -260,7 +260,8 @@ describe("runtime dependencies (FE-24 criteria 1-2, W5 gate)", () => {
   const require = createRequire(join(ROOT, "package.json"));
 
   it("lists no deprecated or replaced package", () => {
-    const names = Object.keys(pkg.dependencies);
+    // W10 (BE-15): everything Vite bundles is a devDependency now.
+    const names = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
     for (const name of [
       "emailjs-com",
       "react-helmet-async",
@@ -269,14 +270,17 @@ describe("runtime dependencies (FE-24 criteria 1-2, W5 gate)", () => {
     ]) {
       expect(names).not.toContain(name);
     }
-    expect(pkg.dependencies["@emailjs/browser"]).toBeTruthy();
+    expect(pkg.devDependencies["@emailjs/browser"]).toBeTruthy();
   });
 
   it("every runtime dependency accepts the installed React", () => {
     const semver = require("semver");
     const react = require("react/package.json").version;
     // Same lookup as the plan's command: node_modules/<name>/package.json.
-    const mismatches = Object.keys(pkg.dependencies)
+    const mismatches = Object.keys({
+      ...pkg.dependencies,
+      ...pkg.devDependencies,
+    })
       .map((name) => [
         name,
         JSON.parse(read(`node_modules/${name}/package.json`)).peerDependencies

@@ -204,7 +204,7 @@ describe("FE-12 criterion 6: swr is the data layer, no hand-made hook", () => {
 
   it("package.json depends on swr", () => {
     const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
-    expect(pkg.dependencies.swr).toMatch(/^\^?2\./);
+    expect(pkg.devDependencies.swr).toMatch(/^\^?2\./);
   });
 
   it("nothing under src/ is called useApi (grep -rn useApi src -> 0)", () => {
