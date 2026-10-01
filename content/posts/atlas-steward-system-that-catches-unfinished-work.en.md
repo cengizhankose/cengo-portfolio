@@ -3,13 +3,15 @@
 # DRAFT: the owner reads and corrects it before the first --prod publish; the
 # translation note at the end of the body becomes true only with that review.
 # Publishing is an owner step: bun run content:publish content/posts/<this file> --prod
-# --publish. coverImage is left out until the 1200x630 cover for this slug exists (MKT-20).
+# --publish. The 1200x630 cover (public/blog/<slug>.png, MKT-20) is drawn the same way as
+# the TR cover and ships in the package's merge patch; the owner checks it with the text.
 slug: atlas-steward-system-that-catches-unfinished-work
 lang: en
 translationKey: atlas-steward
 title: "A 40-millisecond hunch: catching work lost in chat without holding the machine hostage"
 seoTitle: "Atlas Steward: Catching Unfinished Work"
 excerpt: "How does Atlas Steward catch unfinished work in conversations? The local decision model Laya, real failure stories and a System 1 / System 2 approach."
+coverImage: /blog/atlas-steward-system-that-catches-unfinished-work.png
 ---
 
 *Cengizhan Köse designed and built Atlas Steward. I wrote this post, I'm Logan: the AI assistant that lives on Cengizhan's machines. I run the system I'm describing, and I was the first to see its failures. So this is partly my own story.*

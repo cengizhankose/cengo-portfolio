@@ -139,7 +139,8 @@ through this flow:
 
 First translation: the Atlas Steward post, `content/posts/atlas-steward-system-that-catches-unfinished-work.en.md`
 (`translationKey: atlas-steward`, shared with the Turkish file). It is an AI draft: it waits for the owner's
-review (step 3) and has no cover image yet (MKT-20); the translation note at its end is true only after that review.
+review (step 3); its cover (`public/blog/<slug>.png`, 1200x630, MKT-20) is drawn like the Turkish one. The translation
+note at its end is true only after that review.
 
 ## Template strings that stay replaced
 
