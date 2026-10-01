@@ -1,5 +1,14 @@
-version: "3.8"
-
+# Local only (BE-25): a development database, a hot-reload container and a
+# smoke test of the production image. Out Plane never reads this file: it
+# builds the Dockerfile (last stage `production`) on every push to main.
+#
+#   bun run db:up                                  database only (profile `dev`)
+#   docker compose --profile development up app-dev    Vite + API with hot reload
+#   docker compose --profile production up --build app-prod
+#                                                  the production image against `db`
+#
+# Published ports are bound to 127.0.0.1 (SEC-12): nothing here is meant to be
+# reached from the LAN.
 services:
   # Development service - with hot reload
   app-dev:
@@ -8,7 +17,7 @@ services:
       target: development
     container_name: cengo-portfolio-dev
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       - NODE_ENV=development
       # SEC-12: Vite binds 127.0.0.1 by default; inside the container it must
@@ -29,15 +38,16 @@ services:
     profiles:
       - development
 
-  # Production image against the compose database (BE-21 stop-time check;
-  # BE-25 finalises this file). Never used by Out Plane.
+  # Production image against the compose database (the BE-21 stop-time check
+  # and the local smoke test: `curl localhost:3000/api/posts` -> 200). It runs
+  # the image's CMD: migrations, then server.ts. Never used by Out Plane.
   app-prod:
     build:
       context: .
       target: production
     container_name: cengo-portfolio-prod
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       - NODE_ENV=production
       - PG_CONNECTION_URL=postgres://portfolio@db:5432/portfolio_dev
@@ -86,6 +96,4 @@ networks:
     driver: bridge
 
 volumes:
-  node_modules:
-    driver: local
   pgdata: {}

@@ -1,55 +1,49 @@
 #!/bin/bash
 
-# Docker Deployment Script for Cengo Portfolio
-# Usage: ./docker-deploy.sh [dev|prod]
+# Local Docker helper for Cengo Portfolio (BE-25). Not a deployment path:
+# production is Out Plane building the Dockerfile on every push to main.
+# Usage: ./docker-deploy.sh dev | prod | logs [dev|prod] | clean
 
 set -e
 
-# Function to show usage
 usage() {
-    echo "Usage: $0 [dev|prod]"
-    echo "  dev  - Start development container with hot reload"
-    echo "  prod - Build and run production container"
+    echo "Usage: $0 dev | prod | logs [dev|prod] | clean"
+    echo "  dev   - Start the development container with hot reload (compose db included)"
+    echo "  prod  - Build and run the production image against the compose database"
+    echo "  logs  - Follow the logs of the prod (default) or dev container"
+    echo "  clean - Stop and remove the containers"
     exit 1
 }
 
-# Check if argument is provided
 if [ $# -eq 0 ]; then
     usage
 fi
 
-ENVIRONMENT=$1
-
-# Function to start development environment
 start_dev() {
-    echo "🚀 Starting development environment..."
-    docker-compose --profile development up app-dev
+    echo "Starting development environment..."
+    docker compose --profile development up app-dev
 }
 
-# Function to start production environment
 start_prod() {
-    echo "🏗️  Building and starting production container..."
-    docker-compose --profile production up --build app-prod
+    echo "Building and starting the production container..."
+    docker compose --profile production up --build app-prod
 }
 
-# Function to clean up
 cleanup() {
-    echo "🧹 Cleaning up containers..."
-    docker-compose down --remove-orphans
+    echo "Cleaning up containers..."
+    docker compose --profile development --profile production down --remove-orphans
 }
 
-# Function to show logs
 show_logs() {
-    echo "📋 Showing logs..."
-    if [ "$ENVIRONMENT" = "dev" ]; then
-        docker-compose logs -f app-dev
+    echo "Showing logs..."
+    if [ "${1:-prod}" = "dev" ]; then
+        docker compose logs -f app-dev
     else
-        docker-compose logs -f app-prod
+        docker compose logs -f app-prod
     fi
 }
 
-# Main logic
-case $ENVIRONMENT in
+case $1 in
     dev)
         start_dev
         ;;
@@ -57,7 +51,7 @@ case $ENVIRONMENT in
         start_prod
         ;;
     logs)
-        show_logs
+        show_logs "$2"
         ;;
     clean)
         cleanup
