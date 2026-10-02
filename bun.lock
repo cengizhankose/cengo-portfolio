@@ -40,7 +40,7 @@
         "mermaid": "^12.0.0",
         "opentype.js": "^2.0.0",
         "prettier": "^3.9.9",
-        "react": "^19.2.3",
+        "react": "^19.3.0",
         "react-bootstrap": "^2.10.10",
         "react-dom": "^19.2.3",
         "react-icons": "^5.5.0",
@@ -1317,7 +1317,7 @@
 
     "punycode": ["punycode@2.3.1", "", {}, "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg=="],
 
-    "react": ["react@19.2.3", "", {}, "sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA=="],
+    "react": ["react@19.3.0", "", {}, "sha512-E8LUcbtBWt20bbl2YoHfx4ZDBdxVTfOKtCZn9cDSJ4l6/nuoApcpIBcj47t2wZoVX8g2ZHuMHbiShgCR1T5Sog=="],
 
     "react-bootstrap": ["react-bootstrap@2.10.10", "", { "dependencies": { "@babel/runtime": "^7.24.7", "@restart/hooks": "^0.4.9", "@restart/ui": "^1.9.4", "@types/prop-types": "^15.7.12", "@types/react-transition-group": "^4.4.6", "classnames": "^2.3.2", "dom-helpers": "^5.2.1", "invariant": "^2.2.4", "prop-types": "^15.8.1", "prop-types-extra": "^1.1.0", "react-transition-group": "^4.4.5", "uncontrollable": "^7.2.1", "warning": "^4.0.3" }, "peerDependencies": { "@types/react": ">=16.14.8", "react": ">=16.14.0", "react-dom": ">=16.14.0" }, "optionalPeers": ["@types/react"] }, "sha512-gMckKUqn8aK/vCnfwoBpBVFUGT9SVQxwsYrp9yDHt0arXMamxALerliKBxr1TPbntirK/HGrUAHYbAeQTa9GHQ=="],
 
