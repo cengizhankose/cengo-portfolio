@@ -19,7 +19,7 @@
 export default [
   {
     id: "mobile",
-    title: "Mobile apps with React Native",
+    title: "Mobile apps",
     outcome:
       "A React Native app your team can ship and maintain: auth, live data, notifications and automated test builds, from first screen to store release.",
     proof: {
@@ -41,9 +41,9 @@ export default [
   },
   {
     id: "ai",
-    title: "AI features in your product",
+    title: "AI agents, LLM workflows & custom features",
     outcome:
-      "Voice, chat and agent features built into your web or mobile app: LLM integrations, real-time audio and video, and MCP-based tools.",
+      "From LLM integrations and agentic workflows to local LLM setups in a home lab: voice, chat and agent features, and any custom feature your product needs.",
     proof: {
       label: "SalesGym: 1st place, built solo in eight hours",
       to: "/portfolio#project-salesgym",

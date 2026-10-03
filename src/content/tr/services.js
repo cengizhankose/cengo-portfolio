@@ -7,7 +7,7 @@
 export default [
   {
     id: "mobile",
-    title: "React Native ile mobil uygulama",
+    title: "Mobil uygulamalar",
     outcome:
       "Ekibinin yayınlayıp sürdürebileceği bir React Native uygulaması: kimlik doğrulama, canlı veri, bildirimler ve otomatik test build’leri; ilk ekrandan mağaza yayınına.",
     proof: {
@@ -29,9 +29,9 @@ export default [
   },
   {
     id: "ai",
-    title: "Ürününe yapay zekâ özellikleri",
+    title: "AI agent’lar, LLM iş akışları ve özel özellikler",
     outcome:
-      "Web ya da mobil uygulamana ses, sohbet ve agent özellikleri: LLM entegrasyonları, gerçek zamanlı ses ve görüntü, MCP tabanlı araçlar.",
+      "LLM entegrasyonlarından agentic iş akışlarına, home lab’da yerel LLM kurulumlarına kadar: ses, sohbet ve agent özellikleri ve ürününün ihtiyaç duyduğu her özel özellik.",
     proof: {
       label: "SalesGym: sekiz saatte tek başıma, birincilik",
       to: "/portfolio#project-salesgym",
