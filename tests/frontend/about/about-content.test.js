@@ -266,10 +266,10 @@ describe.each(LANGS)("proof and awards archive, %s (MKT-04)", (lang) => {
     ]);
     for (const award of proof.awards) {
       expect(
-        award.event && award.year && award.place && award.url,
+        award.event && award.year && award.place && award.links?.[0]?.url,
         award.id,
       ).toBeTruthy();
-      expect(award.url).toMatch(/^https:\/\//);
+      expect(award.links[0].url).toMatch(/^https:\/\//);
     }
   });
 
@@ -301,7 +301,9 @@ describe.each(LANGS)("proof and awards archive, %s (MKT-04)", (lang) => {
     // Every visible record links its public evidence; MultiversX got the
     // owner's post on 2026-10-01 (§5 #4).
     expect(
-      visible.filter((award) => !award.url).map((award) => award.id),
+      visible
+        .filter((award) => !award.links?.[0]?.url)
+        .map((award) => award.id),
     ).toEqual([]);
     for (const award of awards) {
       expect(award.event && award.year && award.place, award.id).toBeTruthy();

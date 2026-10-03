@@ -146,7 +146,7 @@ describe("variants", () => {
 });
 
 describe("AwardLine and DotLine", () => {
-  it("links the whole line only when the record has a URL", () => {
+  it("links the whole line to the first evidence link, only when there is one", () => {
     const linked = render(
       <AwardLine
         award={{
@@ -154,7 +154,10 @@ describe("AwardLine and DotLine", () => {
           year: 2026,
           place: "1st place",
           project: "P",
-          url: "https://example.com/x",
+          links: [
+            { label: "Main", url: "https://example.com/x" },
+            { label: "More", url: "https://example.com/y", hreflang: "tr" },
+          ],
         }}
       />,
     );
@@ -170,6 +173,9 @@ describe("AwardLine and DotLine", () => {
       "target",
       "_blank",
     );
+    // One link for the line; the other evidence links are the portfolio's.
+    expect(linked.container.querySelectorAll("a")).toHaveLength(1);
+    expect(linked.container.querySelector("a")).not.toHaveAttribute("hreflang");
     linked.unmount();
 
     const text = render(

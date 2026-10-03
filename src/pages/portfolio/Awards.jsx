@@ -16,7 +16,8 @@ import { projectLinkProps } from "./tracking.js";
 // podium of the archive (src/content/{en,tr}/awards.js, newest first) as a
 // tile: the photo from the owner's own post, or the place as a large numeral
 // where there is none; the event (h3), place · project · year, one or two
-// sentences and the link to the public evidence.
+// sentences and the links to the public evidence, one per line (the first
+// is the main one; src/content/{en,tr}/awards.js `links`).
 //
 // Below 768px a tile is a thumbnail beside its text, from 768px a third of
 // the row with the picture on top (portfolio.module.css). The heading counts
@@ -122,15 +123,21 @@ export function AwardTile({ award, record, position }) {
           />
         </p>
         {award.summary && <p className={styles.awardText}>{award.summary}</p>}
-        {award.url && (
-          <ExternalLink
-            href={award.url}
-            hrefLang={record?.hreflang ?? undefined}
-            {...projectLinkProps(HACKATHON_ARCHIVE.id, "post", position)}
-          >
-            {award.linkLabel}
-            <span aria-hidden="true"> →</span>
-          </ExternalLink>
+        {award.links?.length > 0 && (
+          <ul className={`${styles.awardLinks} list-unstyled`}>
+            {award.links.map((link) => (
+              <li key={link.url}>
+                <ExternalLink
+                  href={link.url}
+                  hrefLang={link.hreflang}
+                  {...projectLinkProps(HACKATHON_ARCHIVE.id, "post", position)}
+                >
+                  {link.label}
+                  <span aria-hidden="true"> →</span>
+                </ExternalLink>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </li>

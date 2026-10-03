@@ -84,6 +84,11 @@ describe("portfolio stylesheet (DSG-08 step 9, DSG-25)", () => {
       "grid-template-columns": "1fr",
     });
     expect(declared(css, ".awardMedia")).toMatchObject({ "aspect-ratio": "1" });
+    // The evidence links of a podium, one per line.
+    expect(declared(css, ".awardLinks")).toMatchObject({
+      display: "grid",
+      gap: "var(--space-1)",
+    });
     expect(declared(css, ".awardMedia img")).toMatchObject({
       "object-fit": "cover",
     });

@@ -235,13 +235,18 @@ describe.each([
       }
       expect(tile.textContent).toContain(String(award.year));
 
-      const link = within(tile).getByRole("link");
-      expect(link).toHaveAttribute("href", award.url);
-      expect(link.textContent).toContain(award.linkLabel);
-      if (record.hreflang) {
-        expect(link).toHaveAttribute("hreflang", record.hreflang);
-      } else {
-        expect(link).not.toHaveAttribute("hreflang");
+      // Every evidence link, in order, each with the language of its page.
+      const links = within(tile).getAllByRole("link");
+      expect(links, award.id).toHaveLength(award.links.length);
+      for (const [i, link] of links.entries()) {
+        const evidence = award.links[i];
+        expect(link).toHaveAttribute("href", evidence.url);
+        expect(link.textContent).toContain(evidence.label);
+        if (evidence.hreflang) {
+          expect(link).toHaveAttribute("hreflang", evidence.hreflang);
+        } else {
+          expect(link).not.toHaveAttribute("hreflang");
+        }
       }
 
       const img = tile.querySelector("img");

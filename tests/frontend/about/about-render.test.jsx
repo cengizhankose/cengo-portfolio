@@ -118,7 +118,7 @@ describe("ProofStrip on the page (MKT-04)", () => {
     expect(awards).toHaveLength(4);
     expect(
       [...awards].map((li) => li.querySelector("a").getAttribute("href")),
-    ).toEqual(en.proof.awards.map((award) => award.url));
+    ).toEqual(en.proof.awards.map((award) => award.links[0].url));
     // The evidence links open in a new tab (ExternalLink, MKT-23): the
     // hidden note ends the text.
     expect(awards[0].textContent).toBe(

@@ -44,14 +44,14 @@ export function DotLine({ parts, href }) {
   );
 }
 
-// "event · year · place · project", linked when the record has public
-// evidence (a record without a project, such as the IstanHack one, simply
-// has one part fewer).
+// "event · year · place · project", linked to its first evidence link when
+// the record has public evidence (a record without a project, such as the
+// IstanHack one, simply has one part fewer).
 export function AwardLine({ award }) {
   const parts = [award.event, award.year, award.place, award.project].filter(
     (part) => part !== undefined && part !== "",
   );
-  return <DotLine parts={parts} href={award.url} />;
+  return <DotLine parts={parts} href={award.links?.[0]?.url} />;
 }
 
 export function ProofStrip({ variant = "full" }) {

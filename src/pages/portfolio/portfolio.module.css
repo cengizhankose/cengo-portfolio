@@ -204,6 +204,13 @@
   line-height: 1.5;
 }
 
+/* The evidence links of a podium, one per line. */
+.awardLinks {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
 @media (min-width: 768px) {
   .awardGrid {
     grid-template-columns: repeat(3, 1fr);

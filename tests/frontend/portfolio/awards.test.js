@@ -2,7 +2,7 @@
 //
 // The hackathon podiums of the portfolio (W13-DSG-portfolio-redesign): the
 // language-independent record (src/content/awards.js), the text added to the
-// archive in both languages (summary, alt text, link label) and the committed
+// archive in both languages (summary, alt text, evidence links) and the committed
 // square photo sets. Everything runs on the real files; the page itself is
 // rendered in portfolio-page.test.jsx.
 import { existsSync, readdirSync, statSync } from "node:fs";
@@ -61,13 +61,78 @@ describe("award record (src/content/awards.js)", () => {
     ]);
   });
 
-  it("names the language of a one-language evidence page", () => {
+  it("leaves the language of the evidence to each link", () => {
     for (const record of AWARD_RECORDS) {
-      expect([null, "en", "tr"], record.id).toContain(record.hreflang);
+      expect(Object.hasOwn(record, "hreflang"), record.id).toBe(false);
+    }
+  });
+});
+
+describe("evidence links (src/content/{en,tr}/awards.js links)", () => {
+  const byId = (lang) =>
+    Object.fromEntries(CONTENT[lang].awards.map((award) => [award.id, award]));
+
+  it("names the language of a one-language evidence page, per link", () => {
+    for (const lang of LANGS) {
+      for (const award of CONTENT[lang].awards) {
+        for (const link of award.links ?? []) {
+          // Left out for a bilingual page, never null (the parity walker of
+          // tests/frontend/i18n takes no null).
+          expect(
+            Object.hasOwn(link, "hreflang") ? link.hreflang : "none",
+            `${lang} ${award.id} ${link.url}`,
+          ).toMatch(/^(en|tr|none)$/);
+        }
+      }
     }
     // The ConvoAI post is written in both languages.
-    expect(awardRecord("convoai-2026").hreflang).toBeNull();
-    expect(awardRecord("social-cohesion-2021").hreflang).toBe("tr");
+    expect(byId("en")["convoai-2026"].links[0].hreflang).toBeUndefined();
+    for (const link of byId("en")["social-cohesion-2021"].links) {
+      expect(link.hreflang, link.url).toBe("tr");
+    }
+  });
+
+  it("has the same urls and languages in the same order in both languages", () => {
+    const facts = (lang) =>
+      CONTENT[lang].awards.map((award) => [
+        award.id,
+        (award.links ?? []).map(({ url, hreflang }) => [url, hreflang]),
+      ]);
+    expect(facts("tr")).toEqual(facts("en"));
+  });
+
+  it("keeps each record's former single evidence link first", () => {
+    // The url every podium linked before the list (W13); the About archive
+    // and the ProofStrip still link the record to it.
+    const first = {
+      "convoai-2026":
+        "https://www.linkedin.com/feed/update/urn:li:activity:7420909334194434049/",
+      "hackstellar-2025":
+        "https://www.linkedin.com/feed/update/urn:li:activity:7406226922319376385/",
+      "algohack-2025":
+        "https://www.risein.com/blog/algohack-istanbul-the-weekend-builders-took-over-the-city",
+      "multiversx-2025":
+        "https://www.linkedin.com/feed/update/urn:li:activity:7310203306436395008/",
+      "solana-mini-2024":
+        "https://www.linkedin.com/feed/update/urn:li:activity:7172850511556153344/",
+      "solana-demo-day-2023":
+        "https://www.linkedin.com/feed/update/urn:li:activity:7122167244377239553/",
+      "solana-mini-2023":
+        "https://www.linkedin.com/feed/update/urn:li:activity:7106681953436786688/",
+      "teknasyon-2022":
+        "https://www.linkedin.com/feed/update/urn:li:activity:6977326538954321920/",
+      "social-cohesion-2021":
+        "https://www.hurriyet.com.tr/egitim/universite-ogrencilerine-bm-odulu-41910191",
+    };
+    for (const lang of LANGS) {
+      const shown = CONTENT[lang].awards.filter((award) => !award.hidden);
+      expect(
+        Object.fromEntries(
+          shown.map((award) => [award.id, award.links[0].url]),
+        ),
+        lang,
+      ).toEqual(first);
+    }
   });
 });
 
@@ -75,17 +140,23 @@ describe.each(LANGS)("podium text, %s", (lang) => {
   const awards = CONTENT[lang].awards;
   const visible = awards.filter((award) => !award.hidden);
 
-  it("every shown podium has a summary and a short link label", () => {
+  it("every shown podium has a summary and evidence links with short labels", () => {
     for (const award of visible) {
       expect(filled(award.summary), `${award.id} summary`).toBe(true);
       expect(award.summary.length, award.id).toBeLessThanOrEqual(200);
-      expect(filled(award.linkLabel), `${award.id} linkLabel`).toBe(true);
-      expect(award.linkLabel.length, award.id).toBeLessThanOrEqual(32);
+      expect(award.links.length, award.id).toBeGreaterThan(0);
+      for (const link of award.links) {
+        expect(filled(link.label), `${award.id} label`).toBe(true);
+        expect(link.label.length, link.label).toBeLessThanOrEqual(36);
+        expect(link.url, award.id).toMatch(/^https:\/\//);
+      }
+      const urls = award.links.map((link) => link.url);
+      expect(new Set(urls).size, award.id).toBe(urls.length);
     }
     // The hidden record stays a bare line.
     const hidden = awards.find((award) => award.hidden);
     expect(hidden.summary).toBeUndefined();
-    expect(hidden.linkLabel).toBeUndefined();
+    expect(hidden.links).toBeUndefined();
   });
 
   it("alt text exactly where there is a photo", () => {
@@ -114,11 +185,16 @@ describe.each(LANGS)("podium text, %s", (lang) => {
 
 it("the English label says (TR) exactly when the evidence page is Turkish only", () => {
   for (const award of CONTENT.en.awards.filter((a) => !a.hidden)) {
-    const { hreflang } = awardRecord(award.id);
-    expect(award.linkLabel.endsWith("(TR)"), award.id).toBe(hreflang === "tr");
+    for (const link of award.links) {
+      expect(link.label.endsWith("(TR)"), link.url).toBe(
+        link.hreflang === "tr",
+      );
+    }
   }
   for (const award of CONTENT.tr.awards.filter((a) => !a.hidden)) {
-    expect(award.linkLabel, award.id).not.toMatch(/\((TR|EN)\)/);
+    for (const link of award.links) {
+      expect(link.label, link.url).not.toMatch(/\((TR|EN)\)/);
+    }
   }
 });
 
