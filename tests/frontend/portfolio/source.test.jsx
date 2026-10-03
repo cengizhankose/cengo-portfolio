@@ -95,6 +95,16 @@ describe("portfolio stylesheet (DSG-08 step 9, DSG-25)", () => {
     });
   });
 
+  it("keeps the closing call to action clear of the page frame", () => {
+    // body has height: 100%, so the space under the last box must be padding:
+    // a trailing margin does not extend the scroll height, and from 1280px
+    // the fixed 10px frame covered the link.
+    expect(declared(css, ".cta")).toMatchObject({
+      margin: "0",
+      "padding-bottom": "calc(var(--frame-size) + var(--space-6))",
+    });
+  });
+
   it("keeps the image box 16:10 and cropped", () => {
     expect(declared(css, ".cardMedia")).toMatchObject({
       "aspect-ratio": "16 / 10",

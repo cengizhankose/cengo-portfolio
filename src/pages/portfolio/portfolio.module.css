@@ -249,9 +249,14 @@
   margin: 0;
 }
 
-/* Closing call to action. */
+/* Closing call to action, the last box in the flow. Its space below is
+   padding, not margin: body has height: 100% (base.css), so a trailing
+   margin does not extend the scroll height, and from 1280px (where the
+   social rail is fixed and nothing follows) the fixed page frame covered
+   the link. The padding clears the frame and keeps the old 3rem of air. */
 .cta {
-  margin: 0 0 3rem;
+  margin: 0;
+  padding-bottom: calc(var(--frame-size) + var(--space-6));
 }
 
 .cta p {
