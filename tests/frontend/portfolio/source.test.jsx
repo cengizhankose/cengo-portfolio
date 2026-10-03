@@ -28,8 +28,9 @@ describe("one click, one event (ANL-09 / ANL-11)", () => {
     const projectLinks = [
       ...document.querySelectorAll('a[data-track="project"]'),
     ];
-    // 5 case links, 9 podium evidence links (W13), 3 repos.
-    expect(projectLinks).toHaveLength(17);
+    // 5 case links, 22 podium evidence links (W13, more per podium since
+    // portfolio-links-media), 3 repos.
+    expect(projectLinks).toHaveLength(30);
     for (const link of projectLinks) {
       expect(
         outboundProps(link, options),

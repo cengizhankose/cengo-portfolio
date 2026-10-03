@@ -164,7 +164,8 @@ export const hasPublishedCases = (projects = PROJECTS) =>
  * The hackathon section that follows the cases (MKT-01 step 3, W13): the
  * podiums of src/content/awards.js with their photos, on this page under
  * #awards. Its evidence links send project_clicked with this analytics id
- * (link type "post"), at the section's place among the tracked items.
+ * (link type "post"), at the section's place among the tracked items, and
+ * with link_index, the link's place in its podium tile.
  */
 export const HACKATHON_ARCHIVE = deepFreeze({
   id: "hackathon_archive",

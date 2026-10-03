@@ -368,13 +368,21 @@ describe.each([
         "project_clicked",
         { project_id: "effort_lab", link_type: "demo", position: 3 },
       ],
-      // One per shown podium (W13): the evidence links of #awards.
+      // One per evidence link of the shown podiums (#awards), in tile order,
+      // with the link's place in its tile.
       ...content.awards
         .filter((award) => !award.hidden)
-        .map(() => [
-          "project_clicked",
-          { project_id: "hackathon_archive", link_type: "post", position: 4 },
-        ]),
+        .flatMap((award) =>
+          award.links.map((_, index) => [
+            "project_clicked",
+            {
+              project_id: "hackathon_archive",
+              link_type: "post",
+              position: 4,
+              link_index: index + 1,
+            },
+          ]),
+        ),
       [
         "project_clicked",
         { project_id: "voxly", link_type: "repo", position: 5 },

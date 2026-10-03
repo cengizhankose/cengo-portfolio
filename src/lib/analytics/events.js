@@ -194,6 +194,7 @@ export const PROPS = Object.freeze({
   project_id: enumOf(PROJECT_IDS),
   link_type: enumOf(LINK_TYPES),
   position: Object.freeze({ kind: "integer", min: 1, max: 100 }),
+  link_index: Object.freeze({ kind: "integer", min: 1, max: 10 }),
   percent: enumOf(READ_DEPTH_PERCENTS),
   engaged_seconds_bucket: enumOf(ENGAGED_SECONDS_BUCKETS),
   requested_path_group: enumOf(PATH_GROUPS),
@@ -263,7 +264,7 @@ export const EVENTS = Object.freeze({
   ),
   cv_downloaded: event(["cv_language", "location"], "required", "ANL-12"),
   project_clicked: event(
-    ["project_id", "link_type", "position"],
+    ["project_id", "link_type", "position", "link_index"],
     "required",
     "ANL-11",
   ),

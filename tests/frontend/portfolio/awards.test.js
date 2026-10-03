@@ -101,6 +101,42 @@ describe("evidence links (src/content/{en,tr}/awards.js links)", () => {
     expect(facts("tr")).toEqual(facts("en"));
   });
 
+  it("links every verified piece of evidence: 22 links over nine podiums", () => {
+    for (const lang of LANGS) {
+      expect(
+        Object.fromEntries(
+          CONTENT[lang].awards
+            .filter((award) => !award.hidden)
+            .map((award) => [award.id, award.links.length]),
+        ),
+        lang,
+      ).toEqual({
+        "convoai-2026": 2,
+        "hackstellar-2025": 3,
+        "algohack-2025": 2,
+        "multiversx-2025": 2,
+        "solana-mini-2024": 2,
+        "solana-demo-day-2023": 1,
+        "solana-mini-2023": 2,
+        "teknasyon-2022": 3,
+        "social-cohesion-2021": 5,
+      });
+    }
+  });
+
+  it("links the original posts, never a screenshot site, under the right event", () => {
+    const urls = (id) => byId("en")[id].links.map((link) => link.url);
+    const all = CONTENT.en.awards.flatMap((award) =>
+      (award.links ?? []).map((link) => link.url),
+    );
+    expect(all.filter((url) => /sotwe\.com/i.test(url))).toEqual([]);
+    // Rise In's X thread of the HackStellar winners names "2nd Place: Reset";
+    // it belongs to HackStellar, not to AlgoHack.
+    const thread = "https://x.com/riseinweb3/status/1995473145453572163";
+    expect(urls("hackstellar-2025")).toContain(thread);
+    expect(urls("algohack-2025")).not.toContain(thread);
+  });
+
   it("keeps each record's former single evidence link first", () => {
     // The url every podium linked before the list (W13); the About archive
     // and the ProofStrip still link the record to it.

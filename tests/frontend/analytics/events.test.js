@@ -240,6 +240,29 @@ describe("sanitizeProps (ANL-01 step 5)", () => {
     expect(
       sanitizeProps("project_clicked", { project_id: "farmin", position: 0 }),
     ).toEqual({ project_id: "farmin" });
+    // link_index: the place of a podium's evidence link in its tile, 1-10.
+    expect(
+      sanitizeProps("project_clicked", {
+        project_id: "hackathon_archive",
+        link_type: "post",
+        position: 4,
+        link_index: 2,
+      }),
+    ).toEqual({
+      project_id: "hackathon_archive",
+      link_type: "post",
+      position: 4,
+      link_index: 2,
+    });
+    for (const linkIndex of [0, 11, 1.5, "2"]) {
+      expect(
+        sanitizeProps("project_clicked", {
+          project_id: "hackathon_archive",
+          link_index: linkIndex,
+        }),
+        String(linkIndex),
+      ).toEqual({ project_id: "hackathon_archive" });
+    }
     expect(
       sanitizeProps("error_occurred", {
         scope: "blog_api",

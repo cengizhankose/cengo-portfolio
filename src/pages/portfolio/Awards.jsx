@@ -25,8 +25,9 @@ import { projectLinkProps } from "./tracking.js";
 // rest of the site does ("10 podiums").
 //
 // Every evidence link sends project_clicked { hackathon_archive, post,
-// position } (ANL-11): `position` is the section's place among the tracked
-// items of the page (after the cases), the slot the archive has always had.
+// position, link_index } (ANL-11): `position` is the section's place among
+// the tracked items of the page (after the cases), the slot the archive has
+// always had; `link_index` the link's place in its tile, from 1.
 export function Awards({ position }) {
   const t = useT();
   const { awards } = useContent();
@@ -125,12 +126,17 @@ export function AwardTile({ award, record, position }) {
         {award.summary && <p className={styles.awardText}>{award.summary}</p>}
         {award.links?.length > 0 && (
           <ul className={`${styles.awardLinks} list-unstyled`}>
-            {award.links.map((link) => (
+            {award.links.map((link, index) => (
               <li key={link.url}>
                 <ExternalLink
                   href={link.url}
                   hrefLang={link.hreflang}
-                  {...projectLinkProps(HACKATHON_ARCHIVE.id, "post", position)}
+                  {...projectLinkProps(
+                    HACKATHON_ARCHIVE.id,
+                    "post",
+                    position,
+                    index + 1,
+                  )}
                 >
                   {link.label}
                   <span aria-hidden="true"> →</span>

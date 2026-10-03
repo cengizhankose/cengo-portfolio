@@ -45,6 +45,11 @@ export default [
         label: "My post on LinkedIn",
         url: "https://www.linkedin.com/feed/update/urn:li:activity:7420909334194434049/",
       },
+      {
+        label: "My post on X",
+        url: "https://x.com/cengzhnkse/status/2015134325902041451",
+        hreflang: "en",
+      },
     ],
   },
   {
@@ -63,6 +68,16 @@ export default [
         url: "https://www.linkedin.com/feed/update/urn:li:activity:7406226922319376385/",
         hreflang: "tr",
       },
+      {
+        label: "Organizer’s post",
+        url: "https://www.linkedin.com/posts/risein_hackstellar-hackathon-winners-activity-7401250445479972866-AclP",
+        hreflang: "en",
+      },
+      {
+        label: "Rise In on X",
+        url: "https://x.com/riseinweb3/status/1995473145453572163",
+        hreflang: "en",
+      },
     ],
   },
   {
@@ -79,6 +94,11 @@ export default [
         url: "https://www.risein.com/blog/algohack-istanbul-the-weekend-builders-took-over-the-city",
         hreflang: "en",
       },
+      {
+        label: "Rise In on LinkedIn",
+        url: "https://www.linkedin.com/pulse/algohack-istanbul-weekend-builders-took-over-city-risein-2dznf",
+        hreflang: "en",
+      },
     ],
   },
   {
@@ -93,6 +113,11 @@ export default [
       {
         label: "Organizer’s post",
         url: "https://www.linkedin.com/feed/update/urn:li:activity:7310203306436395008/",
+        hreflang: "en",
+      },
+      {
+        label: "Rise In on X",
+        url: "https://x.com/riseinweb3/status/1896580848927064441",
         hreflang: "en",
       },
     ],
@@ -118,6 +143,11 @@ export default [
       {
         label: "My post on LinkedIn (TR)",
         url: "https://www.linkedin.com/feed/update/urn:li:activity:7172850511556153344/",
+        hreflang: "tr",
+      },
+      {
+        label: "My post on X (TR)",
+        url: "https://x.com/cengzhnkse/status/1767085517991039147",
         hreflang: "tr",
       },
     ],
@@ -156,6 +186,11 @@ export default [
         url: "https://www.linkedin.com/feed/update/urn:li:activity:7106681953436786688/",
         hreflang: "tr",
       },
+      {
+        label: "My post on X (TR)",
+        url: "https://x.com/cengzhnkse/status/1700916623647928770",
+        hreflang: "tr",
+      },
     ],
   },
   {
@@ -174,6 +209,16 @@ export default [
         url: "https://www.linkedin.com/feed/update/urn:li:activity:6977326538954321920/",
         hreflang: "tr",
       },
+      {
+        label: "My post on X (TR)",
+        url: "https://x.com/cengzhnkse/status/1569719858891493378",
+        hreflang: "tr",
+      },
+      {
+        label: "After the win on X (TR)",
+        url: "https://x.com/cengzhnkse/status/1571534565394599942",
+        hreflang: "tr",
+      },
     ],
   },
   {
@@ -188,6 +233,26 @@ export default [
       {
         label: "News story in Hürriyet (TR)",
         url: "https://www.hurriyet.com.tr/egitim/universite-ogrencilerine-bm-odulu-41910191",
+        hreflang: "tr",
+      },
+      {
+        label: "News in Ekonomim (TR)",
+        url: "https://www.ekonomim.com/genc-dunya/universite-ogrencilerine-birlesmis-milletlerden-odul-haberi-636094",
+        hreflang: "tr",
+      },
+      {
+        label: "My university’s announcement (TR)",
+        url: "https://www.beykoz.edu.tr/haber/3541-yazilim-muhendisligi-ogrencileri-sosyal-uyum-ve-inovatif-cozumler-hackathonunda-birinci-oldu",
+        hreflang: "tr",
+      },
+      {
+        label: "My post on LinkedIn (TR)",
+        url: "https://www.linkedin.com/feed/update/urn:li:activity:6845384529444671488/",
+        hreflang: "tr",
+      },
+      {
+        label: "Sharing the news (TR)",
+        url: "https://www.linkedin.com/feed/update/urn:li:activity:6853822120028315648/",
         hreflang: "tr",
       },
     ],
