@@ -62,6 +62,8 @@ export default [
     project: "Farmin",
     summary:
       "Efe Akkurt ile 36 saatlik bir hafta sonunda geliştirdiğimiz Farmin, Open Innovation Track’i ve 2.500 $ ödülü kazandı.",
+    imageAlt:
+      "Ben ve kırmızı kapüşonlu Efe Akkurt, iki kişiyle birlikte, Farmin’i birinci gösteren kazananlar ekranının önünde.",
     links: [
       {
         label: "Organizatörün yazısı",
@@ -83,6 +85,8 @@ export default [
     project: "Avenrise",
     summary:
       "Rise In’in kazananlar paylaşımında Avenrise projem, ödül alan üç proje arasında ikinci.",
+    imageAlt:
+      "Fotoğraf değil, tasarlanmış başlık kartı: koyu bir ızgara üzerinde beyaz harflerle “#2 Avenrise”, altında MultiversX Labs Xperience Hackathon ve 2025.",
     links: [
       {
         label: "Organizatörün paylaşımı",
@@ -203,6 +207,8 @@ export default [
     project: "Game Pair",
     summary:
       "Sosyal uyum için bir teknoloji projesi olan Game Pair, Gençlik ve Spor Bakanlığı, UNDP ve Habitat’ın 52 saatlik hackathonunda birinci oldu.",
+    imageAlt:
+      "Sahnede, yeşil etkinlik ekranının önünde Teknoloji Hackathonu’nun dev 1. takım ödül çekini tutarken.",
     links: [
       {
         label: "Hürriyet’teki haber",

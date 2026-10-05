@@ -5,7 +5,7 @@
 // archive in both languages (summary, alt text, evidence links) and the committed
 // square photo sets. Everything runs on the real files; the page itself is
 // rendered in portfolio-page.test.jsx.
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { AWARD_RECORDS, awardRecord } from "../../../src/content/awards.js";
@@ -46,19 +46,45 @@ describe("award record (src/content/awards.js)", () => {
     }
   });
 
-  it("copies no organizer's or newspaper's picture: those podiums are numerals", () => {
-    // 00-icerik-girdileri.md section 9: Rise In's and Hürriyet's images stay
-    // theirs and are linked. IstanHack has no public record at all.
+  it("every shown podium has a cover; only the hidden IstanHack has none", () => {
+    // Owner photos are the rule; Rise In's and Hürriyet's images stay theirs
+    // and are linked. IstanHack has no public record at all.
     expect(
       AWARD_RECORDS.filter((record) => !record.image).map(
         (record) => record.id,
       ),
-    ).toEqual([
-      "algohack-2025",
-      "multiversx-2025",
-      "istanhack-2024",
-      "social-cohesion-2021",
-    ]);
+    ).toEqual(["istanhack-2024"]);
+    for (const lang of LANGS) {
+      const hidden = CONTENT[lang].awards.filter((award) => award.hidden);
+      expect(
+        hidden.map((award) => award.id),
+        lang,
+      ).toEqual(["istanhack-2024"]);
+    }
+  });
+
+  it("the one image that is not a photo is MultiversX's title card, and says so", () => {
+    expect(
+      AWARD_RECORDS.filter((record) => record.graphic).map(
+        (record) => record.id,
+      ),
+    ).toEqual(["multiversx-2025"]);
+    const svg = join(ROOT, "scripts/images/sources/awards/multiversx-2025.svg");
+    expect(existsSync(svg)).toBe(true);
+    const source = readFileSync(svg, "utf8");
+    // Outlined paths only: no embedded picture, no <text>, no font reference.
+    expect(source).not.toMatch(/<image|data:image|<text|font-family/i);
+    expect(source).toMatch(/not a photograph/);
+    const alt = (lang) =>
+      CONTENT[lang].awards.find((award) => award.id === "multiversx-2025")
+        .imageAlt;
+    expect(alt("en")).toMatch(/title card/i);
+    expect(alt("en")).toMatch(/not a photo/i);
+    expect(alt("tr")).toMatch(/başlık kartı/i);
+    expect(alt("tr")).toMatch(/fotoğraf değil/i);
+    for (const lang of LANGS) {
+      expect(alt(lang), lang).not.toMatch(/^(Me|Ben)\b/);
+    }
   });
 
   it("leaves the language of the evidence to each link", () => {
@@ -249,6 +275,34 @@ describe("podium photos (public/img/awards)", () => {
           );
           const info = imageInfo(bytes(file));
           expect([info.width, info.height], file).toEqual([width, width]);
+        }
+      }
+    }
+  });
+
+  it("every shown award has a nonempty alt in both languages and all its local assets", () => {
+    for (const lang of LANGS) {
+      for (const award of CONTENT[lang].awards.filter((a) => !a.hidden)) {
+        const record = awardRecord(award.id);
+        expect(record.image, `${lang} ${award.id} image`).toBeTruthy();
+        expect(filled(record.image.name), award.id).toBe(true);
+        expect(filled(award.imageAlt), `${lang} ${award.id} imageAlt`).toBe(
+          true,
+        );
+        expect(
+          existsSync(
+            join(
+              ROOT,
+              `scripts/images/sources/awards/${record.image.name}.jpg`,
+            ),
+          ),
+          `${award.id} master`,
+        ).toBe(true);
+        for (const width of awardWidths(record.image)) {
+          for (const ext of ["avif", "webp"]) {
+            const file = `public${awardSrc(record.image.name, width, ext)}`;
+            expect(existsSync(join(ROOT, file)), file).toBe(true);
+          }
         }
       }
     }

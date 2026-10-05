@@ -18,7 +18,8 @@
 //             from the owner's post and §4.2/§5; teammates only as the owner
 //             credited them
 //   imageAlt  alternative text of the podium photo, only for a record with an
-//             image in src/content/awards.js (photos from the owner's posts)
+//             image in src/content/awards.js (photos from the owner's posts;
+//             the one title card, `graphic`, says it is a graphic, not a photo)
 //   links     [{ label, url, hreflang? }]: the public evidence (an organizer
 //             post, a press article or the owner's own post), left out when
 //             there is none: nothing is linked that was not verified (§5).
@@ -88,6 +89,8 @@ export default [
     project: "Farmin",
     summary:
       "Farmin, built with Efe Akkurt over a 36-hour weekend, won the Open Innovation Track and its $2,500 prize.",
+    imageAlt:
+      "Me and Efe Akkurt, in the red hoodie, with two other people in front of the winners screen that lists Farmin in first place.",
     links: [
       {
         label: "Organizer’s recap",
@@ -109,6 +112,8 @@ export default [
     project: "Avenrise",
     summary:
       "Rise In’s winners post named Avenrise, my entry, second of the three winning projects.",
+    imageAlt:
+      "Designed title card, not a photo: “#2 Avenrise” in white type on a dark grid, with MultiversX Labs Xperience Hackathon and 2025 below.",
     links: [
       {
         label: "Organizer’s post",
@@ -229,6 +234,8 @@ export default [
     project: "Game Pair",
     summary:
       "Game Pair, a technology project for social cohesion, won this 52-hour hackathon of the Ministry of Youth and Sports, UNDP and Habitat.",
+    imageAlt:
+      "Me on stage holding the giant first-team prize check of the Technology Hackathon in front of the green event screen.",
     links: [
       {
         label: "News story in Hürriyet (TR)",

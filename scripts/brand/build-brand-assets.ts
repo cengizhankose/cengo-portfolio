@@ -49,14 +49,14 @@ export const ICO_SIZES = [16, 32, 48] as const;
  */
 const SMALL_SIZE_EMBOLDEN: Record<number, number> = { 16: 30, 32: 16, 48: 8 };
 
-type Box = { x1: number; y1: number; x2: number; y2: number };
-type Glyphs = { d: string; box: Box };
+export type Box = { x1: number; y1: number; x2: number; y2: number };
+export type Glyphs = { d: string; box: Box };
 
-function fontFile(pkg: string, file: string): string {
+export function fontFile(pkg: string, file: string): string {
   return join(ROOT, "node_modules", "@fontsource", pkg, "files", file);
 }
 
-async function loadFont(path: string): Promise<Font> {
+export async function loadFont(path: string): Promise<Font> {
   return parse(await Bun.file(path).arrayBuffer());
 }
 
@@ -65,7 +65,7 @@ function round(n: number): number {
 }
 
 /** Text as absolute path data (y down) plus its exact outline box. */
-function textToPath(
+export function textToPath(
   font: Font,
   text: string,
   x: number,
