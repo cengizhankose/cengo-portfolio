@@ -24,10 +24,9 @@ parameters (`?e=...&v=...&t=...`) of the image URLs are left out.
   https://media.licdn.com/dms/image/v2/D4D22AQF4zYqbwQRWdw/feedshare-image-high-res/B4DZmpd0kTJQAs-/0/1759484796597
 - Crop: x 775, y 270, 688×688 px of the original, scaled to 640×640.
 - Event check: the winners screen in the picture lists Farmin in first place;
-  the post names the event and the team. The AlgoHack banners at the edges of
-  the original are cropped out, so the crop shows four people (the owner and
-  Efe Akkurt in the red hoodie among them) and the screen only. Who stands
-  where is the owner's identification (Logan's brief), not read from the file.
+  the post names the event and the team. The original AlgoHack and Rise In
+  banners are cropped out, so the final crop shows four people and the winners
+  screen. The alt text makes no claim about individual identities or clothing.
 - Not used: the post's caption wording (overall first, number of teams); the
   page keeps "1st place, Open Innovation Track".
 

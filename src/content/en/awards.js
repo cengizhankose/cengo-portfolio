@@ -90,7 +90,7 @@ export default [
     summary:
       "Farmin, built with Efe Akkurt over a 36-hour weekend, won the Open Innovation Track and its $2,500 prize.",
     imageAlt:
-      "Me and Efe Akkurt, in the red hoodie, with two other people in front of the winners screen that lists Farmin in first place.",
+      "Four people in front of the winners screen, which lists Farmin in first place.",
     links: [
       {
         label: "Organizer’s recap",

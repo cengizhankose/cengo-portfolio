@@ -63,7 +63,7 @@ export default [
     summary:
       "Efe Akkurt ile 36 saatlik bir hafta sonunda geliştirdiğimiz Farmin, Open Innovation Track’i ve 2.500 $ ödülü kazandı.",
     imageAlt:
-      "Ben ve kırmızı kapüşonlu Efe Akkurt, iki kişiyle birlikte, Farmin’i birinci gösteren kazananlar ekranının önünde.",
+      "Farmin’i birinci gösteren kazananlar ekranının önünde dört kişi.",
     links: [
       {
         label: "Organizatörün yazısı",
