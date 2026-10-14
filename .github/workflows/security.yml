@@ -19,7 +19,7 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # scan the full history, not just the tip
       # Personal-account repo: no GITLEAKS_LICENSE needed. Findings are never
@@ -32,7 +32,7 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           # Same Bun as the Dockerfile, ci.yml and bun.lock (BE-27: package.json#packageManager).
